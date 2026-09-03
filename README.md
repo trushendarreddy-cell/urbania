@@ -1,10 +1,10 @@
-# 🏙️ Urbania
+#  Urbania
 
 **Urbania** is an interactive 3D city-building prototype built with React, TypeScript, and Three.js. It started as a blank Vite project and evolved into a voxel-style world where you can place buildings, trees, and rocks on a grid-based terrain using mouse clicks.
 
 ---
 
-## 🤔 What is Urbania?
+##  What is Urbania?
 
 Urbania is a browser-based city builder running entirely in the browser using **React Three Fiber**. It renders a low-poly 3D world with:
 
@@ -20,7 +20,7 @@ The project is a **prototype** — a proving ground for 3D rendering, state mana
 
 ---
 
-## 💡 Why am I building this?
+##  Why am I building this?
 
 I wanted to explore how modern web technologies can be used to build immersive 3D experiences without requiring heavy game engines like Unity or Unreal. 
 
@@ -37,7 +37,7 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 ---
 
-## 🛠️ How I built this
+##  How I built this
 
 ### Phase 1 — Project Setup
 - Created the project with **Vite + React + TypeScript**
@@ -78,7 +78,7 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 ---
 
-## 🧰 Tech Stack
+##  Tech Stack
 
 | Category | Technology |
 |----------|-----------|
@@ -95,7 +95,7 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ```bash
 # Install dependencies
@@ -113,7 +113,7 @@ npm run lint
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 urbania/
@@ -138,7 +138,7 @@ urbania/
 
 ---
 
-## 🗺️ What's Next?
+##  What's Next?
 
 See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features including:
 
@@ -150,5 +150,12 @@ See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features including:
 - Events and Easter eggs
 
 ---
+## Author
+
+**T. Rushendar Reddy**
+
+Email:trushendarreddy@gmail.com
+
+Hyderabad,Telangana
 
 *Built as a learning project and proof-of-concept for browser-based city simulation.*
