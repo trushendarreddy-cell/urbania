@@ -109,16 +109,18 @@ const addBuilding = useBuildingStore(
     position={building.position}
   />
 ))}
-
+<House
+  position={[hoverPos[0], 0, hoverPos[2]]}
+  ghost
+/>
       {/* Hover Tile */}
       <HoverTile position={hoverPos} />
-
+<House
+  position={[hoverPos[0], 0, hoverPos[2]]}
+  ghost
+/>
       {/* Camera Controls */}
       <OrbitControls />
     </>
   );
-}
-
-function onMouseClick(this: HTMLCanvasElement, ev: PointerEvent) {
-  throw new Error("Function not implemented.");
 }
