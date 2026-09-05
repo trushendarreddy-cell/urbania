@@ -61,25 +61,26 @@ export default function GameScene({
       setHoverPos([x, 0.02, z]);
     }
 
-    function onMouseClick() {
-      if (selectedTool === "house") {
-        addBuilding([
-          hoverPos[0],
-          0,
-          hoverPos[2],
-        ], "house");
-      } else if (selectedTool === "tree") {
-        addBuilding([
-          hoverPos[0],
-          0,
-          hoverPos[2],
-        ], "tree");
-      } else if (selectedTool === "rock") {
-        addBuilding([
-          hoverPos[0],
-          0,
-          hoverPos[2],
-        ], "rock");
+    const DRAG_THRESHOLD = 6;
+    let dragStart: { x: number; y: number } | null = null;
+
+    function onPointerDown(event: PointerEvent) {
+      if (event.button !== 0) return;
+      dragStart = { x: event.clientX, y: event.clientY };
+    }
+
+    function onPointerUp(event: PointerEvent) {
+      if (event.button !== 0 || !dragStart) return;
+
+      const dx = event.clientX - dragStart.x;
+      const dy = event.clientY - dragStart.y;
+      const distance = Math.hypot(dx, dy);
+      dragStart = null;
+
+      if (distance <= DRAG_THRESHOLD && event.target === gl.domElement) {
+        if (selectedTool && selectedTool !== "none") {
+          addBuilding([hoverPos[0], 0, hoverPos[2]], selectedTool);
+        }
       }
     }
 
@@ -88,8 +89,12 @@ export default function GameScene({
       onMouseMove
     );
     gl.domElement.addEventListener(
-      "click",
-      onMouseClick
+      "pointerdown",
+      onPointerDown
+    );
+    window.addEventListener(
+      "pointerup",
+      onPointerUp
     );
 
     return () => {
@@ -97,10 +102,13 @@ export default function GameScene({
         "mousemove",
         onMouseMove
       );
-
       gl.domElement.removeEventListener(
-        "click",
-        onMouseClick
+        "pointerdown",
+        onPointerDown
+      );
+      window.removeEventListener(
+        "pointerup",
+        onPointerUp
       );
     };
   }, [camera, gl, hoverPos, addBuilding, selectedTool]);

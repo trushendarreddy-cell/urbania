@@ -29,6 +29,8 @@ export default function Toolbar({
 
   return (
     <div
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
         bottom: "20px",
