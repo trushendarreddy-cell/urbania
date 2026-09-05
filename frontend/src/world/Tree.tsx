@@ -1,16 +1,18 @@
 interface TreeProps {
   position: [number, number, number];
+  rotation?: number;
   ghost?: boolean;
 }
 
 export default function Tree({
   position,
+  rotation = 0,
   ghost = false,
 }: TreeProps) {
   const opacity = ghost ? 0.45 : 1;
 
   return (
-    <group position={position}>
+    <group position={position} rotation={[0, rotation, 0]}>
       <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.12, 0.18, 0.7, 6]} />
         <meshStandardMaterial

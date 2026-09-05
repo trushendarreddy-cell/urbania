@@ -1,16 +1,18 @@
 interface HouseProps {
   position: [number, number, number];
+  rotation?: number;
   ghost?: boolean;
 }
 
 export default function House({
   position,
+  rotation = 0,
   ghost = false,
 }: HouseProps) {
   const opacity = ghost ? 0.45 : 1;
 
   return (
-    <group position={position}>
+    <group position={position} rotation={[0, rotation, 0]}>
       {/* Foundation */}
       <mesh position={[0, 0.05, 0]} receiveShadow>
         <boxGeometry args={[1.1, 0.1, 1.1]} />

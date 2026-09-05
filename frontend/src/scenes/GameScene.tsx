@@ -29,6 +29,30 @@ export default function GameScene({
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.repeat) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (event.key === "r" || event.key === "R") {
+        setRotation((prev) => (prev + Math.PI / 2) % (Math.PI * 2));
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     const raycaster = new Raycaster();
@@ -79,7 +103,11 @@ export default function GameScene({
 
       if (distance <= DRAG_THRESHOLD && event.target === gl.domElement) {
         if (selectedTool && selectedTool !== "none") {
-          addBuilding([hoverPos[0], 0, hoverPos[2]], selectedTool);
+          addBuilding(
+            [hoverPos[0], 0, hoverPos[2]],
+            selectedTool,
+            rotation
+          );
         }
       }
     }
@@ -111,7 +139,7 @@ export default function GameScene({
         onPointerUp
       );
     };
-  }, [camera, gl, hoverPos, addBuilding, selectedTool]);
+  }, [camera, gl, hoverPos, addBuilding, selectedTool, rotation]);
 
   return (
     <>
@@ -138,6 +166,7 @@ export default function GameScene({
             <Rock
               key={building.id}
               position={building.position}
+              rotation={building.rotation ?? 0}
             />
           );
         }
@@ -146,6 +175,7 @@ export default function GameScene({
             <Tree
               key={building.id}
               position={building.position}
+              rotation={building.rotation ?? 0}
             />
           );
         }
@@ -154,6 +184,7 @@ export default function GameScene({
             <House
               key={building.id}
               position={building.position}
+              rotation={building.rotation ?? 0}
             />
           );
         }
@@ -166,6 +197,7 @@ export default function GameScene({
       {selectedTool === "house" && (
         <House
           position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
           ghost
         />
       )}
@@ -173,6 +205,7 @@ export default function GameScene({
       {selectedTool === "tree" && (
         <Tree
           position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
           ghost
         />
       )}
@@ -180,6 +213,7 @@ export default function GameScene({
       {selectedTool === "rock" && (
         <Rock
           position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
           ghost
         />
       )}
