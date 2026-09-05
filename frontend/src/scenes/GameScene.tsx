@@ -7,6 +7,8 @@ import Ground from "../world/Ground";
 import WorldGrid from "../world/Grid";
 import HoverTile from "../world/HoverTile";
 import House from "../world/House";
+import Tree from "../world/Tree";
+import Rock from "../world/Rock";
 import useBuildingStore from "../store/BuildingStore";
 import type { BuildMode } from "../types/game";
 
@@ -63,9 +65,21 @@ export default function GameScene({
       if (selectedTool === "house") {
         addBuilding([
           hoverPos[0],
-          0.5,
+          0,
           hoverPos[2],
         ], "house");
+      } else if (selectedTool === "tree") {
+        addBuilding([
+          hoverPos[0],
+          0,
+          hoverPos[2],
+        ], "tree");
+      } else if (selectedTool === "rock") {
+        addBuilding([
+          hoverPos[0],
+          0,
+          hoverPos[2],
+        ], "rock");
       }
     }
 
@@ -111,6 +125,22 @@ export default function GameScene({
 
       {/* Test House */}
       {buildings.map((building) => {
+        if (building.type === "rock") {
+          return (
+            <Rock
+              key={building.id}
+              position={building.position}
+            />
+          );
+        }
+        if (building.type === "tree") {
+          return (
+            <Tree
+              key={building.id}
+              position={building.position}
+            />
+          );
+        }
         if (building.type === "house" || !building.type) {
           return (
             <House
@@ -127,6 +157,20 @@ export default function GameScene({
 
       {selectedTool === "house" && (
         <House
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          ghost
+        />
+      )}
+
+      {selectedTool === "tree" && (
+        <Tree
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          ghost
+        />
+      )}
+
+      {selectedTool === "rock" && (
+        <Rock
           position={[hoverPos[0], 0, hoverPos[2]]}
           ghost
         />
