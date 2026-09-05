@@ -8,17 +8,22 @@ import WorldGrid from "../world/Grid";
 import HoverTile from "../world/HoverTile";
 import House from "../world/House";
 import useBuildingStore from "../store/BuildingStore";
+import type { BuildMode } from "../types/game";
 
+interface GameSceneProps {
+  selectedTool?: BuildMode;
+}
 
-
-export default function GameScene() {
+export default function GameScene({
+  selectedTool = "house",
+}: GameSceneProps) {
   const { camera, gl } = useThree();
-const buildings = useBuildingStore(
-  (state) => state.buildings
-);
-const addBuilding = useBuildingStore(
-  (state) => state.addBuilding
-);
+  const buildings = useBuildingStore(
+    (state) => state.buildings
+  );
+  const addBuilding = useBuildingStore(
+    (state) => state.addBuilding
+  );
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -55,11 +60,13 @@ const addBuilding = useBuildingStore(
     }
 
     function onMouseClick() {
-      addBuilding([
-        hoverPos[0],
-        0.5,
-        hoverPos[2],
-      ]);
+      if (selectedTool === "house") {
+        addBuilding([
+          hoverPos[0],
+          0.5,
+          hoverPos[2],
+        ], "house");
+      }
     }
 
     gl.domElement.addEventListener(
@@ -82,7 +89,7 @@ const addBuilding = useBuildingStore(
         onMouseClick
       );
     };
-  }, [camera, gl, hoverPos, addBuilding]);
+  }, [camera, gl, hoverPos, addBuilding, selectedTool]);
 
   return (
     <>
@@ -103,22 +110,28 @@ const addBuilding = useBuildingStore(
       <WorldGrid />
 
       {/* Test House */}
-      {buildings.map((building) => (
-  <House
-    key={building.id}
-    position={building.position}
-  />
-))}
-<House
-  position={[hoverPos[0], 0, hoverPos[2]]}
-  ghost
-/>
+      {buildings.map((building) => {
+        if (building.type === "house" || !building.type) {
+          return (
+            <House
+              key={building.id}
+              position={building.position}
+            />
+          );
+        }
+        return null;
+      })}
+
       {/* Hover Tile */}
       <HoverTile position={hoverPos} />
-<House
-  position={[hoverPos[0], 0, hoverPos[2]]}
-  ghost
-/>
+
+      {selectedTool === "house" && (
+        <House
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          ghost
+        />
+      )}
+
       {/* Camera Controls */}
       <OrbitControls />
     </>

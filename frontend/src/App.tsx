@@ -3,10 +3,11 @@ import { useState } from "react";
 
 import GameScene from "./scenes/GameScene";
 import Toolbar from "./ui/Toolbar";
+import type { BuildMode } from "./types/game";
 
 export default function App() {
   const [selectedTool, setSelectedTool] =
-    useState("house");
+    useState<BuildMode>("house");
 
   return (
     <>
@@ -21,7 +22,7 @@ export default function App() {
           fov: 50,
         }}
       >
-        <GameScene />
+        <GameScene selectedTool={selectedTool} />
       </Canvas>
 
       <Toolbar
