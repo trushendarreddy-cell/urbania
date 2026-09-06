@@ -3,11 +3,11 @@ import { useState } from "react";
 
 import GameScene from "./scenes/GameScene";
 import Toolbar from "./ui/Toolbar";
-import type { BuildMode } from "./types/game";
+import type { BuildTool } from "./types/BuildTool";
 
 export default function App() {
   const [selectedTool, setSelectedTool] =
-    useState<BuildMode>("house");
+    useState<BuildTool>("house");
 
   return (
     <>

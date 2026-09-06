@@ -5,15 +5,14 @@ import { useEffect, useState } from "react";
 
 import Ground from "../world/Ground";
 import WorldGrid from "../world/Grid";
-import HoverTile from "../world/HoverTile";
 import House from "../world/House";
 import Tree from "../world/Tree";
 import Rock from "../world/Rock";
 import useBuildingStore from "../store/BuildingStore";
-import type { BuildMode } from "../types/game";
+import type { BuildTool } from "../types/BuildTool";
 
 interface GameSceneProps {
-  selectedTool?: BuildMode;
+  selectedTool: BuildTool;
 }
 
 export default function GameScene({
@@ -25,6 +24,9 @@ export default function GameScene({
   );
   const addBuilding = useBuildingStore(
     (state) => state.addBuilding
+  );
+  const removeBuilding = useBuildingStore(
+    (state) => state.removeBuilding
   );
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
@@ -102,7 +104,16 @@ export default function GameScene({
       dragStart = null;
 
       if (distance <= DRAG_THRESHOLD && event.target === gl.domElement) {
-        if (selectedTool && selectedTool !== "none") {
+        if (selectedTool === "bulldozer") {
+          const target = buildings.find(
+            (b) =>
+              Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
+              Math.abs(b.position[2] - hoverPos[2]) < 0.1
+          );
+          if (target) {
+            removeBuilding(target.id);
+          }
+        } else if (selectedTool) {
           addBuilding(
             [hoverPos[0], 0, hoverPos[2]],
             selectedTool,
@@ -139,7 +150,25 @@ export default function GameScene({
         onPointerUp
       );
     };
-  }, [camera, gl, hoverPos, addBuilding, selectedTool, rotation]);
+  }, [
+    camera,
+    gl,
+    hoverPos,
+    addBuilding,
+    removeBuilding,
+    buildings,
+    selectedTool,
+    rotation,
+  ]);
+
+  const hoveredBuilding =
+    selectedTool === "bulldozer"
+      ? buildings.find(
+          (b) =>
+            Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
+            Math.abs(b.position[2] - hoverPos[2]) < 0.1
+        )
+      : null;
 
   return (
     <>
@@ -191,9 +220,6 @@ export default function GameScene({
         return null;
       })}
 
-      {/* Hover Tile */}
-      <HoverTile position={hoverPos} />
-
       {selectedTool === "house" && (
         <House
           position={[hoverPos[0], 0, hoverPos[2]]}
@@ -216,6 +242,17 @@ export default function GameScene({
           rotation={rotation}
           ghost
         />
+      )}
+
+      {selectedTool === "bulldozer" && (
+        <mesh position={hoverPos} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[1, 1]} />
+          <meshBasicMaterial
+            color={hoveredBuilding ? "#EF4444" : "#F97316"}
+            transparent
+            opacity={0.5}
+          />
+        </mesh>
       )}
 
       {/* Camera Controls */}

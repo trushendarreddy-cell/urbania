@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import type { BuildMode } from "../types/game";
+import type { BuildTool } from "../types/BuildTool";
 
 export interface Building {
   id: number;
-  type?: BuildMode;
+  type?: BuildTool;
   position: [number, number, number];
   rotation?: number;
 }
@@ -12,9 +12,10 @@ interface BuildingStore {
   buildings: Building[];
   addBuilding: (
     position: [number, number, number],
-    type?: BuildMode,
+    type?: BuildTool,
     rotation?: number
   ) => void;
+  removeBuilding: (id: number) => void;
 }
 
 const useBuildingStore = create<BuildingStore>((set) => ({
@@ -31,6 +32,11 @@ const useBuildingStore = create<BuildingStore>((set) => ({
           rotation,
         },
       ],
+    })),
+
+  removeBuilding: (id) =>
+    set((state) => ({
+      buildings: state.buildings.filter((building) => building.id !== id),
     })),
 }));
 

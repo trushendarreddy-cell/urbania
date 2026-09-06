@@ -1,15 +1,15 @@
-import type { BuildMode } from "../types/game";
+import type { BuildTool } from "../types/BuildTool";
 
 interface ToolbarProps {
-  selected: BuildMode;
-  onSelect: (tool: BuildMode) => void;
+  selected: BuildTool;
+  onSelect: (tool: BuildTool) => void;
 }
 
 export default function Toolbar({
   selected,
   onSelect,
 }: ToolbarProps) {
-  const tools: { id: BuildMode; icon: string; label: string }[] = [
+  const tools: { id: BuildTool; icon: string; label: string }[] = [
     {
       id: "house",
       icon: "🏠",
@@ -24,6 +24,11 @@ export default function Toolbar({
       id: "rock",
       icon: "🪨",
       label: "Rock",
+    },
+    {
+      id: "bulldozer",
+      icon: "🗑️",
+      label: "Bulldozer",
     },
   ];
 
