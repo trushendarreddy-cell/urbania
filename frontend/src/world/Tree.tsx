@@ -2,21 +2,27 @@ interface TreeProps {
   position: [number, number, number];
   rotation?: number;
   ghost?: boolean;
+  valid?: boolean;
 }
 
 export default function Tree({
   position,
   rotation = 0,
   ghost = false,
+  valid = true,
 }: TreeProps) {
   const opacity = ghost ? 0.45 : 1;
+  const trunkColor = ghost ? (valid ? "#86EFAC" : "#FCA5A5") : "#5D4037";
+  const leafBottom = ghost ? (valid ? "#16A34A" : "#DC2626") : "#2E7D32";
+  const leafMiddle = ghost ? (valid ? "#22C55E" : "#EF4444") : "#388E3C";
+  const leafTop = ghost ? (valid ? "#4ADE80" : "#F87171") : "#4CAF50";
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
       <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.12, 0.18, 0.7, 6]} />
         <meshStandardMaterial
-          color="#5D4037"
+          color={trunkColor}
           transparent={ghost}
           opacity={opacity}
         />
@@ -25,7 +31,7 @@ export default function Tree({
       <mesh position={[0, 0.85, 0]} castShadow receiveShadow>
         <coneGeometry args={[0.75, 0.7, 6]} />
         <meshStandardMaterial
-          color="#2E7D32"
+          color={leafBottom}
           transparent={ghost}
           opacity={opacity}
         />
@@ -34,7 +40,7 @@ export default function Tree({
       <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
         <coneGeometry args={[0.58, 0.6, 6]} />
         <meshStandardMaterial
-          color="#388E3C"
+          color={leafMiddle}
           transparent={ghost}
           opacity={opacity}
         />
@@ -43,7 +49,7 @@ export default function Tree({
       <mesh position={[0, 1.6, 0]} castShadow receiveShadow>
         <coneGeometry args={[0.4, 0.5, 6]} />
         <meshStandardMaterial
-          color="#4CAF50"
+          color={leafTop}
           transparent={ghost}
           opacity={opacity}
         />

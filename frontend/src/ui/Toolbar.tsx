@@ -9,26 +9,35 @@ export default function Toolbar({
   selected,
   onSelect,
 }: ToolbarProps) {
-  const tools: { id: BuildTool; icon: string; label: string }[] = [
+  const tools: {
+    id: BuildTool;
+    icon: string;
+    label: string;
+    key: string;
+  }[] = [
     {
       id: "house",
       icon: "🏠",
       label: "House",
+      key: "1",
     },
     {
       id: "tree",
       icon: "🌳",
       label: "Tree",
+      key: "2",
     },
     {
       id: "rock",
       icon: "🪨",
       label: "Rock",
+      key: "3",
     },
     {
       id: "bulldozer",
       icon: "🗑️",
-      label: "Bulldozer",
+      label: "Bulldoze",
+      key: "4",
     },
   ];
 
@@ -41,48 +50,94 @@ export default function Toolbar({
         bottom: "20px",
         left: "50%",
         transform: "translateX(-50%)",
-
         display: "flex",
-        gap: "12px",
-
-        padding: "12px 16px",
-
-        background: "rgba(35,35,35,0.9)",
-
-        borderRadius: "14px",
-
-        boxShadow:
-          "0 6px 18px rgba(0,0,0,0.35)",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "8px",
+        zIndex: 10,
       }}
     >
-      {tools.map((tool) => (
-        <button
-          key={tool.id}
-          onClick={() => onSelect(tool.id)}
-          style={{
-            width: "64px",
-            height: "64px",
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          padding: "10px 14px",
+          background: "rgba(24, 24, 27, 0.9)",
+          borderRadius: "16px",
+          backdropFilter: "blur(8px)",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        {tools.map((tool) => {
+          const isSelected = selected === tool.id;
+          return (
+            <button
+              key={tool.id}
+              onClick={() => onSelect(tool.id)}
+              style={{
+                width: "72px",
+                height: "68px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "2px",
+                borderRadius: "10px",
+                border: isSelected
+                  ? "2px solid #4ADE80"
+                  : "1px solid rgba(255,255,255,0.05)",
+                cursor: "pointer",
+                background: isSelected
+                  ? "rgba(34, 197, 94, 0.25)"
+                  : "rgba(255, 255, 255, 0.04)",
+                color: isSelected ? "#FFFFFF" : "#D1D5DB",
+                transition: "all 0.15s ease",
+              }}
+              title={`${tool.label} [${tool.key}]`}
+            >
+              <span style={{ fontSize: "24px", lineHeight: "1" }}>
+                {tool.icon}
+              </span>
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {tool.label}
+              </span>
+              <span
+                style={{
+                  fontSize: "9px",
+                  color: isSelected ? "#86EFAC" : "#9CA3AF",
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "1px 5px",
+                  borderRadius: "4px",
+                  lineHeight: "1.2",
+                }}
+              >
+                {tool.key}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
-            fontSize: "30px",
-
-            borderRadius: "12px",
-
-            border: "none",
-
-            cursor: "pointer",
-
-            background:
-              selected === tool.id
-                ? "#58B368"
-                : "#ECECEC",
-
-            transition: "0.2s",
-          }}
-          title={tool.label}
-        >
-          {tool.icon}
-        </button>
-      ))}
+      <div
+        style={{
+          fontSize: "11px",
+          color: "#9CA3AF",
+          background: "rgba(17, 24, 39, 0.75)",
+          padding: "3px 10px",
+          borderRadius: "6px",
+          letterSpacing: "0.03em",
+          pointerEvents: "none",
+        }}
+      >
+        Rotate: [R] | Cancel: [Esc]
+      </div>
     </div>
   );
 }

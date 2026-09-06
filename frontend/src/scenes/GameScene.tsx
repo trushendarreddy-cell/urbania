@@ -10,6 +10,7 @@ import Tree from "../world/Tree";
 import Rock from "../world/Rock";
 import useBuildingStore from "../store/BuildingStore";
 import type { BuildTool } from "../types/BuildTool";
+import { canPlaceObject } from "../systems/PlacementSystem";
 
 interface GameSceneProps {
   selectedTool: BuildTool;
@@ -113,12 +114,20 @@ export default function GameScene({
           if (target) {
             removeBuilding(target.id);
           }
-        } else if (selectedTool) {
-          addBuilding(
-            [hoverPos[0], 0, hoverPos[2]],
+        } else if (selectedTool !== "none") {
+          const canPlace = canPlaceObject(
             selectedTool,
-            rotation
+            hoverPos,
+            rotation,
+            buildings
           );
+          if (canPlace) {
+            addBuilding(
+              [hoverPos[0], 0, hoverPos[2]],
+              selectedTool,
+              rotation
+            );
+          }
         }
       }
     }
@@ -160,6 +169,13 @@ export default function GameScene({
     selectedTool,
     rotation,
   ]);
+
+  const canPlace = canPlaceObject(
+    selectedTool,
+    hoverPos,
+    rotation,
+    buildings
+  );
 
   const hoveredBuilding =
     selectedTool === "bulldozer"
@@ -225,6 +241,7 @@ export default function GameScene({
           position={[hoverPos[0], 0, hoverPos[2]]}
           rotation={rotation}
           ghost
+          valid={canPlace}
         />
       )}
 
@@ -233,6 +250,7 @@ export default function GameScene({
           position={[hoverPos[0], 0, hoverPos[2]]}
           rotation={rotation}
           ghost
+          valid={canPlace}
         />
       )}
 
@@ -241,6 +259,7 @@ export default function GameScene({
           position={[hoverPos[0], 0, hoverPos[2]]}
           rotation={rotation}
           ghost
+          valid={canPlace}
         />
       )}
 

@@ -2,14 +2,19 @@ interface RockProps {
   position: [number, number, number];
   rotation?: number;
   ghost?: boolean;
+  valid?: boolean;
 }
 
 export default function Rock({
   position,
   rotation = 0,
   ghost = false,
+  valid = true,
 }: RockProps) {
   const opacity = ghost ? 0.45 : 1;
+  const rockColor1 = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#78716C";
+  const rockColor2 = ghost ? (valid ? "#86EFAC" : "#F87171") : "#6B7280";
+  const rockColor3 = ghost ? (valid ? "#22C55E" : "#DC2626") : "#57534E";
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
@@ -22,7 +27,7 @@ export default function Rock({
       >
         <dodecahedronGeometry args={[0.42, 0]} />
         <meshStandardMaterial
-          color="#78716C"
+          color={rockColor1}
           roughness={0.9}
           transparent={ghost}
           opacity={opacity}
@@ -38,7 +43,7 @@ export default function Rock({
       >
         <dodecahedronGeometry args={[0.26, 0]} />
         <meshStandardMaterial
-          color="#6B7280"
+          color={rockColor2}
           roughness={0.9}
           transparent={ghost}
           opacity={opacity}
@@ -54,7 +59,7 @@ export default function Rock({
       >
         <dodecahedronGeometry args={[0.18, 0]} />
         <meshStandardMaterial
-          color="#57534E"
+          color={rockColor3}
           roughness={0.9}
           transparent={ghost}
           opacity={opacity}
