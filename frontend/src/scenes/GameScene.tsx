@@ -8,9 +8,14 @@ import WorldGrid from "../world/Grid";
 import House from "../world/House";
 import Tree from "../world/Tree";
 import Rock from "../world/Rock";
+import Road from "../world/Road";
 import useBuildingStore from "../store/BuildingStore";
 import type { BuildTool } from "../types/BuildTool";
 import { canPlaceObject } from "../systems/PlacementSystem";
+import {
+  getRoadNeighbors,
+  generateRoadLine,
+} from "../systems/RoadSystem";
 
 interface GameSceneProps {
   selectedTool: BuildTool;
@@ -26,6 +31,9 @@ export default function GameScene({
   const addBuilding = useBuildingStore(
     (state) => state.addBuilding
   );
+  const addBuildings = useBuildingStore(
+    (state) => state.addBuildings
+  );
   const removeBuilding = useBuildingStore(
     (state) => state.removeBuilding
   );
@@ -33,6 +41,15 @@ export default function GameScene({
     [number, number, number]
   >([0, 0.02, 0]);
   const [rotation, setRotation] = useState(0);
+  const [roadDragStart, setRoadDragStart] = useState<
+    [number, number, number] | null
+  >(null);
+
+  useEffect(() => {
+    if (selectedTool !== "road") {
+      setRoadDragStart(null);
+    }
+  }, [selectedTool]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -94,10 +111,34 @@ export default function GameScene({
     function onPointerDown(event: PointerEvent) {
       if (event.button !== 0) return;
       dragStart = { x: event.clientX, y: event.clientY };
+      if (selectedTool === "road") {
+        setRoadDragStart([hoverPos[0], 0, hoverPos[2]]);
+      }
     }
 
     function onPointerUp(event: PointerEvent) {
-      if (event.button !== 0 || !dragStart) return;
+      if (event.button !== 0) return;
+
+      if (selectedTool === "road" && roadDragStart) {
+        const roadLine = generateRoadLine(roadDragStart, hoverPos);
+        const allValid = roadLine.every((p) =>
+          canPlaceObject("road", p, 0, buildings)
+        );
+        if (allValid) {
+          addBuildings(
+            roadLine.map((p) => ({
+              position: p,
+              type: "road",
+              rotation,
+            }))
+          );
+        }
+        setRoadDragStart(null);
+        dragStart = null;
+        return;
+      }
+
+      if (!dragStart) return;
 
       const dx = event.clientX - dragStart.x;
       const dy = event.clientY - dragStart.y;
@@ -114,7 +155,7 @@ export default function GameScene({
           if (target) {
             removeBuilding(target.id);
           }
-        } else if (selectedTool !== "none") {
+        } else if (selectedTool !== "none" && selectedTool !== "road") {
           const canPlace = canPlaceObject(
             selectedTool,
             hoverPos,
@@ -164,10 +205,12 @@ export default function GameScene({
     gl,
     hoverPos,
     addBuilding,
+    addBuildings,
     removeBuilding,
     buildings,
     selectedTool,
     rotation,
+    roadDragStart,
   ]);
 
   const canPlace = canPlaceObject(
@@ -185,6 +228,23 @@ export default function GameScene({
             Math.abs(b.position[2] - hoverPos[2]) < 0.1
         )
       : null;
+
+  const roadPreviewLine =
+    selectedTool === "road" && roadDragStart
+      ? generateRoadLine(roadDragStart, hoverPos)
+      : [];
+
+  const isRoadLineValid =
+    roadPreviewLine.length > 0 &&
+    roadPreviewLine.every((p) => canPlaceObject("road", p, 0, buildings));
+
+  const allRoadsForPreview = [
+    ...buildings,
+    ...roadPreviewLine.map((p) => ({
+      position: p,
+      type: "road" as const,
+    })),
+  ];
 
   return (
     <>
@@ -206,6 +266,20 @@ export default function GameScene({
 
       {/* Test House */}
       {buildings.map((building) => {
+        if (building.type === "road") {
+          const connections = getRoadNeighbors(
+            building.position,
+            buildings
+          );
+          return (
+            <Road
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+              connections={connections}
+            />
+          );
+        }
         if (building.type === "rock") {
           return (
             <Rock
@@ -262,6 +336,37 @@ export default function GameScene({
           valid={canPlace}
         />
       )}
+
+      {selectedTool === "road" && !roadDragStart && (
+        <Road
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+          connections={getRoadNeighbors(
+            [hoverPos[0], 0, hoverPos[2]],
+            buildings
+          )}
+        />
+      )}
+
+      {selectedTool === "road" &&
+        roadDragStart &&
+        roadPreviewLine.map((pos, idx) => {
+          const connections = getRoadNeighbors(
+            pos,
+            allRoadsForPreview
+          );
+          return (
+            <Road
+              key={`ghost-road-${idx}-${pos[0]}-${pos[2]}`}
+              position={pos}
+              ghost
+              valid={isRoadLineValid}
+              connections={connections}
+            />
+          );
+        })}
 
       {selectedTool === "bulldozer" && (
         <mesh position={hoverPos} rotation={[-Math.PI / 2, 0, 0]}>

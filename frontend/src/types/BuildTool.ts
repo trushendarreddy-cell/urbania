@@ -3,4 +3,5 @@ export type BuildTool =
   | "house"
   | "tree"
   | "rock"
+  | "road"
   | "bulldozer";

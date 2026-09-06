@@ -34,6 +34,12 @@ export default function Toolbar({
       key: "3",
     },
     {
+      id: "road",
+      icon: "🛣️",
+      label: "Road",
+      key: "5",
+    },
+    {
       id: "bulldozer",
       icon: "🗑️",
       label: "Bulldoze",

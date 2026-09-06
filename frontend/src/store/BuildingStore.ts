@@ -15,6 +15,13 @@ interface BuildingStore {
     type?: BuildTool,
     rotation?: number
   ) => void;
+  addBuildings: (
+    newBuildings: Array<{
+      position: [number, number, number];
+      type?: BuildTool;
+      rotation?: number;
+    }>
+  ) => void;
   removeBuilding: (id: number) => void;
 }
 
@@ -33,6 +40,20 @@ const useBuildingStore = create<BuildingStore>((set) => ({
         },
       ],
     })),
+
+  addBuildings: (newBuildings) =>
+    set((state) => {
+      const baseId = Date.now();
+      const created = newBuildings.map((b, i) => ({
+        id: baseId + i,
+        type: b.type ?? "road",
+        position: b.position,
+        rotation: b.rotation ?? 0,
+      }));
+      return {
+        buildings: [...state.buildings, ...created],
+      };
+    }),
 
   removeBuilding: (id) =>
     set((state) => ({

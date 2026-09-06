@@ -30,6 +30,8 @@ export default function App() {
         setSelectedTool("rock");
       } else if (event.key === "4") {
         setSelectedTool("bulldozer");
+      } else if (event.key === "5") {
+        setSelectedTool("road");
       } else if (event.key === "Escape") {
         setSelectedTool("none");
       }
@@ -49,6 +51,8 @@ export default function App() {
         return "BUILDING: TREE";
       case "rock":
         return "BUILDING: ROCK";
+      case "road":
+        return "BUILDING: ROAD";
       case "bulldozer":
         return "BULLDOZER MODE";
       case "none":
