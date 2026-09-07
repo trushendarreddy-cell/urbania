@@ -20,11 +20,13 @@ Urbania is a browser-based 3D city-building prototype built with React, TypeScri
 
 ## Controls
 
-- **Left Click:** Place the selected building on the hovered tile.
-- **Mouse Move:** Move the hover tile and ghost preview across the grid.
-- **Right Click / Drag:** Orbit the camera around the city.
-- **Scroll:** Zoom in and out.
-- **Toolbar Buttons:** Switch between house, tree, rock, and future tools.
+- **1-5:** Select building tool (House, Tree, Rock, Bulldozer, Road)
+- **R:** Rotate selected ghost by 90 degrees
+- **Escape:** Cancel current tool selection
+- **Left Click:** Place the selected building on the hovered tile
+- **Mouse Move:** Move the hover tile and ghost preview across the grid
+- **Right Click / Drag:** Orbit the camera around the city
+- **Scroll:** Zoom in and out
 
 ## World
 
@@ -38,16 +40,19 @@ Urbania is a browser-based 3D city-building prototype built with React, TypeScri
 | Type | Description | Notes |
 |------|-------------|-------|
 | House | Low-poly residential building | Foundation, walls, roof, door, windows, chimney |
-| Tree | Nature object | Planned |
-| Rock | Nature object | Planned |
+| Tree | Nature object | Low-poly trunk and foliage layers |
+| Rock | Nature object | Irregular low-poly stone shapes |
+| Road | Infrastructure | Drag-to-build, auto-connects to neighbors |
 
 ## Systems
 
-- **Input System:** Mouse move and click listeners on the canvas for raycasting and placement.
+- **Input System:** Mouse move and click listeners on the canvas for raycasting and placement. Keyboard shortcuts for tool selection.
 - **Building System:** Component-based building models with ghost preview support.
 - **Store System:** Zustand store tracks placed buildings with unique IDs and positions.
 - **Camera System:** Orbit controls for free navigation around the world.
-- **UI System:** Overlay toolbar for tool selection.
+- **UI System:** Overlay toolbar for tool selection with keyboard shortcut indicators.
+- **Placement System:** Centralized validation for building placement with green/red feedback.
+- **Road System:** Drag-to-build roads with auto-connection based on neighboring tiles.
 
 ## Progression
 
