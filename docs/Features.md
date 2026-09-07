@@ -14,11 +14,19 @@
 - **State Management:** Zustand store tracks all placed buildings with unique IDs.
 - **Reactive Rendering:** Placed buildings are rendered dynamically from store state.
 - **UI Toolbar:** Fixed bottom toolbar with tool buttons for selecting building types.
+- **Keyboard Shortcuts:** 1-5 for tool selection, R for rotation, Escape for cancel.
+- **Building Rotation:** R key rotates ghost preview by 90-degree increments.
+- **Bulldozer Tool:** Click to remove placed buildings and road tiles.
+- **Placement Validation:** Green ghost for valid placement, red ghost for invalid (occupied cell).
+- **Tree Model:** Low-poly tree with brown trunk and green foliage layers.
+- **Rock Model:** Low-poly rock with irregular stone shapes and gray/brown materials.
+- **Road Placement:** Drag-to-build road segments with horizontal/vertical support.
+- **Road Auto-Connection:** Roads automatically connect to neighboring road tiles.
+- **Road Connection Types:** Isolated, straight, corner, T-junction, four-way intersection.
+- **Atomic Road Placement:** Entire road segment placed or nothing if any tile is invalid.
 
 ## Planned
 
-- **Tree and Rock Models:** Additional nature building types with distinct geometry and materials.
-- **Road Placement:** Click-to-place road segments with auto-connection logic.
 - **Zone System:** Residential, commercial, and industrial zoning overlays.
 - **Building Variants:** Randomized color and dimension variations for visual diversity.
 - **Demolish Tool:** Remove placed buildings with a click.

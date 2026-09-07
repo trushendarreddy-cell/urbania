@@ -16,21 +16,28 @@
 - Ghost/preview building on hover
 - UI toolbar with tool selection
 - Modular folder architecture (world, scene, system, store, ui, hooks, types)
+- Tree and Rock placement tools with distinct models
+- Building rotation with R key (90-degree increments)
+- Bulldozer tool for removing buildings and roads
+- Placement validation with green/red ghost feedback
+- Keyboard shortcuts for all tools (1-5)
+- Escape to cancel tool selection
+- Road placement tool with drag-to-build interaction
+- Road auto-connection based on neighboring road tiles
+- Road connection types: isolated, straight, corner, T-junction, four-way intersection
+- Atomic road placement (entire segment or nothing)
 
 ## In Progress
 
-- Expanding building types beyond houses
-- Integrating selected tool with placement logic
-- Refining hover tile and ghost preview behavior
+- Road intersection visual refinement
+- Building variant randomization
+- Terrain variation (water, elevation, parks)
 
 ## Planned
 
-- Road placement and road network system
-- Tree and rock placement tools with distinct models
 - Zone system (residential, commercial, industrial)
 - Population simulation and growth mechanics
 - Economy and resource management
-- Terrain variation (water, elevation, parks)
 - Day/night cycle and weather
 - AI-assisted urban planning suggestions
 - Event system and random city events

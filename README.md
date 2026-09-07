@@ -1,10 +1,10 @@
-#  Urbania
+# Urbania
 
 **Urbania** is an interactive 3D city-building prototype built with React, TypeScript, and Three.js. It started as a blank Vite project and evolved into a voxel-style world where you can place buildings, trees, and rocks on a grid-based terrain using mouse clicks.
 
 ---
 
-##  What is Urbania?
+## What is Urbania?
 
 Urbania is a browser-based city builder running entirely in the browser using **React Three Fiber**. It renders a low-poly 3D world with:
 
@@ -15,14 +15,18 @@ Urbania is a browser-based city builder running entirely in the browser using **
 - Click-to-place mechanics for houses, trees, and rocks
 - A floating UI toolbar for selecting building tools
 - Orbit controls for camera navigation around the city
+- Road placement with drag-to-build and auto-connection
+- Building rotation with keyboard shortcuts
+- Bulldozer tool for removing placed objects
+- Placement validation with green/red ghost feedback
 
 The project is a **prototype** — a proving ground for 3D rendering, state management, and interactive building mechanics that will eventually expand into a full city simulation.
 
 ---
 
-##  Why am I building this?
+## Why am I building this?
 
-I wanted to explore how modern web technologies can be used to build immersive 3D experiences without requiring heavy game engines like Unity or Unreal. 
+I wanted to explore how modern web technologies can be used to build immersive 3D experiences without requiring heavy game engines like Unity or Unreal.
 
 This project is my way of learning and demonstrating:
 
@@ -37,7 +41,7 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 ---
 
-##  How I built this
+## How I built this
 
 ### Phase 1 — Project Setup
 - Created the project with **Vite + React + TypeScript**
@@ -68,17 +72,30 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 ### Phase 6 — Architecture
 - Organized code into dedicated directories:
-  - `world/` — 3D objects (Ground, Grid, House, HoverTile)
+  - `world/` — 3D objects (Ground, Grid, House, HoverTile, Tree, Rock, Road)
   - `scenes/` — Main scene composition and raycasting logic
   - `store/` — Zustand state management
   - `ui/` — Overlay interfaces
-  - `systems/` — Input and game systems
+  - `systems/` — Input and game systems (PlacementSystem, RoadSystem)
   - `hooks/` — Reusable React hooks
   - `types/` — TypeScript definitions
 
+### Phase 7 — Building Tools
+- Added Tree and Rock placement with distinct low-poly models
+- Implemented building rotation with R key (90-degree increments)
+- Added Bulldozer tool for removing placed buildings
+- Created placement validation system with green/red ghost feedback
+
+### Phase 8 — Road System
+- Added road placement tool with drag-to-build interaction
+- Implemented road auto-connection based on neighboring road tiles
+- Support for horizontal and vertical road segments
+- Road connection types: isolated, straight, corner, T-junction, four-way intersection
+- Atomic road placement (entire segment or nothing)
+
 ---
 
-##  Tech Stack
+## Tech Stack
 
 | Category | Technology |
 |----------|-----------|
@@ -95,7 +112,7 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 ---
 
-##  Getting Started
+## Getting Started
 
 ```bash
 # Install dependencies
@@ -113,7 +130,24 @@ npm run lint
 
 ---
 
-##  Project Structure
+## Controls
+
+| Key | Action |
+|-----|--------|
+| 1 | Select House tool |
+| 2 | Select Tree tool |
+| 3 | Select Rock tool |
+| 4 | Select Bulldozer tool |
+| 5 | Select Road tool |
+| R | Rotate selected ghost by 90 degrees |
+| Escape | Cancel current tool selection |
+| Left Click | Place selected building or delete with Bulldozer |
+| Mouse Drag | Orbit camera (with OrbitControls) |
+| Scroll | Zoom in/out |
+
+---
+
+## Project Structure
 
 ```
 urbania/
@@ -121,10 +155,10 @@ urbania/
 ├── frontend/               # Main Vite + React application
 │   ├── src/
 │   │   ├── scenes/         # Game scene composition & raycasting
-│   │   ├── world/          # 3D objects (Ground, Grid, House, HoverTile)
+│   │   ├── world/          # 3D objects (Ground, Grid, House, Tree, Rock, Road)
 │   │   ├── ui/             # Toolbar and overlay components
 │   │   ├── store/          # Zustand state management
-│   │   ├── systems/        # Mouse and input systems
+│   │   ├── systems/        # PlacementSystem, RoadSystem, MouseSystem
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── types/          # TypeScript type definitions
 │   │   └── assets/         # Images and static assets
@@ -138,7 +172,7 @@ urbania/
 
 ---
 
-##  What's Next?
+## What's Next?
 
 See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features including:
 
@@ -150,12 +184,13 @@ See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features including:
 - Events and Easter eggs
 
 ---
+
 ## Author
 
 **T. Rushendar Reddy**
 
-Email:trushendarreddy@gmail.com
+Email: trushendarreddy@gmail.com
 
-Hyderabad,Telangana
+Hyderabad, Telangana
 
 *Built as a learning project and proof-of-concept for browser-based city simulation.*
