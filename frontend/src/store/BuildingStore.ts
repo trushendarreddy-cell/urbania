@@ -12,6 +12,8 @@ export interface Building {
 
 interface BuildingStore {
   buildings: Building[];
+  selectedObjectId: number | null;
+  setSelectedObjectId: (id: number | null) => void;
   addBuilding: (
     position: [number, number, number],
     type?: BuildTool,
@@ -31,6 +33,8 @@ interface BuildingStore {
 
 const useBuildingStore = create<BuildingStore>((set) => ({
   buildings: [],
+  selectedObjectId: null,
+  setSelectedObjectId: (id) => set({ selectedObjectId: id }),
 
   addBuilding: (position, type = "house", rotation = 0, zoneType) =>
     set((state) => ({
@@ -64,6 +68,8 @@ const useBuildingStore = create<BuildingStore>((set) => ({
   removeBuilding: (id) =>
     set((state) => ({
       buildings: state.buildings.filter((building) => building.id !== id),
+      selectedObjectId:
+        state.selectedObjectId === id ? null : state.selectedObjectId,
     })),
 }));
 

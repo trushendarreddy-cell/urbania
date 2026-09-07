@@ -16,6 +16,12 @@ export default function Toolbar({
     key: string;
   }[] = [
     {
+      id: "select",
+      icon: "👆",
+      label: "Select",
+      key: "0",
+    },
+    {
       id: "house",
       icon: "🏠",
       label: "House",

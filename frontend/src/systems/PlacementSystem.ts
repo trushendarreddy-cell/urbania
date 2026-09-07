@@ -7,7 +7,11 @@ export function canPlaceObject(
   _rotation: number,
   existingObjects: Building[]
 ): boolean {
-  if (type === "none" || type === "bulldozer") {
+  if (
+    type === "none" ||
+    type === "select" ||
+    type === "bulldozer"
+  ) {
     return false;
   }
 

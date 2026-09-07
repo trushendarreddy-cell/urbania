@@ -1,5 +1,6 @@
 export type BuildTool =
   | "none"
+  | "select"
   | "house"
   | "shop"
   | "factory"

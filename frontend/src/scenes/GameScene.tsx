@@ -41,6 +41,12 @@ export default function GameScene({
   const removeBuilding = useBuildingStore(
     (state) => state.removeBuilding
   );
+  const selectedObjectId = useBuildingStore(
+    (state) => state.selectedObjectId
+  );
+  const setSelectedObjectId = useBuildingStore(
+    (state) => state.setSelectedObjectId
+  );
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -177,9 +183,16 @@ export default function GameScene({
             removeBuilding(target.id);
           }
         } else if (
-          selectedTool !== "none" &&
-          selectedTool !== "road"
+          selectedTool === "select" ||
+          selectedTool === "none"
         ) {
+          const target = buildings.find(
+            (b) =>
+              Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
+              Math.abs(b.position[2] - hoverPos[2]) < 0.1
+          );
+          setSelectedObjectId(target ? target.id : null);
+        } else if (selectedTool !== "road") {
           const canPlace = canPlaceObject(
             selectedTool,
             hoverPos,
@@ -233,6 +246,7 @@ export default function GameScene({
     addBuilding,
     addBuildings,
     removeBuilding,
+    setSelectedObjectId,
     buildings,
     selectedTool,
     rotation,
@@ -253,6 +267,11 @@ export default function GameScene({
             Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
             Math.abs(b.position[2] - hoverPos[2]) < 0.1
         )
+      : null;
+
+  const selectedBuilding =
+    selectedObjectId !== null
+      ? buildings.find((b) => b.id === selectedObjectId)
       : null;
 
   const roadPreviewLine =
@@ -390,6 +409,25 @@ export default function GameScene({
         return null;
       })}
 
+      {/* Selection Highlight */}
+      {selectedBuilding && (
+        <mesh
+          position={[
+            selectedBuilding.position[0],
+            0.04,
+            selectedBuilding.position[2],
+          ]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <torusGeometry args={[0.68, 0.025, 8, 32]} />
+          <meshBasicMaterial
+            color="#22D3EE"
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      )}
+
       {/* Ghost Previews */}
       {selectedTool === "house" && (
         <House
@@ -490,7 +528,8 @@ export default function GameScene({
       {/* Build Mode Road Access Feedback */}
       {selectedTool !== "none" &&
         selectedTool !== "road" &&
-        selectedTool !== "bulldozer" && (
+        selectedTool !== "bulldozer" &&
+        selectedTool !== "select" && (
           <Html position={[hoverPos[0], 1.2, hoverPos[2]]} center>
             <div
               style={{

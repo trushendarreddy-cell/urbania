@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 
 import GameScene from "./scenes/GameScene";
 import Toolbar from "./ui/Toolbar";
+import InspectionPanel from "./ui/InspectionPanel";
+import useBuildingStore from "./store/BuildingStore";
 import type { BuildTool } from "./types/BuildTool";
 
 export default function App() {
@@ -22,7 +24,9 @@ export default function App() {
         return;
       }
 
-      if (event.key === "1") {
+      if (event.key === "0") {
+        setSelectedTool("select");
+      } else if (event.key === "1") {
         setSelectedTool("house");
       } else if (event.key === "2") {
         setSelectedTool("tree");
@@ -39,7 +43,15 @@ export default function App() {
       } else if (event.key === "8") {
         setSelectedTool("park");
       } else if (event.key === "Escape") {
-        setSelectedTool("none");
+        if (
+          useBuildingStore.getState().selectedObjectId !== null
+        ) {
+          useBuildingStore
+            .getState()
+            .setSelectedObjectId(null);
+        } else {
+          setSelectedTool("none");
+        }
       }
     }
 
@@ -51,6 +63,8 @@ export default function App() {
 
   const getIndicatorText = () => {
     switch (selectedTool) {
+      case "select":
+        return "SELECT MODE";
       case "house":
         return "BUILDING: HOUSE";
       case "shop":
@@ -114,6 +128,7 @@ export default function App() {
         selected={selectedTool}
         onSelect={setSelectedTool}
       />
+      <InspectionPanel />
     </>
   );
 }
