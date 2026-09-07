@@ -22,8 +22,26 @@ export default function Toolbar({
       key: "1",
     },
     {
-      id: "tree",
+      id: "shop",
+      icon: "🏪",
+      label: "Shop",
+      key: "6",
+    },
+    {
+      id: "factory",
+      icon: "🏭",
+      label: "Factory",
+      key: "7",
+    },
+    {
+      id: "park",
       icon: "🌳",
+      label: "Park",
+      key: "8",
+    },
+    {
+      id: "tree",
+      icon: "🌲",
       label: "Tree",
       key: "2",
     },

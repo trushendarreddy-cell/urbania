@@ -32,6 +32,12 @@ export default function App() {
         setSelectedTool("bulldozer");
       } else if (event.key === "5") {
         setSelectedTool("road");
+      } else if (event.key === "6") {
+        setSelectedTool("shop");
+      } else if (event.key === "7") {
+        setSelectedTool("factory");
+      } else if (event.key === "8") {
+        setSelectedTool("park");
       } else if (event.key === "Escape") {
         setSelectedTool("none");
       }
@@ -47,6 +53,12 @@ export default function App() {
     switch (selectedTool) {
       case "house":
         return "BUILDING: HOUSE";
+      case "shop":
+        return "BUILDING: SHOP";
+      case "factory":
+        return "BUILDING: FACTORY";
+      case "park":
+        return "BUILDING: PARK";
       case "tree":
         return "BUILDING: TREE";
       case "rock":

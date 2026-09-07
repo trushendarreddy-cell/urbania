@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import Ground from "../world/Ground";
 import WorldGrid from "../world/Grid";
 import House from "../world/House";
+import Shop from "../world/Shop";
+import Factory from "../world/Factory";
+import Park from "../world/Park";
 import Tree from "../world/Tree";
 import Rock from "../world/Rock";
 import Road from "../world/Road";
@@ -105,10 +108,27 @@ export default function GameScene({
       setHoverPos([x, 0.02, z]);
     }
 
-    const DRAG_THRESHOLD = 6;
-    let dragStart: { x: number; y: number } | null = null;
+     const DRAG_THRESHOLD = 6;
+     let dragStart: { x: number; y: number } | null = null;
 
-    function onPointerDown(event: PointerEvent) {
+     function getZoneType(
+       tool: BuildTool
+     ): "residential" | "commercial" | "industrial" | "park" | undefined {
+       switch (tool) {
+         case "house":
+           return "residential";
+         case "shop":
+           return "commercial";
+         case "factory":
+           return "industrial";
+         case "park":
+           return "park";
+         default:
+           return undefined;
+       }
+     }
+
+     function onPointerDown(event: PointerEvent) {
       if (event.button !== 0) return;
       dragStart = { x: event.clientX, y: event.clientY };
       if (selectedTool === "road") {
@@ -155,7 +175,10 @@ export default function GameScene({
           if (target) {
             removeBuilding(target.id);
           }
-        } else if (selectedTool !== "none" && selectedTool !== "road") {
+        } else if (
+          selectedTool !== "none" &&
+          selectedTool !== "road"
+        ) {
           const canPlace = canPlaceObject(
             selectedTool,
             hoverPos,
@@ -163,10 +186,12 @@ export default function GameScene({
             buildings
           );
           if (canPlace) {
+            const zoneType = getZoneType(selectedTool);
             addBuilding(
               [hoverPos[0], 0, hoverPos[2]],
               selectedTool,
-              rotation
+              rotation,
+              zoneType
             );
           }
         }
@@ -246,6 +271,36 @@ export default function GameScene({
     })),
   ];
 
+  function BuildingComponent({
+    type,
+    position,
+    rotation,
+  }: {
+    type: BuildTool;
+    position: [number, number, number];
+    rotation: number;
+  }) {
+    switch (type) {
+      case "shop":
+        return (
+          <Shop position={position} rotation={rotation} />
+        );
+      case "factory":
+        return (
+          <Factory position={position} rotation={rotation} />
+        );
+      case "park":
+        return (
+          <Park position={position} rotation={rotation} />
+        );
+      case "house":
+      default:
+        return (
+          <House position={position} rotation={rotation} />
+        );
+    }
+  }
+
   return (
     <>
       {/* Sky */}
@@ -264,7 +319,7 @@ export default function GameScene({
       <Ground />
       <WorldGrid />
 
-      {/* Test House */}
+      {/* Buildings */}
       {buildings.map((building) => {
         if (building.type === "road") {
           const connections = getRoadNeighbors(
@@ -298,10 +353,17 @@ export default function GameScene({
             />
           );
         }
-        if (building.type === "house" || !building.type) {
+        if (
+          building.type === "house" ||
+          building.type === "shop" ||
+          building.type === "factory" ||
+          building.type === "park" ||
+          !building.type
+        ) {
           return (
-            <House
+            <BuildingComponent
               key={building.id}
+              type={building.type ?? "house"}
               position={building.position}
               rotation={building.rotation ?? 0}
             />
@@ -310,8 +372,36 @@ export default function GameScene({
         return null;
       })}
 
+      {/* Ghost Previews */}
       {selectedTool === "house" && (
         <House
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "shop" && (
+        <Shop
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "factory" && (
+        <Factory
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "park" && (
+        <Park
           position={[hoverPos[0], 0, hoverPos[2]]}
           rotation={rotation}
           ghost
