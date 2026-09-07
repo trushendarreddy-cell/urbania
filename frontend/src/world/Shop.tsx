@@ -3,6 +3,7 @@ interface ShopProps {
   rotation?: number;
   ghost?: boolean;
   valid?: boolean;
+  roadAccess?: boolean;
 }
 
 export default function Shop({
@@ -10,6 +11,7 @@ export default function Shop({
   rotation = 0,
   ghost = false,
   valid = true,
+  roadAccess,
 }: ShopProps) {
   const opacity = ghost ? 0.45 : 1;
   const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#78716C";
@@ -19,6 +21,18 @@ export default function Shop({
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
+      {/* Road Access Indicator */}
+      {roadAccess !== undefined && !ghost && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.55, 0.02, 8, 24]} />
+          <meshBasicMaterial
+            color={roadAccess ? "#4ADE80" : "#FACC15"}
+            transparent
+            opacity={0.7}
+          />
+        </mesh>
+      )}
+
       <mesh position={[0, 0.05, 0]} receiveShadow>
         <boxGeometry args={[1.2, 0.1, 1.0]} />
         <meshStandardMaterial

@@ -3,6 +3,7 @@ interface FactoryProps {
   rotation?: number;
   ghost?: boolean;
   valid?: boolean;
+  roadAccess?: boolean;
 }
 
 export default function Factory({
@@ -10,6 +11,7 @@ export default function Factory({
   rotation = 0,
   ghost = false,
   valid = true,
+  roadAccess,
 }: FactoryProps) {
   const opacity = ghost ? 0.45 : 1;
   const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#4B5563";
@@ -19,6 +21,18 @@ export default function Factory({
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
+      {/* Road Access Indicator */}
+      {roadAccess !== undefined && !ghost && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.6, 0.02, 8, 24]} />
+          <meshBasicMaterial
+            color={roadAccess ? "#4ADE80" : "#FACC15"}
+            transparent
+            opacity={0.7}
+          />
+        </mesh>
+      )}
+
       <mesh position={[0, 0.05, 0]} receiveShadow>
         <boxGeometry args={[1.4, 0.1, 1.2]} />
         <meshStandardMaterial

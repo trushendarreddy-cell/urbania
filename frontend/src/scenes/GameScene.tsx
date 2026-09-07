@@ -1,4 +1,4 @@
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Html } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { Raycaster, Plane, Vector2, Vector3 } from "three";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ import Road from "../world/Road";
 import useBuildingStore from "../store/BuildingStore";
 import type { BuildTool } from "../types/BuildTool";
 import { canPlaceObject } from "../systems/PlacementSystem";
+import { hasRoadAccess } from "../systems/RoadAccessSystem";
 import {
   getRoadNeighbors,
   generateRoadLine,
@@ -280,23 +281,40 @@ export default function GameScene({
     position: [number, number, number];
     rotation: number;
   }) {
+    const access = hasRoadAccess(position, buildings);
     switch (type) {
       case "shop":
         return (
-          <Shop position={position} rotation={rotation} />
+          <Shop
+            position={position}
+            rotation={rotation}
+            roadAccess={access}
+          />
         );
       case "factory":
         return (
-          <Factory position={position} rotation={rotation} />
+          <Factory
+            position={position}
+            rotation={rotation}
+            roadAccess={access}
+          />
         );
       case "park":
         return (
-          <Park position={position} rotation={rotation} />
+          <Park
+            position={position}
+            rotation={rotation}
+            roadAccess={access}
+          />
         );
       case "house":
       default:
         return (
-          <House position={position} rotation={rotation} />
+          <House
+            position={position}
+            rotation={rotation}
+            roadAccess={access}
+          />
         );
     }
   }
@@ -468,6 +486,33 @@ export default function GameScene({
           />
         </mesh>
       )}
+
+      {/* Build Mode Road Access Feedback */}
+      {selectedTool !== "none" &&
+        selectedTool !== "road" &&
+        selectedTool !== "bulldozer" && (
+          <Html position={[hoverPos[0], 1.2, hoverPos[2]]} center>
+            <div
+              style={{
+                fontSize: "11px",
+                fontFamily: "monospace",
+                padding: "2px 6px",
+                borderRadius: "3px",
+                backgroundColor: "rgba(0,0,0,0.6)",
+                color: hasRoadAccess(hoverPos, buildings)
+                  ? "#4ADE80"
+                  : "#FACC15",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                userSelect: "none",
+              }}
+            >
+              {hasRoadAccess(hoverPos, buildings)
+                ? "ROAD ACCESS ✓"
+                : "NO ROAD ACCESS"}
+            </div>
+          </Html>
+        )}
 
       {/* Camera Controls */}
       <OrbitControls />

@@ -3,6 +3,7 @@ interface ParkProps {
   rotation?: number;
   ghost?: boolean;
   valid?: boolean;
+  roadAccess?: boolean;
 }
 
 export default function Park({
@@ -10,6 +11,7 @@ export default function Park({
   rotation = 0,
   ghost = false,
   valid = true,
+  roadAccess,
 }: ParkProps) {
   const opacity = ghost ? 0.45 : 1;
   const groundColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#4ADE80";
@@ -18,6 +20,18 @@ export default function Park({
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
+      {/* Road Access Indicator */}
+      {roadAccess !== undefined && !ghost && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.5, 0.02, 8, 24]} />
+          <meshBasicMaterial
+            color={roadAccess ? "#4ADE80" : "#FACC15"}
+            transparent
+            opacity={0.7}
+          />
+        </mesh>
+      )}
+
       <mesh position={[0, 0.01, 0]} receiveShadow>
         <boxGeometry args={[1.0, 0.02, 1.0]} />
         <meshStandardMaterial
