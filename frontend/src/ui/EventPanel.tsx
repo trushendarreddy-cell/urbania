@@ -29,7 +29,7 @@ export default function EventPanel() {
         zIndex: 10,
         pointerEvents: "none",
         userSelect: "none",
-        minWidth: "120px",
+        minWidth: "140px",
       }}
     >
       <div style={{ fontWeight: "700", marginBottom: "4px" }}>
@@ -40,6 +40,7 @@ export default function EventPanel() {
           <span>{iconMap[e.type] || "📌"} {e.type}</span>
           <span style={{ color: e.status === "active" ? "#EF4444" : "#FBBF24" }}>
             {e.status}
+            {e.status === "responding" && e.eta !== undefined && ` ${Math.round(e.eta)}h`}
           </span>
         </div>
       ))}

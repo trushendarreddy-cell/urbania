@@ -9,6 +9,7 @@ import useEconomyStore from "../store/EconomyStore";
 import useNeedsStore from "../store/NeedsStore";
 import useServiceStore from "../store/ServiceStore";
 import useUtilityStore from "../store/UtilityStore";
+// import useEventStore from "../store/EventStore"; // not used currently
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -163,6 +164,9 @@ export default function InspectionPanel() {
   const providerInfo = (building.type === 'power_plant' || building.type === 'water_plant') 
     ? useUtilityStore.getState().getProviderInfo(building.id) 
     : null;
+
+  // For events, show dispatch info if selected (placeholder)
+  // const eventInfo = null; // not used yet
   // For houses, get average happiness of citizens
   const avgHappiness = (() => {
     if (!household || citizensForHousehold.length === 0) return null;
