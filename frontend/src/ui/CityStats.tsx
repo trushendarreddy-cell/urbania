@@ -2,6 +2,7 @@ import usePopulationStore from "../store/PopulationStore";
 import useEconomyStore from "../store/EconomyStore";
 import useNeedsStore from "../store/NeedsStore";
 import useServiceStore from "../store/ServiceStore";
+import useUtilityStore from "../store/UtilityStore";
 import useBuildingStore from "../store/BuildingStore";
 
 export default function CityStats() {
@@ -27,10 +28,10 @@ export default function CityStats() {
   const unhappyCount = happinessValues.filter(h => h < 40).length;
   // Service coverage stats
   const households = usePopulationStore.getState().households;
-  const buildings = useBuildingStore.getState().buildings;
+  const allBuildings = useBuildingStore.getState().buildings;
   let coveredRecreation = 0;
   for (const h of households) {
-    const building = buildings.find(b => b.id === h.buildingId);
+    const building = allBuildings.find(b => b.id === h.buildingId);
     if (building) {
       const coverage = useServiceStore.getState().getCoverage(building.position, "recreation");
       if (coverage.covered) coveredRecreation++;
@@ -38,6 +39,20 @@ export default function CityStats() {
   }
   const totalHouseholdsCount = households.length;
   const recreationCoverage = totalHouseholdsCount > 0 ? (coveredRecreation / totalHouseholdsCount) * 100 : 0;
+
+  // Utility coverage stats
+  let electricCovered = 0, waterCovered = 0;
+  let utilityBuildings = 0;
+  for (const b of allBuildings) {
+    if (b.type === 'house' || b.type === 'shop' || b.type === 'factory') {
+      utilityBuildings++;
+      const status = useUtilityStore.getState().getUtilityStatus(b.id);
+      if (status && status.electricity) electricCovered++;
+      if (status && status.water) waterCovered++;
+    }
+  }
+  const electricCoverage = utilityBuildings > 0 ? (electricCovered / utilityBuildings) * 100 : 0;
+  const waterCoverage = utilityBuildings > 0 ? (waterCovered / utilityBuildings) * 100 : 0;
 
   return (
     <div
@@ -83,6 +98,10 @@ export default function CityStats() {
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
         <div>🏞️ Recreation Coverage {Math.round(recreationCoverage)}%</div>
+      </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
+        <div>⚡ Electricity {Math.round(electricCoverage)}%</div>
+        <div>💧 Water {Math.round(waterCoverage)}%</div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import useRoadUsageStore, { getCongestionLevel, ROAD_CAPACITY } from "../store/R
 import useEconomyStore from "../store/EconomyStore";
 import useNeedsStore from "../store/NeedsStore";
 import useServiceStore from "../store/ServiceStore";
+import useUtilityStore from "../store/UtilityStore";
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -147,6 +148,13 @@ export default function InspectionPanel() {
     }
     return null;
   })() : null;
+
+  // Utility status for building
+  const utilityStatus = useUtilityStore.getState().getUtilityStatus(building.id);
+  // For utility providers, show provider info
+  const providerInfo = (building.type === 'power_plant' || building.type === 'water_plant') 
+    ? useUtilityStore.getState().getProviderInfo(building.id) 
+    : null;
   // For houses, get average happiness of citizens
   const avgHappiness = (() => {
     if (!household || citizensForHousehold.length === 0) return null;
@@ -330,6 +338,54 @@ export default function InspectionPanel() {
             <Row
               label="Households Served"
               value={serviceInfo.householdsServed}
+            />
+          </>
+        )}
+
+        {/* Utility status for buildings that consume utilities */}
+        {(building.type === 'house' || building.type === 'shop' || building.type === 'factory') && utilityStatus && (
+          <>
+            <Row
+              label="⚡ Electricity"
+              value={
+                utilityStatus.electricity ? (
+                  <span style={{ color: '#4ADE80' }}>Connected</span>
+                ) : (
+                  <span style={{ color: '#F87171' }}>Unconnected</span>
+                )
+              }
+            />
+            <Row
+              label="💧 Water"
+              value={
+                utilityStatus.water ? (
+                  <span style={{ color: '#4ADE80' }}>Connected</span>
+                ) : (
+                  <span style={{ color: '#F87171' }}>Unconnected</span>
+                )
+              }
+            />
+          </>
+        )}
+
+        {/* Utility provider info */}
+        {providerInfo && (
+          <>
+            <Row
+              label="Utility"
+              value={providerInfo.type === 'electricity' ? '⚡ Electricity' : '💧 Water'}
+            />
+            <Row
+              label="Capacity"
+              value={providerInfo.capacity}
+            />
+            <Row
+              label="Used"
+              value={providerInfo.used}
+            />
+            <Row
+              label="Available"
+              value={providerInfo.available}
             />
           </>
         )}

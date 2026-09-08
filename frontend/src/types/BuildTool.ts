@@ -8,4 +8,6 @@ export type BuildTool =
   | "tree"
   | "rock"
   | "road"
-  | "bulldozer";
+  | "bulldozer"
+  | "power_plant"
+  | "water_plant";

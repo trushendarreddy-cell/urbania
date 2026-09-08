@@ -24,6 +24,8 @@ import {
 import { useSimulationStore } from "../stores/useSimulationStore";
 import { getCitizenPosition } from "../systems/CitizenMovementSystem";
 import Citizen from "../world/Citizen";
+import PowerPlant from "../world/PowerPlant";
+import WaterPlant from "../world/WaterPlant";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -422,6 +424,24 @@ export default function GameScene({
             />
           );
         }
+        if (building.type === "power_plant") {
+          return (
+            <PowerPlant
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+            />
+          );
+        }
+        if (building.type === "water_plant") {
+          return (
+            <WaterPlant
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+            />
+          );
+        }
         return null;
       })}
 
@@ -531,6 +551,24 @@ export default function GameScene({
             [hoverPos[0], 0, hoverPos[2]],
             buildings
           )}
+        />
+      )}
+
+      {selectedTool === "power_plant" && (
+        <PowerPlant
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "water_plant" && (
+        <WaterPlant
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
         />
       )}
 

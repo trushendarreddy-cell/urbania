@@ -69,6 +69,18 @@ export default function Toolbar({
       label: "Bulldoze",
       key: "4",
     },
+    {
+      id: "power_plant",
+      icon: "⚡",
+      label: "Power",
+      key: "9",
+    },
+    {
+      id: "water_plant",
+      icon: "💧",
+      label: "Water",
+      key: "0",
+    },
   ];
 
   return (

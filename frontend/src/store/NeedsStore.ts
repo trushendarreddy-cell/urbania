@@ -3,6 +3,7 @@ import usePopulationStore from "./PopulationStore";
 import useEconomyStore from "./EconomyStore";
 import useBuildingStore from "./BuildingStore";
 import useServiceStore from "./ServiceStore";
+import useUtilityStore from "./UtilityStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
 
 export interface CitizenNeeds {
@@ -42,8 +43,14 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       const isActive = hasRoadAccess(homeBuilding.position, buildings);
       const money = householdMoney[household.id] || 0;
 
-      // Housing: 100 if home exists, else 0 (but home exists by construction)
-      const housing = 100;
+      // Housing: base 100, reduced if utilities missing
+      let housing = 100;
+      const utilityStatus = useUtilityStore.getState().getUtilityStatus(homeBuilding.id);
+      if (utilityStatus) {
+        if (!utilityStatus.electricity) housing -= 20;
+        if (!utilityStatus.water) housing -= 20;
+      }
+      housing = Math.max(0, housing);
 
       // Food: based on household money, capped at 100
       let food = 50; // baseline
