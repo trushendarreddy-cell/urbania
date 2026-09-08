@@ -3,6 +3,8 @@ import { hasRoadAccess } from "../systems/RoadAccessSystem";
 import { getRoadNeighbors } from "../systems/RoadSystem";
 import type { Building } from "../store/BuildingStore";
 
+import usePopulationStore from "../store/PopulationStore";
+
 function getObjectInfo(building: Building) {
   switch (building.type) {
     case "shop":
@@ -12,6 +14,7 @@ function getObjectInfo(building: Building) {
         zone: building.zoneType ?? "commercial",
         showRoadAccess: true,
         showConnections: false,
+        showHousehold: false,
       };
     case "factory":
       return {
@@ -20,6 +23,7 @@ function getObjectInfo(building: Building) {
         zone: building.zoneType ?? "industrial",
         showRoadAccess: true,
         showConnections: false,
+        showHousehold: false,
       };
     case "park":
       return {
@@ -28,6 +32,7 @@ function getObjectInfo(building: Building) {
         zone: building.zoneType ?? "park",
         showRoadAccess: true,
         showConnections: false,
+        showHousehold: false,
       };
     case "tree":
       return {
@@ -35,6 +40,7 @@ function getObjectInfo(building: Building) {
         type: "Nature",
         showRoadAccess: false,
         showConnections: false,
+        showHousehold: false,
       };
     case "rock":
       return {
@@ -42,6 +48,7 @@ function getObjectInfo(building: Building) {
         type: "Nature",
         showRoadAccess: false,
         showConnections: false,
+        showHousehold: false,
       };
     case "road":
       return {
@@ -49,6 +56,7 @@ function getObjectInfo(building: Building) {
         type: "Infrastructure",
         showRoadAccess: false,
         showConnections: true,
+        showHousehold: false,
       };
     case "house":
     default:
@@ -58,6 +66,7 @@ function getObjectInfo(building: Building) {
         zone: building.zoneType ?? "residential",
         showRoadAccess: true,
         showConnections: false,
+        showHousehold: true,
       };
   }
 }
@@ -101,6 +110,10 @@ export default function InspectionPanel() {
   const connections = info.showConnections
     ? getRoadNeighbors(building.position, buildings)
     : null;
+  const household = info.showHousehold
+    ? usePopulationStore.getState().households.find(h => h.buildingId === building.id)
+    : null;
+  const householdPop = household ? household.population : null;
 
   return (
     <div
@@ -180,6 +193,26 @@ export default function InspectionPanel() {
               )
             }
           />
+        )}
+        {info.showHousehold && (
+          <>
+            <Row
+              label="Household"
+              value={
+                householdPop !== null ? `${householdPop} people` : "None"
+              }
+            />
+            <Row
+              label="Status"
+              value={
+                roadAccess ? (
+                  <span style={{ color: "#4ADE80" }}>Active</span>
+                ) : (
+                  <span style={{ color: "#FACC15" }}>Inactive</span>
+                )
+              }
+            />
+          </>
         )}
 
         {info.showConnections && connections && (

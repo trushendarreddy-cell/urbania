@@ -4,12 +4,19 @@ import { useEffect, useState } from "react";
 import GameScene from "./scenes/GameScene";
 import Toolbar from "./ui/Toolbar";
 import InspectionPanel from "./ui/InspectionPanel";
+import CityStats from "./ui/CityStats";
 import useBuildingStore from "./store/BuildingStore";
+import usePopulationStore from "./store/PopulationStore";
 import type { BuildTool } from "./types/BuildTool";
 
 export default function App() {
   const [selectedTool, setSelectedTool] =
     useState<BuildTool>("house");
+
+  // Initialize population for existing houses on mount
+  useEffect(() => {
+    usePopulationStore.getState().initialize();
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -129,6 +136,7 @@ export default function App() {
         onSelect={setSelectedTool}
       />
       <InspectionPanel />
+      <CityStats />
     </>
   );
 }

@@ -13,6 +13,7 @@ import Tree from "../world/Tree";
 import Rock from "../world/Rock";
 import Road from "../world/Road";
 import useBuildingStore from "../store/BuildingStore";
+import usePopulationStore from "../store/PopulationStore";
 import type { BuildTool } from "../types/BuildTool";
 import { canPlaceObject } from "../systems/PlacementSystem";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
@@ -40,6 +41,12 @@ export default function GameScene({
   );
   const removeBuilding = useBuildingStore(
     (state) => state.removeBuilding
+  );
+  const addHousehold = usePopulationStore(
+    (state) => state.addHousehold
+  );
+  const removeHousehold = usePopulationStore(
+    (state) => state.removeHousehold
   );
   const selectedObjectId = useBuildingStore(
     (state) => state.selectedObjectId
@@ -180,6 +187,9 @@ export default function GameScene({
               Math.abs(b.position[2] - hoverPos[2]) < 0.1
           );
           if (target) {
+            if (target.type === "house") {
+              removeHousehold(target.id);
+            }
             removeBuilding(target.id);
           }
         } else if (
@@ -201,12 +211,15 @@ export default function GameScene({
           );
           if (canPlace) {
             const zoneType = getZoneType(selectedTool);
-            addBuilding(
+            const buildingId = addBuilding(
               [hoverPos[0], 0, hoverPos[2]],
               selectedTool,
               rotation,
               zoneType
             );
+            if (selectedTool === "house") {
+              addHousehold(buildingId);
+            }
           }
         }
       }

@@ -165,6 +165,15 @@ npm run lint
 Additional simulation controls (via UI):
 - Pause/Resume (▶/⏸)
 - Cycle speed (1x, 2x, 4x)
+| R | Rotate ghost by 90° |
+| Escape | Cancel selection / close inspection |
+| Left Click | Place / select / delete (context-dependent) |
+| Mouse Drag | Orbit camera |
+| Scroll | Zoom in/out |
+
+Additional simulation controls (via UI):
+- Pause/Resume (▶/⏸)
+- Cycle speed (1x, 2x, 4x)
 
 ---
 

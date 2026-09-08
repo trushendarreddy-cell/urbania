@@ -92,7 +92,18 @@
 ## 1.0.1 - Road ghost preview fix
 - Fixed road ghost preview not updating validity during drag: per-tile validation now computed on each render pass.
 
-## Current Version - 1.0.1
+## 1.1.0 - Population & Households
+- Added PopulationStore to manage households and population
+- Houses create a household of 4 people on placement
+- Active population calculated from road access (cardinal neighbors)
+- CityStats UI shows total population, households, active population
+- Inspection panel shows household size and active/inactive status
+- Bulldozer removes associated household
+- Existing houses get households on app initialization (safe migration)
+- Reuses RoadAccessSystem for active population calculation
+- No visible citizens, jobs, economy, or migration yet
+
+## Current Version - 1.1.0
 - Fully functional 3D city-building prototype
 - Supports residential, commercial, industrial, park, nature (tree, rock), and road placement
 - Road auto-connection with full intersection support

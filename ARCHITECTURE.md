@@ -20,7 +20,8 @@ frontend/src/
 ```
 
 ## State Architecture
-- **BuildingStore** (`store/BuildingStore.ts`): Manages all placed objects. Contains `buildings` array, `selectedObjectId`, and actions: `addBuilding`, `addBuildings`, `removeBuilding`, `setSelectedObjectId`.
+- **BuildingStore** (`store/BuildingStore.ts`): Manages all placed objects. Contains `buildings` array, `selectedObjectId`, and actions: `addBuilding` (returns id), `addBuildings`, `removeBuilding`, `setSelectedObjectId`.
+- **PopulationStore** (`store/PopulationStore.ts`): Manages households and population. Tracks `households`, `totalPopulation`, `totalHouseholds`, `activePopulation`. Actions: `addHousehold`, `removeHousehold`, `initialize`, `recompute`. Subscribes to BuildingStore changes to update active population.
 - **SimulationStore** (`stores/useSimulationStore.ts`): Manages simulation clock: `day`, `timeOfDay`, `isPaused`, `speed`, with actions `advanceTime`, `togglePaused`, `cycleSpeed`, etc.
 - **Local component state**: `selectedTool` in App, `hoverPos` and `rotation` in GameScene.
 
@@ -53,6 +54,15 @@ frontend/src/
 - `ZoneType` enum defines zone categories.
 - `getZoneType` in GameScene maps tool to zone.
 - Building components (House, Shop, Factory, Park) accept `zoneType` prop (stored in BuildingStore) and `roadAccess` prop for visual indicator.
+
+## Population & Households
+- Only residential buildings (House) create households.
+- Each house adds one household of 4 people on successful placement.
+- Households are stored in PopulationStore, keyed by building ID.
+- Active population is the sum of population of households whose building has road access (cardinal neighbors).
+- PopulationStore subscribes to BuildingStore changes to recompute active population.
+- Bulldozer removes the associated household.
+- Existing houses are initialized on app mount (no duplicate households).
 
 ## Simulation Clock
 - `useSimulationStore` advances time based on delta seconds, speed, and pause state.

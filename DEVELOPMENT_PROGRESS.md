@@ -78,8 +78,19 @@
 - Updated all documentation to reflect current implementation
 - Created DEVELOPMENT_STATUS.md, ROADMAP.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
 
+## Phase 14 — Population & Households
+- Created PopulationStore to manage households and population
+- Each residential house (House) creates a household of 4 people
+- Active population depends on road access (cardinal neighbors)
+- CityStats UI shows total population, households, active population
+- Inspection panel shows household size and active/inactive status
+- Households are added on house placement, removed on bulldoze
+- Existing houses get households on app mount (safe initialization)
+- Reuses RoadAccessSystem for active population calculation
+- No visible citizens, jobs, economy, or migration yet
+
 ## Current State
-- Fully functional 3D city-building prototype
-- All milestone features (world foundation, grid building, build mode, building visuals, roads, zoning, road access, inspection, simulation clock) are complete
-- Population and advanced simulation are future milestones
+- Fully functional 3D city-building prototype with population tracking
+- All milestone features (world foundation, grid building, build mode, building visuals, roads, zoning, road access, inspection, simulation clock, population & households) are complete
+- Advanced simulation (citizens, jobs, economy, traffic) are future milestones
 - Stable, with known minor issues documented

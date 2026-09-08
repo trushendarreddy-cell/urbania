@@ -19,7 +19,7 @@ interface BuildingStore {
     type?: BuildTool,
     rotation?: number,
     zoneType?: ZoneType
-  ) => void;
+  ) => number;
   addBuildings: (
     newBuildings: Array<{
       position: [number, number, number];
@@ -36,19 +36,22 @@ const useBuildingStore = create<BuildingStore>((set) => ({
   selectedObjectId: null,
   setSelectedObjectId: (id) => set({ selectedObjectId: id }),
 
-  addBuilding: (position, type = "house", rotation = 0, zoneType) =>
+  addBuilding: (position, type = "house", rotation = 0, zoneType) => {
+    const id = Date.now();
     set((state) => ({
       buildings: [
         ...state.buildings,
         {
-          id: Date.now(),
+          id,
           type,
           zoneType,
           position,
           rotation,
         },
       ],
-    })),
+    }));
+    return id;
+  },
 
   addBuildings: (newBuildings) =>
     set((state) => {
