@@ -103,11 +103,20 @@
 - Reuses RoadAccessSystem for active population calculation
 - No visible citizens, jobs, economy, or migration yet
 
-## Current Version - 1.1.0
-- Fully functional 3D city-building prototype
+## 1.2.0 - Jobs, Employment, and Citizens
+- Added job capacity: Shop provides 2 jobs, Factory provides 5 jobs
+- Employment/unemployment tracked based on active population and job availability
+- Citizen model: each household generates 4 citizens with ages (32, 30, 8, 5) and stable IDs
+- Employment status assigned to adult citizens (employed/unemployed/inactive based on road access)
+- CityStats updated to show jobs, employed, unemployed, citizens, active citizens
+- InspectionPanel shows household size, citizen count, and job count
+- Documentation synchronized to reflect all current features
+
+## Current Version - 1.2.0
+- Fully functional 3D city-building prototype with population, jobs, and citizens
 - Supports residential, commercial, industrial, park, nature (tree, rock), and road placement
 - Road auto-connection with full intersection support
 - Road access and inspection
 - Simulation clock with day/night cycle and speed control
 - Stable interaction with drag threshold to prevent accidental placement
-- Ready for future population and economy systems
+- Ready for future economy and advanced citizen simulation

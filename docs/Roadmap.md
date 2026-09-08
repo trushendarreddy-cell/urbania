@@ -29,6 +29,9 @@
 - **Road access:** cardinal neighbor detection (north, south, east, west)
 - **Inspection panel:** Select mode, object info, road connections
 - **Simulation clock:** day/night, pause, speed control (0, 1x, 2x, 4x)
+- **Population & Households:** households with 4 people, active population based on road access
+- **Jobs & Employment:** Shop provides 2 jobs, Factory provides 5 jobs; employment/unemployment tracked
+- **Citizen Simulation Foundation:** citizens with ages, employment status, active/inactive state
 
 ## In Progress
 
@@ -38,9 +41,7 @@
 
 ## Next
 
-- Population simulation (households, active population)
-- Road-access relationship for population
-- City statistics panel
+All planned core milestones are complete. See Future for upcoming features.
 
 ## Future
 

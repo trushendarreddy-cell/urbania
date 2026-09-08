@@ -33,6 +33,8 @@
 - **Selection Highlight:** Cyan torus ring around selected object.
 - **Simulation Clock:** Day/night cycle with time of day, pause, and speed control (0, 1x, 2x, 4x).
 - **Road Access Feedback:** Ghost preview shows "ROAD ACCESS ✓" or "NO ROAD ACCESS" label.
+- **Jobs & Employment:** Shop provides 2 jobs, Factory provides 5 jobs; employment/unemployment tracked.
+- **Citizens:** Each household has 4 citizens with deterministic ages and employment status (employed/unemployed/inactive).
 
 ## Planned
 

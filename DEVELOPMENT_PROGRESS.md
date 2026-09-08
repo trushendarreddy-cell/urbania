@@ -78,16 +78,19 @@
 - Updated all documentation to reflect current implementation
 - Created DEVELOPMENT_STATUS.md, ROADMAP.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
 
-## Phase 14 — Population & Households
-- Created PopulationStore to manage households and population
+## Phase 14 — Population, Households, Jobs, and Citizens
+- Created PopulationStore to manage households, citizens, jobs, and population
 - Each residential house (House) creates a household of 4 people
 - Active population depends on road access (cardinal neighbors)
-- CityStats UI shows total population, households, active population
-- Inspection panel shows household size and active/inactive status
-- Households are added on house placement, removed on bulldoze
+- Jobs: Shop provides 2 jobs, Factory provides 5 jobs
+- Employment/unemployment tracked: employed = min(activePopulation, totalJobs)
+- Citizens: each household generates 4 citizens with ages (32, 30, 8, 5) and stable IDs
+- Employment status assigned to adult citizens (employed/unemployed/inactive based on road access)
+- CityStats UI shows total population, households, active population, jobs, employed, unemployed, citizens, active citizens
+- Inspection panel shows household size, citizen count, and job count
+- Households and citizens are added on house placement, removed on bulldoze
 - Existing houses get households on app mount (safe initialization)
 - Reuses RoadAccessSystem for active population calculation
-- No visible citizens, jobs, economy, or migration yet
 
 ## Current State
 - Fully functional 3D city-building prototype with population tracking

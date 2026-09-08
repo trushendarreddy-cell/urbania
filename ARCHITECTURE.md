@@ -55,14 +55,19 @@ frontend/src/
 - `getZoneType` in GameScene maps tool to zone.
 - Building components (House, Shop, Factory, Park) accept `zoneType` prop (stored in BuildingStore) and `roadAccess` prop for visual indicator.
 
-## Population & Households
+## Population, Households, Jobs, and Citizens
 - Only residential buildings (House) create households.
 - Each house adds one household of 4 people on successful placement.
 - Households are stored in PopulationStore, keyed by building ID.
 - Active population is the sum of population of households whose building has road access (cardinal neighbors).
-- PopulationStore subscribes to BuildingStore changes to recompute active population.
-- Bulldozer removes the associated household.
+- **Jobs:** Shop provides 2 jobs, Factory provides 5 jobs; `totalJobs` computed from buildings.
+- **Employment:** `employed = min(activePopulation, totalJobs)`, `unemployed = activePopulation - employed`.
+- **Citizens:** Each household generates 4 citizens with deterministic ages (32, 30, 8, 5) and stable IDs. Adult citizens (age ≥ 18) are assigned employment status (employed/unemployed) based on job availability; inactive if household lacks road access.
+- PopulationStore subscribes to BuildingStore changes to recompute active population, jobs, and employment.
+- Bulldozer removes the associated household and its citizens.
 - Existing houses are initialized on app mount (no duplicate households).
+- CityStats UI displays population, households, citizens, active population, jobs, employed, unemployed.
+- InspectionPanel shows household size, citizen count, and job count for shops/factories.
 
 ## Simulation Clock
 - `useSimulationStore` advances time based on delta seconds, speed, and pause state.
