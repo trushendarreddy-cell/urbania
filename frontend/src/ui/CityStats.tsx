@@ -18,6 +18,8 @@ export default function CityStats() {
   const dailySpending = useEconomyStore((state) => state.dailySpending);
   const totalBusinessRevenue = useEconomyStore((state) => state.totalBusinessRevenue);
   const economicHealth = useEconomyStore((state) => state.economicHealth);
+  const aggregateDemand = useEconomyStore((state) => state.aggregateDemand);
+  const unmetDemand = useEconomyStore((state) => state.unmetDemand);
   // Total household money
   const householdMoneyMap = useEconomyStore((state) => state.householdMoney);
   const totalMoney = Object.values(householdMoneyMap).reduce((a, b) => a + b, 0);
@@ -126,6 +128,8 @@ export default function CityStats() {
         <div>🏢 Revenue  {Math.round(totalBusinessRevenue)}</div>
         <div>📊 Employment {Math.round(employmentRate)}%</div>
         <div>📈 Econ Health {Math.round(economicHealth)}%</div>
+        <div>📊 Demand {Math.round(aggregateDemand)}</div>
+        <div>⚠️ Unmet {Math.round(unmetDemand)}</div>
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
         <div>😊 Avg Happiness {Math.round(avgHappiness)}%</div>

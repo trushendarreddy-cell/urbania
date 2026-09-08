@@ -151,6 +151,10 @@ export default function InspectionPanel() {
   const factoryProduction = building.type === 'factory'
     ? useEconomyStore.getState().factoryProduction[building.id] || 0
     : null;
+  // Shop demand info
+  const shopDemand = building.type === 'shop' ? useEconomyStore.getState().shopDemand[building.id] || 0 : null;
+  const shopServed = building.type === 'shop' ? useEconomyStore.getState().shopServed[building.id] || 0 : null;
+  const shopUnmet = building.type === 'shop' ? useEconomyStore.getState().shopUnmet[building.id] || 0 : null;
   // For park, show service info
   const serviceInfo = (building.type === 'park' || building.type === 'hospital' || building.type === 'school' || building.type === 'police_station' || building.type === 'fire_station') ? (() => {
     let serviceType: 'recreation' | 'healthcare' | 'education' | 'safety' | 'emergency' = 'recreation';
@@ -317,6 +321,12 @@ export default function InspectionPanel() {
                 }
               />
             )}
+            {household && (
+              <Row
+                label="Demand"
+                value={Math.round(useEconomyStore.getState().householdDemand[household.id] || 0)}
+              />
+            )}
             {avgHappiness !== null && (
               <Row
                 label="Happiness"
@@ -384,6 +394,13 @@ export default function InspectionPanel() {
               </span>
             }
           />
+        )}
+        {shopDemand !== null && (
+          <>
+            <Row label="Demand" value={Math.round(shopDemand)} />
+            <Row label="Served" value={Math.round(shopServed || 0)} />
+            <Row label="Unmet" value={Math.round(shopUnmet || 0)} />
+          </>
         )}
         {factoryProduction !== null && (
           <Row
