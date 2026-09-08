@@ -17,7 +17,7 @@ interface SimulationStore {
   reset: () => void;
 }
 
-export const useSimulationStore = create<SimulationStore>((set, get) => ({
+export const useSimulationStore = create<SimulationStore>((set) => ({
   day: 1,
   timeOfDay: 8,
   isPaused: false,

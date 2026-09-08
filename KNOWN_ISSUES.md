@@ -1,7 +1,7 @@
 # Known Issues
 
 ## Minor Visual Issues
-- **Road ghost preview**: During road drag, the ghost road tiles may not always show the correct valid/invalid color until the mouse stops moving. This is a minor visual glitch and does not affect placement logic.
+(All known issues resolved)
 
 ## Missing Features (Future)
 - No population simulation (planned).

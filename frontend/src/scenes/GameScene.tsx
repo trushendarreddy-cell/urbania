@@ -279,10 +279,6 @@ export default function GameScene({
       ? generateRoadLine(roadDragStart, hoverPos)
       : [];
 
-  const isRoadLineValid =
-    roadPreviewLine.length > 0 &&
-    roadPreviewLine.every((p) => canPlaceObject("road", p, 0, buildings));
-
   const allRoadsForPreview = [
     ...buildings,
     ...roadPreviewLine.map((p) => ({
@@ -503,12 +499,13 @@ export default function GameScene({
             pos,
             allRoadsForPreview
           );
+          const tileValid = canPlaceObject("road", pos, 0, buildings);
           return (
             <Road
               key={`ghost-road-${idx}-${pos[0]}-${pos[2]}`}
               position={pos}
               ghost
-              valid={isRoadLineValid}
+              valid={tileValid}
               connections={connections}
             />
           );

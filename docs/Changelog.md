@@ -89,7 +89,10 @@
 - Created DEVELOPMENT_STATUS.md, ROADMAP.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
 - Project now stable with all core milestones complete (except population, which is future)
 
-## Current Version - 1.0.0
+## 1.0.1 - Road ghost preview fix
+- Fixed road ghost preview not updating validity during drag: per-tile validation now computed on each render pass.
+
+## Current Version - 1.0.1
 - Fully functional 3D city-building prototype
 - Supports residential, commercial, industrial, park, nature (tree, rock), and road placement
 - Road auto-connection with full intersection support

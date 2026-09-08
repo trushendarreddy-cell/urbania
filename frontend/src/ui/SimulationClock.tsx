@@ -1,4 +1,4 @@
-import useSimulationStore from "../stores/useSimulationStore";
+import { useSimulationStore } from "../stores/useSimulationStore";
 
 function formatTime(timeOfDay: number): string {
   const hours = Math.floor(timeOfDay);
