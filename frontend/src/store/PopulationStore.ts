@@ -128,9 +128,13 @@ const usePopulationStore = create<PopulationStore>((set, get) => {
     });
   };
 
-  // Subscribe to building changes to update active population
+  // Subscribe to building changes to update active population and trigger needs recompute
   useBuildingStore.subscribe(() => {
     recompute();
+    // Needs recompute will be triggered on day change; but we can also trigger on building changes
+    // to keep needs up-to-date for inspection. However, we don't want to recompute every frame.
+    // We'll rely on day change for now, but for immediate inspection after building changes,
+    // we can call recomputeAll from NeedsStore. Let's keep it simple: day change only.
   });
 
   return {

@@ -1,5 +1,6 @@
 import usePopulationStore from "../store/PopulationStore";
 import useEconomyStore from "../store/EconomyStore";
+import useNeedsStore from "../store/NeedsStore";
 
 export default function CityStats() {
   const totalPopulation = usePopulationStore((state) => state.totalPopulation);
@@ -16,6 +17,12 @@ export default function CityStats() {
   // Total household money
   const householdMoneyMap = useEconomyStore((state) => state.householdMoney);
   const totalMoney = Object.values(householdMoneyMap).reduce((a, b) => a + b, 0);
+  // Happiness stats
+  const needsMap = useNeedsStore((state) => state.needs);
+  const happinessValues = Object.values(needsMap).map(n => n.happiness);
+  const avgHappiness = happinessValues.length > 0 ? happinessValues.reduce((a, b) => a + b, 0) / happinessValues.length : 0;
+  const happyCount = happinessValues.filter(h => h >= 60).length;
+  const unhappyCount = happinessValues.filter(h => h < 40).length;
 
   return (
     <div
@@ -53,6 +60,11 @@ export default function CityStats() {
         <div>💸 Income   {Math.round(dailyIncome)}</div>
         <div>🛒 Spending {Math.round(dailySpending)}</div>
         <div>🏢 Revenue  {Math.round(totalBusinessRevenue)}</div>
+      </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
+        <div>😊 Avg Happiness {Math.round(avgHappiness)}%</div>
+        <div>😄 Happy {happyCount}</div>
+        <div>😞 Unhappy {unhappyCount}</div>
       </div>
     </div>
   );

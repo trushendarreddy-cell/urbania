@@ -6,6 +6,7 @@ import { useSimulationStore } from "../stores/useSimulationStore";
 import { getCitizenActivity } from "../systems/CitizenActivitySystem";
 import useRoadUsageStore, { getCongestionLevel, ROAD_CAPACITY } from "../store/RoadUsageStore";
 import useEconomyStore from "../store/EconomyStore";
+import useNeedsStore from "../store/NeedsStore";
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -135,6 +136,17 @@ export default function InspectionPanel() {
   const revenue = (building.type === 'shop' || building.type === 'factory') 
     ? useEconomyStore.getState().businessRevenue[building.id] || 0 
     : null;
+  // For houses, get average happiness of citizens
+  const avgHappiness = (() => {
+    if (!household || citizensForHousehold.length === 0) return null;
+    const needsStore = useNeedsStore.getState();
+    let sum = 0, count = 0;
+    for (const c of citizensForHousehold) {
+      const needs = needsStore.getNeeds(c.id);
+      if (needs) { sum += needs.happiness; count++; }
+    }
+    return count > 0 ? sum / count : null;
+  })();
 
   return (
     <div
@@ -249,14 +261,25 @@ export default function InspectionPanel() {
                 ) : "0"
               }
             />
+            {avgHappiness !== null && (
+              <Row
+                label="Happiness"
+                value={
+                  <span style={{ color: avgHappiness >= 60 ? '#4ADE80' : avgHappiness >= 40 ? '#FBBF24' : '#EF4444' }}>
+                    {Math.round(avgHappiness)}%
+                  </span>
+                }
+              />
+            )}
             {citizensForHousehold.length > 0 && (
               <div style={{ marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "4px" }}>
                 <div style={{ color: "#9CA3AF", fontSize: "11px", marginBottom: "2px" }}>Citizens:</div>
                 {citizensForHousehold.map((c) => {
                   const activity = getCitizenActivity(c.employmentStatus, c.age, timeOfDay);
+                  const needs = useNeedsStore.getState().getNeeds(c.id);
                   return (
                     <div key={c.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", padding: "1px 0" }}>
-                      <span>Age {c.age}</span>
+                      <span>Age {c.age} {needs ? `😊${Math.round(needs.happiness)}%` : ''}</span>
                       <span>
                         {c.employmentStatus === 'employed' && 'Employed'}
                         {c.employmentStatus === 'unemployed' && 'Unemployed'}
