@@ -21,6 +21,8 @@ import {
   getRoadNeighbors,
   generateRoadLine,
 } from "../systems/RoadSystem";
+import { useSimulationStore } from "../stores/useSimulationStore";
+import { getCitizenPosition } from "../systems/CitizenMovementSystem";
 import Citizen from "../world/Citizen";
 
 interface GameSceneProps {
@@ -57,6 +59,7 @@ export default function GameScene({
   );
   const citizens = usePopulationStore((state) => state.citizens);
   const households = usePopulationStore((state) => state.households);
+  const timeOfDay = useSimulationStore((state) => state.timeOfDay);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -449,19 +452,8 @@ export default function GameScene({
         const parts = citizen.id.split('-');
         const index = parseInt(parts[parts.length - 1], 10);
         if (isNaN(index)) return null;
-        const offsets: [number, number, number][] = [
-          [-0.25, 0, -0.25],
-          [0.25, 0, -0.25],
-          [-0.25, 0, 0.25],
-          [0.25, 0, 0.25],
-        ];
-        const offset = offsets[index % offsets.length];
-        const pos: [number, number, number] = [
-          building.position[0] + offset[0],
-          0.02,
-          building.position[2] + offset[2],
-        ];
         const active = hasRoadAccess(building.position, buildings);
+        const pos = getCitizenPosition(citizen, buildings, timeOfDay, index);
         return (
           <Citizen
             key={citizen.id}
