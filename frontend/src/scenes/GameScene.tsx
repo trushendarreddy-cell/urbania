@@ -24,6 +24,7 @@ import {
 import { useSimulationStore } from "../stores/useSimulationStore";
 import { getCitizenPosition } from "../systems/CitizenMovementSystem";
 import Citizen from "../world/Citizen";
+// import needed for getCitizenPosition
 
 interface GameSceneProps {
   selectedTool: BuildTool;
