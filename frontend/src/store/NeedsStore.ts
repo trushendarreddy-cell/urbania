@@ -2,6 +2,7 @@ import { create } from "zustand";
 import usePopulationStore from "./PopulationStore";
 import useEconomyStore from "./EconomyStore";
 import useBuildingStore from "./BuildingStore";
+import useServiceStore from "./ServiceStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
 
 export interface CitizenNeeds {
@@ -28,22 +29,9 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
     const households = usePopulationStore.getState().households;
     const buildings = useBuildingStore.getState().buildings;
     const householdMoney = useEconomyStore.getState().householdMoney;
+    const serviceStore = useServiceStore.getState();
 
     const newNeeds: Record<string, CitizenHappiness> = {};
-
-    // Helper: distance from a position to the nearest park
-    const distanceToNearestPark = (pos: [number, number, number]): number | null => {
-      let minDist = Infinity;
-      for (const b of buildings) {
-        if (b.type === 'park') {
-          const dx = pos[0] - b.position[0];
-          const dz = pos[2] - b.position[2];
-          const dist = Math.hypot(dx, dz);
-          if (dist < minDist) minDist = dist;
-        }
-      }
-      return minDist === Infinity ? null : minDist;
-    };
 
     for (const citizen of citizens) {
       const household = households.find(h => h.id === citizen.householdId);
@@ -71,10 +59,11 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       // basic infrastructure bonus if there are roads nearby? keep simple
       if (isActive) safety = Math.min(100, safety + 10);
 
-      // Recreation: based on distance to nearest park
+      // Recreation: based on service coverage
       let recreation = 20;
-      const dist = distanceToNearestPark(homeBuilding.position);
-      if (dist !== null) {
+      const coverage = serviceStore.getCoverage(homeBuilding.position, "recreation");
+      if (coverage.covered && coverage.distance !== null) {
+        const dist = coverage.distance;
         if (dist <= 3) recreation = 100;
         else if (dist <= 6) recreation = 75;
         else if (dist <= 10) recreation = 50;

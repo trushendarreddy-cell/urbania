@@ -7,6 +7,7 @@ import { getCitizenActivity } from "../systems/CitizenActivitySystem";
 import useRoadUsageStore, { getCongestionLevel, ROAD_CAPACITY } from "../store/RoadUsageStore";
 import useEconomyStore from "../store/EconomyStore";
 import useNeedsStore from "../store/NeedsStore";
+import useServiceStore from "../store/ServiceStore";
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -136,6 +137,16 @@ export default function InspectionPanel() {
   const revenue = (building.type === 'shop' || building.type === 'factory') 
     ? useEconomyStore.getState().businessRevenue[building.id] || 0 
     : null;
+  // For park, show service info
+  const serviceInfo = building.type === 'park' ? (() => {
+    const providers = useServiceStore.getState().getProvidersForService('recreation');
+    const provider = providers.find(p => p.buildingId === building.id);
+    if (provider) {
+      const householdsServed = useServiceStore.getState().getHouseholdsServed(building.id);
+      return { radius: provider.radius, householdsServed };
+    }
+    return null;
+  })() : null;
   // For houses, get average happiness of citizens
   const avgHappiness = (() => {
     if (!household || citizensForHousehold.length === 0) return null;
@@ -305,6 +316,22 @@ export default function InspectionPanel() {
             label="Revenue"
             value={`₹${Math.round(revenue)}`}
           />
+        )}
+        {serviceInfo && (
+          <>
+            <Row
+              label="Service"
+              value="Recreation"
+            />
+            <Row
+              label="Coverage Radius"
+              value={`${serviceInfo.radius} tiles`}
+            />
+            <Row
+              label="Households Served"
+              value={serviceInfo.householdsServed}
+            />
+          </>
         )}
 
         {info.showConnections && connections && (

@@ -1,6 +1,8 @@
 import usePopulationStore from "../store/PopulationStore";
 import useEconomyStore from "../store/EconomyStore";
 import useNeedsStore from "../store/NeedsStore";
+import useServiceStore from "../store/ServiceStore";
+import useBuildingStore from "../store/BuildingStore";
 
 export default function CityStats() {
   const totalPopulation = usePopulationStore((state) => state.totalPopulation);
@@ -23,6 +25,19 @@ export default function CityStats() {
   const avgHappiness = happinessValues.length > 0 ? happinessValues.reduce((a, b) => a + b, 0) / happinessValues.length : 0;
   const happyCount = happinessValues.filter(h => h >= 60).length;
   const unhappyCount = happinessValues.filter(h => h < 40).length;
+  // Service coverage stats
+  const households = usePopulationStore.getState().households;
+  const buildings = useBuildingStore.getState().buildings;
+  let coveredRecreation = 0;
+  for (const h of households) {
+    const building = buildings.find(b => b.id === h.buildingId);
+    if (building) {
+      const coverage = useServiceStore.getState().getCoverage(building.position, "recreation");
+      if (coverage.covered) coveredRecreation++;
+    }
+  }
+  const totalHouseholdsCount = households.length;
+  const recreationCoverage = totalHouseholdsCount > 0 ? (coveredRecreation / totalHouseholdsCount) * 100 : 0;
 
   return (
     <div
@@ -65,6 +80,9 @@ export default function CityStats() {
         <div>😊 Avg Happiness {Math.round(avgHappiness)}%</div>
         <div>😄 Happy {happyCount}</div>
         <div>😞 Unhappy {unhappyCount}</div>
+      </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
+        <div>🏞️ Recreation Coverage {Math.round(recreationCoverage)}%</div>
       </div>
     </div>
   );
