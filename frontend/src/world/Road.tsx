@@ -1,4 +1,5 @@
 import type { RoadConnections } from "../systems/RoadSystem";
+import useRoadUsageStore, { getCongestionLevel, getCongestionColor } from "../store/RoadUsageStore";
 
 interface RoadProps {
   position: [number, number, number];
@@ -16,7 +17,15 @@ export default function Road({
   connections = { north: false, south: false, east: false, west: false },
 }: RoadProps) {
   const opacity = ghost ? 0.45 : 1;
-  const asphaltColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#27272A";
+  let baseAsphalt = "#27272A";
+  if (!ghost) {
+    const key = `${Math.round(position[0])},${Math.round(position[2])}`;
+    const usage = useRoadUsageStore.getState().getUsage(key);
+    const level = getCongestionLevel(usage);
+    const color = getCongestionColor(level);
+    baseAsphalt = color;
+  }
+  const asphaltColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : baseAsphalt;
   const markingColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FACC15";
   const curbColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#3F3F46";
 

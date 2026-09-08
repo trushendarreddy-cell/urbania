@@ -4,6 +4,7 @@ import { getRoadNeighbors } from "../systems/RoadSystem";
 import type { Building } from "../store/BuildingStore";
 import { useSimulationStore } from "../stores/useSimulationStore";
 import { getCitizenActivity } from "../systems/CitizenActivitySystem";
+import useRoadUsageStore, { getCongestionLevel, ROAD_CAPACITY } from "../store/RoadUsageStore";
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -303,6 +304,42 @@ export default function InspectionPanel() {
                 ) : (
                   <span style={{ color: "#F87171" }}>✗</span>
                 )
+              }
+            />
+          </>
+        )}
+
+        {building.type === "road" && (
+          <>
+            <Row
+              label="Users"
+              value={
+                <span>{useRoadUsageStore.getState().getUsage(`${Math.round(building.position[0])},${Math.round(building.position[2])}`)}</span>
+              }
+            />
+            <Row
+              label="Capacity"
+              value={ROAD_CAPACITY}
+            />
+            <Row
+              label="Congestion"
+              value={
+                (() => {
+                  const key = `${Math.round(building.position[0])},${Math.round(building.position[2])}`;
+                  const usage = useRoadUsageStore.getState().getUsage(key);
+                  const level = getCongestionLevel(usage);
+                  const colors: Record<string, string> = {
+                    low: '#4ADE80',
+                    moderate: '#FBBF24',
+                    high: '#F97316',
+                    overloaded: '#EF4444'
+                  };
+                  return (
+                    <span style={{ color: colors[level] }}>
+                      {level.toUpperCase()} ({Math.round((usage / ROAD_CAPACITY) * 100)}%)
+                    </span>
+                  );
+                })()
               }
             />
           </>
