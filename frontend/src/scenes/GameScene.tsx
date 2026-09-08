@@ -21,6 +21,7 @@ import {
   getRoadNeighbors,
   generateRoadLine,
 } from "../systems/RoadSystem";
+import Citizen from "../world/Citizen";
 
 interface GameSceneProps {
   selectedTool: BuildTool;
@@ -54,6 +55,8 @@ export default function GameScene({
   const setSelectedObjectId = useBuildingStore(
     (state) => state.setSelectedObjectId
   );
+  const citizens = usePopulationStore((state) => state.citizens);
+  const households = usePopulationStore((state) => state.households);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -436,6 +439,39 @@ export default function GameScene({
           />
         </mesh>
       )}
+
+      {/* Citizens */}
+      {citizens.map((citizen) => {
+        const household = households.find((h) => h.id === citizen.householdId);
+        if (!household) return null;
+        const building = buildings.find((b) => b.id === household.buildingId);
+        if (!building) return null;
+        const parts = citizen.id.split('-');
+        const index = parseInt(parts[parts.length - 1], 10);
+        if (isNaN(index)) return null;
+        const offsets: [number, number, number][] = [
+          [-0.25, 0, -0.25],
+          [0.25, 0, -0.25],
+          [-0.25, 0, 0.25],
+          [0.25, 0, 0.25],
+        ];
+        const offset = offsets[index % offsets.length];
+        const pos: [number, number, number] = [
+          building.position[0] + offset[0],
+          0.02,
+          building.position[2] + offset[2],
+        ];
+        const active = hasRoadAccess(building.position, buildings);
+        return (
+          <Citizen
+            key={citizen.id}
+            position={pos}
+            active={active}
+            employmentStatus={citizen.employmentStatus}
+            age={citizen.age}
+          />
+        );
+      })}
 
       {/* Ghost Previews */}
       {selectedTool === "house" && (

@@ -16,6 +16,7 @@ Stabilization / Development Freeze
 - Population & Households (households of 4, active population based on road access)
 - Jobs & Employment (Shop: 2 jobs, Factory: 5 jobs; employment/unemployment tracking)
 - Citizen Simulation Foundation (citizens with ages, employment status, active/inactive)
+- **Citizen Visualization Foundation** – citizens rendered as low-poly characters near their household, with visual states for active/inactive and employment
 
 ## Partial
 - Road ghost preview valid state not always updating during drag (minor visual issue)

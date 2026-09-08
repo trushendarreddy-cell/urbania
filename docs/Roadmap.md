@@ -39,9 +39,19 @@
 - Building variant randomization (planned)
 - Terrain variation (water, elevation) (planned)
 
+## Completed
+- Citizen Visualization Foundation (low-poly citizens rendered near households, visual states for active/inactive and employment)
+
 ## Next
 
-All planned core milestones are complete. See Future for upcoming features.
+See Future for upcoming features.
+
+## Future
+
+- Citizen AI and walking
+- Pathfinding and traffic
+- Economy and resource management
+- Advanced citizen needs and happiness
 
 ## Future
 

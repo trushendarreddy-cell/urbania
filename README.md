@@ -24,7 +24,7 @@ Urbania is a browser-based city builder running entirely in the browser using **
 - **Inspection panel** showing object details and road connections
 - **Simulation clock** with day/night cycle, pause, and speed control
 - **Jobs & Employment** – Shop provides 2 jobs, Factory provides 5 jobs; employment/unemployment tracked
-- **Citizens** – each household has 4 citizens with ages and employment status
+- **Citizens** – each household has 4 citizens with ages and employment status; citizens are visually represented in the world with active/inactive and employment states
 
 The project is a **prototype** — a proving ground for 3D rendering, state management, and interactive building mechanics that will eventually expand into a full city simulation.
 

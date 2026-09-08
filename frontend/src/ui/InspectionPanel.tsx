@@ -2,6 +2,8 @@ import useBuildingStore from "../store/BuildingStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
 import { getRoadNeighbors } from "../systems/RoadSystem";
 import type { Building } from "../store/BuildingStore";
+import { useSimulationStore } from "../stores/useSimulationStore";
+import { getCitizenActivity } from "../systems/CitizenActivitySystem";
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -122,6 +124,10 @@ export default function InspectionPanel() {
     : null;
   const householdPop = household ? household.population : null;
   const jobCount = info.jobCount || 0;
+  const timeOfDay = useSimulationStore((state) => state.timeOfDay);
+  const citizensForHousehold = household
+    ? usePopulationStore.getState().citizens.filter(c => c.householdId === household.id)
+    : [];
 
   return (
     <div
@@ -214,7 +220,7 @@ export default function InspectionPanel() {
               label="Citizens"
               value={
                 household ? (
-                  <span>{usePopulationStore.getState().citizens.filter(c => c.householdId === household.id).length}</span>
+                  <span>{citizensForHousehold.length}</span>
                 ) : "0"
               }
             />
@@ -228,6 +234,26 @@ export default function InspectionPanel() {
                 )
               }
             />
+            {citizensForHousehold.length > 0 && (
+              <div style={{ marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "4px" }}>
+                <div style={{ color: "#9CA3AF", fontSize: "11px", marginBottom: "2px" }}>Citizens:</div>
+                {citizensForHousehold.map((c) => {
+                  const activity = getCitizenActivity(c.employmentStatus, c.age, timeOfDay);
+                  return (
+                    <div key={c.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", padding: "1px 0" }}>
+                      <span>Age {c.age}</span>
+                      <span>
+                        {c.employmentStatus === 'employed' && 'Employed'}
+                        {c.employmentStatus === 'unemployed' && 'Unemployed'}
+                        {c.employmentStatus === 'inactive' && 'Inactive'}
+                        {' · '}
+                        {activity.charAt(0).toUpperCase() + activity.slice(1)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
         {jobCount > 0 && (

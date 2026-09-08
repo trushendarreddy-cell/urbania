@@ -63,6 +63,7 @@ frontend/src/
 - **Jobs:** Shop provides 2 jobs, Factory provides 5 jobs; `totalJobs` computed from buildings.
 - **Employment:** `employed = min(activePopulation, totalJobs)`, `unemployed = activePopulation - employed`.
 - **Citizens:** Each household generates 4 citizens with deterministic ages (32, 30, 8, 5) and stable IDs. Adult citizens (age ≥ 18) are assigned employment status (employed/unemployed) based on job availability; inactive if household lacks road access.
+- **Citizen Visualization:** Citizens are rendered as low-poly characters (body + head) using shared geometries. They appear at fixed offsets around their household building. Visual color indicates state: green = active, gray = inactive, blue = employed, orange = unemployed. Citizens are updated reactively when road access or employment changes.
 - PopulationStore subscribes to BuildingStore changes to recompute active population, jobs, and employment.
 - Bulldozer removes the associated household and its citizens.
 - Existing houses are initialized on app mount (no duplicate households).

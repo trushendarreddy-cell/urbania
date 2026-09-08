@@ -14,6 +14,7 @@ export interface Citizen {
   age: number;
   employmentStatus: "employed" | "unemployed" | "inactive";
   jobId?: string;
+  // activity is derived, not stored
 }
 
 interface PopulationStore {
