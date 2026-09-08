@@ -211,6 +211,14 @@ export default function InspectionPanel() {
               }
             />
             <Row
+              label="Citizens"
+              value={
+                household ? (
+                  <span>{usePopulationStore.getState().citizens.filter(c => c.householdId === household.id).length}</span>
+                ) : "0"
+              }
+            />
+            <Row
               label="Status"
               value={
                 roadAccess ? (

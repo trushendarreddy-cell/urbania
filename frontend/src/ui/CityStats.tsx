@@ -7,6 +7,8 @@ export default function CityStats() {
   const totalJobs = usePopulationStore((state) => state.totalJobs);
   const employed = usePopulationStore((state) => state.employed);
   const unemployed = usePopulationStore((state) => state.unemployed);
+  const totalCitizens = usePopulationStore((state) => state.totalCitizens);
+  const activeCitizens = usePopulationStore((state) => state.activeCitizens);
 
   return (
     <div
@@ -33,7 +35,9 @@ export default function CityStats() {
       </div>
       <div>Population  {totalPopulation}</div>
       <div>Households  {totalHouseholds}</div>
+      <div>Citizens    {totalCitizens}</div>
       <div>Active     {activePopulation}</div>
+      <div>ActiveCit  {activeCitizens}</div>
       <div>Jobs       {totalJobs}</div>
       <div>Employed   {employed}</div>
       <div>Unemployed {unemployed}</div>

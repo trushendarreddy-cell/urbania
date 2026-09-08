@@ -8,14 +8,25 @@ export interface Household {
   population: number;
 }
 
+export interface Citizen {
+  id: string;
+  householdId: string;
+  age: number;
+  employmentStatus: "employed" | "unemployed" | "inactive";
+  jobId?: string;
+}
+
 interface PopulationStore {
   households: Household[];
+  citizens: Citizen[];
   totalPopulation: number;
   totalHouseholds: number;
   activePopulation: number;
   totalJobs: number;
   employed: number;
   unemployed: number;
+  totalCitizens: number;
+  activeCitizens: number;
   addHousehold: (buildingId: number) => void;
   removeHousehold: (buildingId: number) => void;
   initialize: () => void;
@@ -25,6 +36,7 @@ interface PopulationStore {
 const usePopulationStore = create<PopulationStore>((set, get) => {
   const recompute = () => {
     const households = get().households;
+    const citizens = get().citizens;
     const buildings = useBuildingStore.getState().buildings;
     let totalPop = 0;
     let activePop = 0;
@@ -42,16 +54,51 @@ const usePopulationStore = create<PopulationStore>((set, get) => {
       if (b.type === "shop") totalJobs += 2;
       else if (b.type === "factory") totalJobs += 5;
     }
-    const employed = Math.min(activePop, totalJobs);
-    const unemployed = activePop - employed;
+    const employedCount = Math.min(activePop, totalJobs);
+    const unemployedCount = activePop - employedCount;
+
+    // Update citizen employment statuses
+    // Get all adult citizens (age >= 18) from active households
+    const activeHouseholdIds = households
+      .filter(h => {
+        const building = buildings.find(b => b.id === h.buildingId);
+        return building && hasRoadAccess(building.position, buildings);
+      })
+      .map(h => h.id);
+    const adultCitizens = citizens
+      .filter(c => activeHouseholdIds.includes(c.householdId) && c.age >= 18)
+      .sort((a, b) => a.id.localeCompare(b.id)); // deterministic order
+
+    // Assign employed status to the first 'employedCount' adults
+    const employedSet = new Set<string>();
+    for (let i = 0; i < Math.min(employedCount, adultCitizens.length); i++) {
+      employedSet.add(adultCitizens[i].id);
+    }
+
+    // Update each citizen's employment status
+    const updatedCitizens = citizens.map(c => {
+      const isAdult = c.age >= 18;
+      const isActive = activeHouseholdIds.includes(c.householdId);
+      let status: "employed" | "unemployed" | "inactive" = "inactive";
+      if (isActive && isAdult) {
+        status = employedSet.has(c.id) ? "employed" : "unemployed";
+      }
+      return { ...c, employmentStatus: status };
+    });
+
+    const totalCitizens = citizens.length;
+    const activeCitizens = updatedCitizens.filter(c => activeHouseholdIds.includes(c.householdId)).length;
 
     set({
       totalPopulation: totalPop,
       totalHouseholds: households.length,
       activePopulation: activePop,
       totalJobs,
-      employed,
-      unemployed,
+      employed: employedCount,
+      unemployed: unemployedCount,
+      totalCitizens,
+      activeCitizens,
+      citizens: updatedCitizens,
     });
   };
 
@@ -62,21 +109,34 @@ const usePopulationStore = create<PopulationStore>((set, get) => {
 
   return {
     households: [],
+    citizens: [],
     totalPopulation: 0,
     totalHouseholds: 0,
     activePopulation: 0,
     totalJobs: 0,
     employed: 0,
     unemployed: 0,
+    totalCitizens: 0,
+    activeCitizens: 0,
 
     addHousehold: (buildingId) => {
       const existing = get().households.find(h => h.buildingId === buildingId);
       if (existing) return;
+      const householdId = `household-${buildingId}`;
+      // Generate 4 citizens with deterministic ages
+      const ages = [32, 30, 8, 5]; // adults then children
+      const newCitizens = ages.map((age, index) => ({
+        id: `citizen-${buildingId}-${index}`,
+        householdId,
+        age,
+        employmentStatus: "inactive" as const,
+      }));
       set((state) => ({
         households: [
           ...state.households,
-          { id: `household-${buildingId}`, buildingId, population: 4 },
+          { id: householdId, buildingId, population: 4 },
         ],
+        citizens: [...state.citizens, ...newCitizens],
       }));
       recompute();
     },
@@ -84,6 +144,7 @@ const usePopulationStore = create<PopulationStore>((set, get) => {
     removeHousehold: (buildingId) => {
       set((state) => ({
         households: state.households.filter(h => h.buildingId !== buildingId),
+        citizens: state.citizens.filter(c => c.householdId !== `household-${buildingId}`),
       }));
       recompute();
     },
