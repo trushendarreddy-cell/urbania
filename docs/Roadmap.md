@@ -4,41 +4,47 @@
 
 - React + TypeScript + Vite project initialization
 - Three.js + React Three Fiber + Drei integration
-- Zustand state management setup
-- 3D scene with sky, lighting, shadows, and camera
-- Ground plane and infinite grid system
-- Orbit controls for camera navigation
+- Zustand state management
+- 3D scene with sky, lighting, shadows, camera
+- Ground plane and infinite grid
+- Orbit controls
 - Mouse raycasting to ground plane
 - Grid-snapped hover tile preview
-- Low-poly house model with foundation, walls, roof, door, windows, and chimney
+- Low-poly House model (foundation, walls, roof, door, windows, chimney)
 - Click-to-place building system
-- Zustand-based building store with unique IDs
-- Ghost/preview building on hover
+- Building store with unique IDs
+- Ghost/preview building
 - UI toolbar with tool selection
-- Modular folder architecture (world, scene, system, store, ui, hooks, types)
-- Tree and Rock placement tools with distinct models
-- Building rotation with R key (90-degree increments)
-- Bulldozer tool for removing buildings and roads
-- Placement validation with green/red ghost feedback
-- Keyboard shortcuts for all tools (1-5)
-- Escape to cancel tool selection
-- Road placement tool with drag-to-build interaction
-- Road auto-connection based on neighboring road tiles
-- Road connection types: isolated, straight, corner, T-junction, four-way intersection
-- Atomic road placement (entire segment or nothing)
+- Modular folder architecture
+- Tree and Rock placement
+- Building rotation with R key
+- Bulldozer tool
+- Placement validation (green/red ghost)
+- Keyboard shortcuts (1-5 for tools, Escape to cancel)
+- Road placement with drag-to-build
+- Road auto-connection (straight, corner, T-junction, four-way)
+- Atomic road placement
+- **Zoning:** residential (House), commercial (Shop), industrial (Factory), park (Park)
+- **Additional buildings:** Shop, Factory, Park
+- **Road access:** cardinal neighbor detection (north, south, east, west)
+- **Inspection panel:** Select mode, object info, road connections
+- **Simulation clock:** day/night, pause, speed control (0, 1x, 2x, 4x)
 
 ## In Progress
 
-- Road intersection visual refinement
-- Building variant randomization
-- Terrain variation (water, elevation, parks)
+- Road intersection visual refinement (minor)
+- Building variant randomization (planned)
+- Terrain variation (water, elevation) (planned)
 
-## Planned
+## Next
 
-- Zone system (residential, commercial, industrial)
-- Population simulation and growth mechanics
+- Population simulation (households, active population)
+- Road-access relationship for population
+- City statistics panel
+
+## Future
+
 - Economy and resource management
-- Day/night cycle and weather
 - AI-assisted urban planning suggestions
 - Event system and random city events
 - Save/load functionality

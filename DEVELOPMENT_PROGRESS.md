@@ -3,75 +3,83 @@
 ## Phase 0 — Project Initialization
 - Created React + TypeScript project with Vite
 - Installed core dependencies (Three.js, R3F, Drei, Zustand)
-- Established folder structure for scalable architecture
+- Established folder structure
 
 ## Phase 1 — 3D Scene Foundation
-- Set up R3F Canvas with camera, shadows, and sky color
-- Added ambient and directional lighting
-- Created large green ground plane (50x50)
-- Added infinite grid overlay for placement guidance
-- Integrated OrbitControls for camera navigation
+- R3F Canvas with camera, shadows, sky color
+- Ambient and directional lighting
+- Large green ground plane (50x50)
+- Infinite grid overlay
+- OrbitControls
 
 ## Phase 2 — Mouse Interaction System
-- Implemented raycasting to project mouse onto ground plane
-- Converted continuous world coordinates to discrete grid tile positions
-- Built hover tile preview (yellow translucent plane) that follows the cursor
-- Added click event listener to capture placement intent
+- Raycasting to ground plane
+- Grid-snapped tile positions
+- HoverTile preview (yellow)
+- Click listeners for placement
 
 ## Phase 3 — Building Prototype
-- Designed first house using low-poly Three.js geometry:
-  - Foundation slab
-  - Walls (box geometry)
-  - Roof (cone, rotated 45°)
-  - Door and windows
-  - Chimney
-- Created ghost/preview building system with reduced opacity
-- Rendered placed buildings dynamically from state
+- Low-poly House: foundation, walls, roof, door, windows, chimney
+- Zustand store (BuildingStore) for placed buildings
+- Ghost/preview building with opacity
 
 ## Phase 4 — State Management
-- Built Zustand store (BuildingStore) to manage placed buildings
-- Each building has a unique ID and 3D position
-- Implemented addBuilding action for click-to-place flow
-- Subscribed scene to store changes for reactive rendering
+- BuildingStore with addBuilding, removeBuilding, selectedObjectId
+- Reactive rendering from store
 
 ## Phase 5 — UI Toolbar
-- Created fixed-position toolbar overlay
-- Added tool buttons: House, Tree, Rock (with emoji icons)
-- Connected selected tool to scene placement logic
-- Styled with dark glass-morphism theme
+- Fixed-position toolbar with tools (House, Tree, Rock)
+- Glass-morphism styling
+- Tool selection drives placement
 
 ## Phase 6 — Architecture & Tooling
-- Organized code into: world, scene, system, store, ui, hooks, types
-- Configured TypeScript with strict settings
-- Set up Vite build pipeline
-- Added Oxlint for code quality
-- Wrote design docs (GDD, features, roadmap, art style)
+- Organized into world, scene, systems, store, ui, hooks, types
+- TypeScript strict settings, Vite, Oxlint
+- Design docs (GDD, features, roadmap, art style)
 
 ## Phase 7 — Building Tools Expansion
-- Added Tree and Rock placement with distinct low-poly models
-- Implemented building rotation with R key (90-degree increments)
-- Added Bulldozer tool for removing placed buildings
-- Created placement validation system with green/red ghost feedback
-- Extended BuildTool type to support all building types
+- Added Tree and Rock placement
+- Building rotation with R key (90° increments)
+- Bulldozer tool for removal
+- Placement validation (green/red ghost)
 
 ## Phase 8 — Road System
-- Added road placement tool with drag-to-build interaction
-- Implemented road auto-connection based on neighboring road tiles
-- Support for horizontal and vertical road segments
-- Road connection types: isolated, straight, corner, T-junction, four-way intersection
-- Atomic road placement (entire segment or nothing)
-- Road deletion with Bulldozer tool
-- Road preview during drag with validity feedback
+- Road placement with drag-to-build
+- Auto-connection based on neighbors
+- Horizontal/vertical segments, corners, T-junctions, four-way
+- Atomic placement (all or nothing)
+- Deletion with Bulldozer
+- Preview during drag
+
+## Phase 9 — Zoning and Additional Buildings
+- Added Shop (commercial), Factory (industrial), Park (public)
+- ZoneType enum (residential, commercial, industrial, park)
+- House → residential, Shop → commercial, Factory → industrial, Park → park
+
+## Phase 10 — Road Access
+- `hasRoadAccess` checks cardinal neighbors (north, south, east, west)
+- Visual indicator on buildings (torus ring) and ghost preview
+
+## Phase 11 — Inspection Panel
+- Select mode (key 0) to inspect objects
+- Panel shows type, zone, road access, position
+- For roads: north/south/east/west connections
+- Escape to close
+
+## Phase 12 — Simulation Clock
+- `useSimulationStore` with day, timeOfDay, pause, speed
+- Speeds: 0, 1x, 2x, 4x
+- `advanceTime` updates time with day rollover
+- UI overlay with time, day, pause/resume, speed cycle
+
+## Phase 13 — Stabilization and Cleanup
+- Removed dead code (MouseSystem.tsx, useBuildMode.ts, game.ts)
+- Fixed camera drag accidentally placing objects (drag threshold)
+- Updated all documentation to reflect current implementation
+- Created DEVELOPMENT_STATUS.md, ROADMAP.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
 
 ## Current State
-- Functional 3D city-building prototype
-- House, Tree, Rock placement with ghost previews
-- Road placement with drag-to-build and auto-connection
-- Building rotation with R key
-- Bulldozer tool for removing buildings and roads
-- Placement validation with green/red ghost feedback
-- Keyboard shortcuts for all tools (1-5)
-- Escape to cancel tool selection
-- Camera orbit controls
-- Hover preview and placement feedback
-- Extensible component architecture ready for new building types, roads, and simulation systems
+- Fully functional 3D city-building prototype
+- All milestone features (world foundation, grid building, build mode, building visuals, roads, zoning, road access, inspection, simulation clock) are complete
+- Population and advanced simulation are future milestones
+- Stable, with known minor issues documented

@@ -1,6 +1,6 @@
 # Urbania
 
-**Urbania** is an interactive 3D city-building prototype built with React, TypeScript, and Three.js. It started as a blank Vite project and evolved into a voxel-style world where you can place buildings, trees, and rocks on a grid-based terrain using mouse clicks.
+**Urbania** is an interactive 3D city-building prototype built with React, TypeScript, and Three.js. It evolved into a voxel-style world where you can place residential, commercial, industrial, and park buildings, trees, rocks, and roads on a grid-based terrain using mouse clicks and keyboard shortcuts.
 
 ---
 
@@ -12,13 +12,17 @@ Urbania is a browser-based city builder running entirely in the browser using **
 - A translucent grid for placement guidance
 - Mouse-driven raycasting to detect tile positions
 - A ghost/preview building system that follows the cursor
-- Click-to-place mechanics for houses, trees, and rocks
+- Click-to-place mechanics for buildings, trees, rocks, and roads
 - A floating UI toolbar for selecting building tools
-- Orbit controls for camera navigation around the city
+- Orbit controls for camera navigation
 - Road placement with drag-to-build and auto-connection
 - Building rotation with keyboard shortcuts
 - Bulldozer tool for removing placed objects
 - Placement validation with green/red ghost feedback
+- **Zoning** – residential (House), commercial (Shop), industrial (Factory), and park (Park)
+- **Road access** detection for buildings (cardinal neighbors only)
+- **Inspection panel** showing object details and road connections
+- **Simulation clock** with day/night cycle, pause, and speed control
 
 The project is a **prototype** — a proving ground for 3D rendering, state management, and interactive building mechanics that will eventually expand into a full city simulation.
 
@@ -29,69 +33,78 @@ The project is a **prototype** — a proving ground for 3D rendering, state mana
 I wanted to explore how modern web technologies can be used to build immersive 3D experiences without requiring heavy game engines like Unity or Unreal.
 
 This project is my way of learning and demonstrating:
-
 1. **Real-time 3D rendering** in the browser using Three.js and React Three Fiber
-2. **Declarative 3D scene composition** using React components instead of imperative Three.js code
-3. **State management** for game entities (placed buildings) using Zustand
-4. **Mouse interaction in 3D space** using raycasting and coordinate projection
-5. **Scalable architecture** separating world, scene, systems, store, and UI concerns
-6. **Low-poly aesthetics** as a performance-friendly art style for web games
-
-Ultimately, Urbania is a playground for experimenting with city-building mechanics, AI-driven urban planning, road networks, simulation systems, and gameplay events — all inside a single web app.
+2. **Declarative 3D scene composition** using React components
+3. **State management** for game entities using Zustand
+4. **Mouse interaction in 3D space** using raycasting
+5. **Scalable architecture** separating world, scene, systems, store, and UI
+6. **Low-poly aesthetics** as a performance-friendly art style
 
 ---
 
 ## How I built this
 
-### Phase 1 — Project Setup
-- Created the project with **Vite + React + TypeScript**
-- Installed core dependencies: Three.js, React Three Fiber, Drei, and Zustand
+### Phase 1 – Project Setup
+- Created with **Vite + React + TypeScript**
+- Installed Three.js, React Three Fiber, Drei, and Zustand
 
-### Phase 2 — 3D Scene Foundation
-- Set up the R3F `<Canvas>` with shadows, camera, and sky
-- Added ambient and directional lighting for depth
-- Created a large ground plane and an infinite grid overlay
-- Integrated `<OrbitControls>` for smooth camera movement
+### Phase 2 – 3D Scene Foundation
+- R3F Canvas with shadows, camera, and sky color
+- Ambient and directional lighting
+- Large ground plane and infinite grid
+- OrbitControls for camera movement
 
-### Phase 3 — Mouse Interaction
-- Implemented a raycaster that projects mouse coordinates onto the ground plane
-- Converted world coordinates to grid-aligned tile positions using `Math.floor`
-- Built a `<HoverTile>` component that renders a translucent yellow square under the cursor
-- Added click listeners to capture building placement events
+### Phase 3 – Mouse Interaction
+- Raycaster projects mouse coordinates onto the ground plane
+- Grid-aligned tile positions using `Math.floor`
+- HoverTile component (yellow translucent plane)
+- Click listeners for placement
 
-### Phase 4 — Building System
-- Designed a `<House>` component using low-poly geometry (foundation, walls, roof, door, windows, chimney)
-- Created a Zustand store (`BuildingStore`) to track placed buildings with unique IDs
-- Rendered placed buildings by mapping over the store state inside the scene
-- Implemented a **ghost/preview building** that shows a semi-transparent version of the building at the hover position before placement
+### Phase 4 – Building System
+- Low-poly House with foundation, walls, roof, door, windows, chimney
+- Zustand store (`BuildingStore`) for placed buildings
+- Ghost/preview building with reduced opacity
 
-### Phase 5 — UI Toolbar
-- Built a fixed-position toolbar with tool buttons (House, Tree, Rock)
-- Connected toolbar selection to scene state so the active tool drives placement behavior
-- Styled with glass-morphism inspired dark backgrounds and rounded buttons
+### Phase 5 – UI Toolbar
+- Fixed-position toolbar with tool buttons
+- Glass-morphism styling
+- Tool selection drives placement behavior
 
-### Phase 6 — Architecture
-- Organized code into dedicated directories:
-  - `world/` — 3D objects (Ground, Grid, House, HoverTile, Tree, Rock, Road)
-  - `scenes/` — Main scene composition and raycasting logic
-  - `store/` — Zustand state management
-  - `ui/` — Overlay interfaces
-  - `systems/` — Input and game systems (PlacementSystem, RoadSystem)
-  - `hooks/` — Reusable React hooks
-  - `types/` — TypeScript definitions
+### Phase 6 – Architecture
+- Code organized into `world/`, `scenes/`, `systems/`, `store/`, `ui/`, `hooks/`, `types/`
 
-### Phase 7 — Building Tools
-- Added Tree and Rock placement with distinct low-poly models
-- Implemented building rotation with R key (90-degree increments)
-- Added Bulldozer tool for removing placed buildings
-- Created placement validation system with green/red ghost feedback
+### Phase 7 – Building Tools Expansion
+- Added Tree and Rock placement
+- Building rotation with R key
+- Bulldozer tool for removal
+- Placement validation with green/red feedback
 
-### Phase 8 — Road System
-- Added road placement tool with drag-to-build interaction
-- Implemented road auto-connection based on neighboring road tiles
-- Support for horizontal and vertical road segments
-- Road connection types: isolated, straight, corner, T-junction, four-way intersection
-- Atomic road placement (entire segment or nothing)
+### Phase 8 – Road System
+- Road placement with drag-to-build
+- Auto-connection to neighboring road tiles
+- Straight, corner, T-junction, and four-way intersections
+- Atomic road placement (all or nothing)
+
+### Phase 9 – Zoning and Additional Buildings
+- Added Shop (commercial), Factory (industrial), Park (public)
+- Zone types centralized in `ZoneType` enum
+- Each building type gets appropriate zone assignment
+
+### Phase 10 – Road Access
+- `hasRoadAccess` function checks cardinal neighbors only (north, south, east, west)
+- Visual indicator on buildings and ghost preview
+
+### Phase 11 – Inspection Panel
+- Select mode (key 0) to click objects
+- Panel shows type, zone, road access, position
+- For roads, shows north/south/east/west connections
+- Escape closes panel
+
+### Phase 12 – Simulation Clock
+- Zustand store (`useSimulationStore`) manages day, time of day, pause, speed
+- Speeds: 0 (paused), 1x, 2x, 4x
+- AdvanceTime updates time and day rollover
+- UI overlay shows time, day, pause button, speed button
 
 ---
 
@@ -99,16 +112,16 @@ Ultimately, Urbania is a playground for experimenting with city-building mechani
 
 | Category | Technology |
 |----------|-----------|
-| **Runtime** | Node.js |
-| **Frontend Framework** | React 19 |
-| **Language** | TypeScript |
-| **Build Tool** | Vite |
-| **3D Engine** | Three.js |
-| **React 3D Renderer** | React Three Fiber |
-| **3D Utilities** | React Three Drei |
-| **State Management** | Zustand |
-| **Linting** | Oxlint |
-| **Package Manager** | npm |
+| Runtime | Node.js |
+| Frontend Framework | React 19 |
+| Language | TypeScript |
+| Build Tool | Vite |
+| 3D Engine | Three.js |
+| React 3D Renderer | React Three Fiber |
+| 3D Utilities | React Three Drei |
+| State Management | Zustand |
+| Linting | Oxlint |
+| Package Manager | npm |
 
 ---
 
@@ -134,16 +147,24 @@ npm run lint
 
 | Key | Action |
 |-----|--------|
-| 1 | Select House tool |
-| 2 | Select Tree tool |
-| 3 | Select Rock tool |
-| 4 | Select Bulldozer tool |
-| 5 | Select Road tool |
-| R | Rotate selected ghost by 90 degrees |
-| Escape | Cancel current tool selection |
-| Left Click | Place selected building or delete with Bulldozer |
-| Mouse Drag | Orbit camera (with OrbitControls) |
+| 0 | Select mode (inspect) |
+| 1 | House (residential) |
+| 2 | Tree |
+| 3 | Rock |
+| 4 | Bulldozer (delete) |
+| 5 | Road |
+| 6 | Shop (commercial) |
+| 7 | Factory (industrial) |
+| 8 | Park (public) |
+| R | Rotate ghost by 90° |
+| Escape | Cancel selection / close inspection |
+| Left Click | Place / select / delete (context-dependent) |
+| Mouse Drag | Orbit camera |
 | Scroll | Zoom in/out |
+
+Additional simulation controls (via UI):
+- Pause/Resume (▶/⏸)
+- Cycle speed (1x, 2x, 4x)
 
 ---
 
@@ -154,19 +175,18 @@ urbania/
 ├── docs/                    # Design documents, ideas, roadmap
 ├── frontend/               # Main Vite + React application
 │   ├── src/
-│   │   ├── scenes/         # Game scene composition & raycasting
-│   │   ├── world/          # 3D objects (Ground, Grid, House, Tree, Rock, Road)
-│   │   ├── ui/             # Toolbar and overlay components
-│   │   ├── store/          # Zustand state management
-│   │   ├── systems/        # PlacementSystem, RoadSystem, MouseSystem
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── types/          # TypeScript type definitions
-│   │   └── assets/         # Images and static assets
+│   │   ├── scenes/         # GameScene composition & interaction
+│   │   ├── world/          # 3D objects (Ground, Grid, House, Shop, Factory, Park, Road, Tree, Rock)
+│   │   ├── ui/             # Toolbar, InspectionPanel, SimulationClock
+│   │   ├── store/          # BuildingStore (Zustand)
+│   │   ├── stores/         # useSimulationStore (Zustand)
+│   │   ├── systems/        # PlacementSystem, RoadSystem, RoadAccessSystem
+│   │   ├── types/          # BuildTool, ZoneType
+│   │   └── hooks/          # Custom hooks (useBuildMode removed, now unused)
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── tsconfig.json
-├── node_modules/           # Root-level dependencies
-├── package.json            # Root package manifest
+├── package.json
 └── README.md
 ```
 
@@ -174,14 +194,13 @@ urbania/
 
 ## What's Next?
 
-See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features including:
-
-- Roads and zoning
-- Nature systems (trees, water, parks)
+See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features:
 - Population simulation
 - Economy and resource management
-- AI urban planning assistance
+- AI-assisted urban planning
 - Events and Easter eggs
+- Save/load
+- And more
 
 ---
 
