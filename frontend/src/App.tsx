@@ -5,6 +5,7 @@ import GameScene from "./scenes/GameScene";
 import Toolbar from "./ui/Toolbar";
 import InspectionPanel from "./ui/InspectionPanel";
 import CityStats from "./ui/CityStats";
+import EventPanel from "./ui/EventPanel";
 import useBuildingStore from "./store/BuildingStore";
 import usePopulationStore from "./store/PopulationStore";
 import type { BuildTool } from "./types/BuildTool";
@@ -137,6 +138,7 @@ export default function App() {
       />
       <InspectionPanel />
       <CityStats />
+      <EventPanel />
     </>
   );
 }

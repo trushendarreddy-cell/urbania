@@ -105,6 +105,7 @@ export default function Toolbar({
       label: "Fire",
       key: "f",
     },
+    // Debug event spawn buttons (not actual tools)
   ];
 
   return (

@@ -30,6 +30,8 @@ import Hospital from "../world/Hospital";
 import School from "../world/School";
 import PoliceStation from "../world/PoliceStation";
 import FireStation from "../world/FireStation";
+import EventIndicator from "../world/EventIndicator";
+import useEventStore from "../store/EventStore";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -67,6 +69,7 @@ export default function GameScene({
   const citizens = usePopulationStore((state) => state.citizens);
   const households = usePopulationStore((state) => state.households);
   const timeOfDay = useSimulationStore((state) => state.timeOfDay);
+  const events = useEventStore((state) => state.events);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -522,6 +525,19 @@ export default function GameScene({
             active={active}
             employmentStatus={citizen.employmentStatus}
             age={citizen.age}
+          />
+        );
+      })}
+
+      {/* Event Indicators */}
+      {events.map((event) => {
+        if (event.status === "resolved") return null;
+        return (
+          <EventIndicator
+            key={event.id}
+            position={event.position}
+            type={event.type}
+            status={event.status}
           />
         );
       })}

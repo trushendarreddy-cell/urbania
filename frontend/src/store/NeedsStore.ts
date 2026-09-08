@@ -4,6 +4,7 @@ import useEconomyStore from "./EconomyStore";
 import useBuildingStore from "./BuildingStore";
 import useServiceStore from "./ServiceStore";
 import useUtilityStore from "./UtilityStore";
+import useEventStore from "./EventStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
 
 export interface CitizenNeeds {
@@ -111,7 +112,19 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
         education: clamp(education),
       };
       // Average of 6 needs
-      const happiness = clamp((needs.housing + needs.food + needs.safety + needs.recreation + needs.healthcare + needs.education) / 6);
+      let happiness = (needs.housing + needs.food + needs.safety + needs.recreation + needs.healthcare + needs.education) / 6;
+      // Apply event penalties if any active events nearby
+      const activeEvents = useEventStore.getState().getActiveEvents();
+      let eventPenalty = 0;
+      for (const e of activeEvents) {
+        const dx = homeBuilding.position[0] - e.position[0];
+        const dz = homeBuilding.position[2] - e.position[2];
+        const dist = Math.hypot(dx, dz);
+        if (dist < 10) {
+          eventPenalty += e.severity * 2;
+        }
+      }
+      happiness = clamp(happiness - eventPenalty);
 
       let category: CitizenHappiness['category'];
       if (happiness >= 80) category = 'Very Happy';
