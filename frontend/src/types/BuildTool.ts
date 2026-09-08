@@ -12,4 +12,6 @@ export type BuildTool =
   | "power_plant"
   | "water_plant"
   | "hospital"
-  | "school";
+  | "school"
+  | "police_station"
+  | "fire_station";

@@ -2,9 +2,9 @@ import { create } from "zustand";
 import useBuildingStore from "./BuildingStore";
 import usePopulationStore from "./PopulationStore";
 
-export type ServiceType = "housing" | "recreation" | "healthcare" | "education" | "safety" | "water" | "electricity";
-// For now, we'll support recreation, healthcare, education.
-// Safety, water, electricity are handled elsewhere (utilities for water/electricity).
+export type ServiceType = "housing" | "recreation" | "healthcare" | "education" | "safety" | "emergency" | "water" | "electricity";
+// For now, we'll support recreation, healthcare, education, safety, emergency.
+// water, electricity handled by utilities.
 
 export interface ServiceProvider {
   buildingId: number;
@@ -49,6 +49,20 @@ const useServiceStore = create<ServiceStore>((set, get) => {
         newProviders.push({
           buildingId: b.id,
           serviceType: "education",
+          position: b.position,
+          radius: 10,
+        });
+      } else if (b.type === "police_station") {
+        newProviders.push({
+          buildingId: b.id,
+          serviceType: "safety",
+          position: b.position,
+          radius: 10,
+        });
+      } else if (b.type === "fire_station") {
+        newProviders.push({
+          buildingId: b.id,
+          serviceType: "emergency",
           position: b.position,
           radius: 10,
         });

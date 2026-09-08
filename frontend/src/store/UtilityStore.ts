@@ -30,6 +30,8 @@ const BUILDING_DEMAND: Record<string, { electricity: number; water: number }> = 
   water_plant: { electricity: 0, water: 0 },
   hospital: { electricity: 2, water: 1 },
   school: { electricity: 2, water: 1 },
+  police_station: { electricity: 2, water: 1 },
+  fire_station: { electricity: 2, water: 1 },
 };
 
 interface UtilityStore {

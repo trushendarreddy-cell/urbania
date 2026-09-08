@@ -31,6 +31,8 @@ export default function CityStats() {
   const allBuildings = useBuildingStore.getState().buildings;
   let coveredRecreation = 0;
   let coveredHealthcare = 0;
+  let coveredSafety = 0;
+  let coveredEmergency = 0;
   for (const h of households) {
     const building = allBuildings.find(b => b.id === h.buildingId);
     if (building) {
@@ -38,7 +40,10 @@ export default function CityStats() {
       if (recCoverage.covered) coveredRecreation++;
       const healthCoverage = useServiceStore.getState().getCoverage(building.position, "healthcare");
       if (healthCoverage.covered) coveredHealthcare++;
-      // For education, we check children in household (but we don't have citizen per household easily, we'll approximate via citizens)
+      const safetyCoverage = useServiceStore.getState().getCoverage(building.position, "safety");
+      if (safetyCoverage.covered) coveredSafety++;
+      const emergencyCoverage = useServiceStore.getState().getCoverage(building.position, "emergency");
+      if (emergencyCoverage.covered) coveredEmergency++;
     }
   }
   // Education coverage: count children with school coverage
@@ -61,6 +66,8 @@ export default function CityStats() {
   const totalHouseholdsCount = households.length;
   const recreationCoverage = totalHouseholdsCount > 0 ? (coveredRecreation / totalHouseholdsCount) * 100 : 0;
   const healthcareCoverage = totalHouseholdsCount > 0 ? (coveredHealthcare / totalHouseholdsCount) * 100 : 0;
+  const safetyCoverage = totalHouseholdsCount > 0 ? (coveredSafety / totalHouseholdsCount) * 100 : 0;
+  const emergencyCoverage = totalHouseholdsCount > 0 ? (coveredEmergency / totalHouseholdsCount) * 100 : 0;
   const educationCoverage = totalChildren > 0 ? (childrenWithEducation / totalChildren) * 100 : 0;
 
   // Utility coverage stats
@@ -123,6 +130,8 @@ export default function CityStats() {
         <div>🏞️ Recreation {Math.round(recreationCoverage)}%</div>
         <div>🏥 Healthcare {Math.round(healthcareCoverage)}%</div>
         <div>🎓 Education {Math.round(educationCoverage)}%</div>
+        <div>🛡️ Safety {Math.round(safetyCoverage)}%</div>
+        <div>🔥 Emergency {Math.round(emergencyCoverage)}%</div>
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
         <div>⚡ Electricity {Math.round(electricCoverage)}%</div>

@@ -139,8 +139,13 @@ export default function InspectionPanel() {
     ? useEconomyStore.getState().businessRevenue[building.id] || 0 
     : null;
   // For park, show service info
-  const serviceInfo = (building.type === 'park' || building.type === 'hospital' || building.type === 'school') ? (() => {
-    const serviceType = building.type === 'park' ? 'recreation' : building.type === 'hospital' ? 'healthcare' : 'education';
+  const serviceInfo = (building.type === 'park' || building.type === 'hospital' || building.type === 'school' || building.type === 'police_station' || building.type === 'fire_station') ? (() => {
+    let serviceType: 'recreation' | 'healthcare' | 'education' | 'safety' | 'emergency' = 'recreation';
+    if (building.type === 'park') serviceType = 'recreation';
+    else if (building.type === 'hospital') serviceType = 'healthcare';
+    else if (building.type === 'school') serviceType = 'education';
+    else if (building.type === 'police_station') serviceType = 'safety';
+    else if (building.type === 'fire_station') serviceType = 'emergency';
     const providers = useServiceStore.getState().getProvidersForService(serviceType);
     const provider = providers.find(p => p.buildingId === building.id);
     if (provider) {

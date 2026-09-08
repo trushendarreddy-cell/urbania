@@ -75,10 +75,15 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       else food = 20;
       if (!isActive) food = Math.max(10, food - 20); // inactive reduces food satisfaction
 
-      // Safety: based on active + road access
-      let safety = isActive ? 80 : 30;
-      // basic infrastructure bonus if there are roads nearby? keep simple
-      if (isActive) safety = Math.min(100, safety + 10);
+      // Safety: based on active + police coverage
+      let safety = isActive ? 60 : 20;
+      const safetyCoverage = serviceStore.getCoverage(homeBuilding.position, "safety");
+      if (isActive && safetyCoverage.covered) {
+        safety = 90;
+      } else if (isActive && !safetyCoverage.covered) {
+        safety = 60;
+      }
+      // else inactive stays low
 
       // Recreation, healthcare, education: based on service coverage
       let recreation = getServiceSatisfaction(homeBuilding.position, "recreation");
@@ -105,6 +110,7 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
         healthcare: clamp(healthcare),
         education: clamp(education),
       };
+      // Average of 6 needs
       const happiness = clamp((needs.housing + needs.food + needs.safety + needs.recreation + needs.healthcare + needs.education) / 6);
 
       let category: CitizenHappiness['category'];

@@ -28,6 +28,8 @@ import PowerPlant from "../world/PowerPlant";
 import WaterPlant from "../world/WaterPlant";
 import Hospital from "../world/Hospital";
 import School from "../world/School";
+import PoliceStation from "../world/PoliceStation";
+import FireStation from "../world/FireStation";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -462,6 +464,24 @@ export default function GameScene({
             />
           );
         }
+        if (building.type === "police_station") {
+          return (
+            <PoliceStation
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+            />
+          );
+        }
+        if (building.type === "fire_station") {
+          return (
+            <FireStation
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+            />
+          );
+        }
         return null;
       })}
 
@@ -603,6 +623,24 @@ export default function GameScene({
 
       {selectedTool === "school" && (
         <School
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "police_station" && (
+        <PoliceStation
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "fire_station" && (
+        <FireStation
           position={[hoverPos[0], 0, hoverPos[2]]}
           rotation={rotation}
           ghost

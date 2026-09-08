@@ -93,6 +93,18 @@ export default function Toolbar({
       label: "School",
       key: "s",
     },
+    {
+      id: "police_station",
+      icon: "🛡️",
+      label: "Police",
+      key: "p",
+    },
+    {
+      id: "fire_station",
+      icon: "🔥",
+      label: "Fire",
+      key: "f",
+    },
   ];
 
   return (
