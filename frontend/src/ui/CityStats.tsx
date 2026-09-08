@@ -1,4 +1,5 @@
 import usePopulationStore from "../store/PopulationStore";
+import useEconomyStore from "../store/EconomyStore";
 
 export default function CityStats() {
   const totalPopulation = usePopulationStore((state) => state.totalPopulation);
@@ -9,6 +10,12 @@ export default function CityStats() {
   const unemployed = usePopulationStore((state) => state.unemployed);
   const totalCitizens = usePopulationStore((state) => state.totalCitizens);
   const activeCitizens = usePopulationStore((state) => state.activeCitizens);
+  const dailyIncome = useEconomyStore((state) => state.dailyIncome);
+  const dailySpending = useEconomyStore((state) => state.dailySpending);
+  const totalBusinessRevenue = useEconomyStore((state) => state.totalBusinessRevenue);
+  // Total household money
+  const householdMoneyMap = useEconomyStore((state) => state.householdMoney);
+  const totalMoney = Object.values(householdMoneyMap).reduce((a, b) => a + b, 0);
 
   return (
     <div
@@ -41,6 +48,12 @@ export default function CityStats() {
       <div>Jobs       {totalJobs}</div>
       <div>Employed   {employed}</div>
       <div>Unemployed {unemployed}</div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
+        <div>💰 Money    {Math.round(totalMoney)}</div>
+        <div>💸 Income   {Math.round(dailyIncome)}</div>
+        <div>🛒 Spending {Math.round(dailySpending)}</div>
+        <div>🏢 Revenue  {Math.round(totalBusinessRevenue)}</div>
+      </div>
     </div>
   );
 }

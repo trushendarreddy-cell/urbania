@@ -5,6 +5,7 @@ import type { Building } from "../store/BuildingStore";
 import { useSimulationStore } from "../stores/useSimulationStore";
 import { getCitizenActivity } from "../systems/CitizenActivitySystem";
 import useRoadUsageStore, { getCongestionLevel, ROAD_CAPACITY } from "../store/RoadUsageStore";
+import useEconomyStore from "../store/EconomyStore";
 
 import usePopulationStore from "../store/PopulationStore";
 
@@ -129,6 +130,11 @@ export default function InspectionPanel() {
   const citizensForHousehold = household
     ? usePopulationStore.getState().citizens.filter(c => c.householdId === household.id)
     : [];
+  const householdMoney = household ? useEconomyStore.getState().getHouseholdMoney(household.id) : 0;
+  // For shops/factories, get business revenue
+  const revenue = (building.type === 'shop' || building.type === 'factory') 
+    ? useEconomyStore.getState().businessRevenue[building.id] || 0 
+    : null;
 
   return (
     <div
@@ -235,6 +241,14 @@ export default function InspectionPanel() {
                 )
               }
             />
+            <Row
+              label="Money"
+              value={
+                household ? (
+                  <span>₹{Math.round(householdMoney)}</span>
+                ) : "0"
+              }
+            />
             {citizensForHousehold.length > 0 && (
               <div style={{ marginTop: "4px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "4px" }}>
                 <div style={{ color: "#9CA3AF", fontSize: "11px", marginBottom: "2px" }}>Citizens:</div>
@@ -261,6 +275,12 @@ export default function InspectionPanel() {
           <Row
             label="Jobs"
             value={jobCount}
+          />
+        )}
+        {revenue !== null && (
+          <Row
+            label="Revenue"
+            value={`₹${Math.round(revenue)}`}
           />
         )}
 
