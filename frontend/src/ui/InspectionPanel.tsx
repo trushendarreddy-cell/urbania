@@ -15,6 +15,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: true,
         showConnections: false,
         showHousehold: false,
+        jobCount: 2,
       };
     case "factory":
       return {
@@ -24,6 +25,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: true,
         showConnections: false,
         showHousehold: false,
+        jobCount: 5,
       };
     case "park":
       return {
@@ -33,6 +35,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: true,
         showConnections: false,
         showHousehold: false,
+        jobCount: 0,
       };
     case "tree":
       return {
@@ -41,6 +44,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: false,
         showConnections: false,
         showHousehold: false,
+        jobCount: 0,
       };
     case "rock":
       return {
@@ -49,6 +53,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: false,
         showConnections: false,
         showHousehold: false,
+        jobCount: 0,
       };
     case "road":
       return {
@@ -57,6 +62,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: false,
         showConnections: true,
         showHousehold: false,
+        jobCount: 0,
       };
     case "house":
     default:
@@ -67,6 +73,7 @@ function getObjectInfo(building: Building) {
         showRoadAccess: true,
         showConnections: false,
         showHousehold: true,
+        jobCount: 0,
       };
   }
 }
@@ -114,6 +121,7 @@ export default function InspectionPanel() {
     ? usePopulationStore.getState().households.find(h => h.buildingId === building.id)
     : null;
   const householdPop = household ? household.population : null;
+  const jobCount = info.jobCount || 0;
 
   return (
     <div
@@ -213,6 +221,12 @@ export default function InspectionPanel() {
               }
             />
           </>
+        )}
+        {jobCount > 0 && (
+          <Row
+            label="Jobs"
+            value={jobCount}
+          />
         )}
 
         {info.showConnections && connections && (

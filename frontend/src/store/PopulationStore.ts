@@ -13,6 +13,9 @@ interface PopulationStore {
   totalPopulation: number;
   totalHouseholds: number;
   activePopulation: number;
+  totalJobs: number;
+  employed: number;
+  unemployed: number;
   addHousehold: (buildingId: number) => void;
   removeHousehold: (buildingId: number) => void;
   initialize: () => void;
@@ -32,10 +35,23 @@ const usePopulationStore = create<PopulationStore>((set, get) => {
         activePop += h.population;
       }
     }
+
+    // Compute jobs from shops and factories
+    let totalJobs = 0;
+    for (const b of buildings) {
+      if (b.type === "shop") totalJobs += 2;
+      else if (b.type === "factory") totalJobs += 5;
+    }
+    const employed = Math.min(activePop, totalJobs);
+    const unemployed = activePop - employed;
+
     set({
       totalPopulation: totalPop,
       totalHouseholds: households.length,
       activePopulation: activePop,
+      totalJobs,
+      employed,
+      unemployed,
     });
   };
 
@@ -49,6 +65,9 @@ const usePopulationStore = create<PopulationStore>((set, get) => {
     totalPopulation: 0,
     totalHouseholds: 0,
     activePopulation: 0,
+    totalJobs: 0,
+    employed: 0,
+    unemployed: 0,
 
     addHousehold: (buildingId) => {
       const existing = get().households.find(h => h.buildingId === buildingId);
