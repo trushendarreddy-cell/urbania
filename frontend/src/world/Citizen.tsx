@@ -54,16 +54,20 @@ export default function Citizen({ position, active, employmentStatus, age }: Cit
     }
   }
 
+  // Use position to seed deterministic variation in height/scale
   const bodyGeom = useMemo(() => new CylinderGeometry(0.08, 0.08, 0.15, 6), []);
   const headGeom = useMemo(() => new SphereGeometry(0.06, 6, 6), []);
+  // Subtle scale variation based on position
+  const seed = position[0] * 100 + position[2];
+  const scaleVar = 0.85 + Math.abs(Math.sin(seed)) * 0.3;
 
   return (
-    <group position={[position[0], position[1] + 0.075, position[2]]}>
+    <group position={[position[0], position[1] + 0.075, position[2]]} scale={[scaleVar, scaleVar, scaleVar]}>
       <mesh geometry={bodyGeom} position={[0, 0.075, 0]}>
-        <meshStandardMaterial color={bodyColor} />
+        <meshStandardMaterial color={bodyColor} roughness={0.6} />
       </mesh>
       <mesh geometry={headGeom} position={[0, 0.18, 0]}>
-        <meshStandardMaterial color={headColor} />
+        <meshStandardMaterial color={headColor} roughness={0.6} />
       </mesh>
     </group>
   );

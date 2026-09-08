@@ -28,6 +28,8 @@ export default function Road({
   const asphaltColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : baseAsphalt;
   const markingColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FBBF24";
   const curbColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#374151";
+  // Dashed line for straight roads
+  const dashColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#F9FAFB";
 
   const hasAnyConnection =
     connections.north ||
@@ -101,49 +103,98 @@ export default function Road({
         />
       </mesh>
 
-      {/* Direction markings */}
+      {/* Direction markings - solid lines */}
       {showNorth && (
-        <mesh position={[0, 0.032, -0.25]}>
-          <boxGeometry args={[0.08, 0.005, 0.42]} />
-          <meshStandardMaterial
-            color={markingColor}
-            transparent={ghost}
-            opacity={opacity}
-          />
-        </mesh>
+        <>
+          <mesh position={[0, 0.032, -0.25]}>
+            <boxGeometry args={[0.08, 0.005, 0.42]} />
+            <meshStandardMaterial
+              color={markingColor}
+              transparent={ghost}
+              opacity={opacity}
+            />
+          </mesh>
+          {/* Dashed center line for straight sections */}
+          {!connections.north && !connections.south && !connections.east && !connections.west && rotation % Math.PI === 0 && (
+            <mesh position={[0, 0.035, -0.25]}>
+              <boxGeometry args={[0.02, 0.005, 0.42]} />
+              <meshStandardMaterial
+                color={dashColor}
+                transparent={ghost}
+                opacity={opacity * 0.5}
+              />
+            </mesh>
+          )}
+        </>
       )}
 
       {showSouth && (
-        <mesh position={[0, 0.032, 0.25]}>
-          <boxGeometry args={[0.08, 0.005, 0.42]} />
-          <meshStandardMaterial
-            color={markingColor}
-            transparent={ghost}
-            opacity={opacity}
-          />
-        </mesh>
+        <>
+          <mesh position={[0, 0.032, 0.25]}>
+            <boxGeometry args={[0.08, 0.005, 0.42]} />
+            <meshStandardMaterial
+              color={markingColor}
+              transparent={ghost}
+              opacity={opacity}
+            />
+          </mesh>
+          {!connections.north && !connections.south && !connections.east && !connections.west && rotation % Math.PI === 0 && (
+            <mesh position={[0, 0.035, 0.25]}>
+              <boxGeometry args={[0.02, 0.005, 0.42]} />
+              <meshStandardMaterial
+                color={dashColor}
+                transparent={ghost}
+                opacity={opacity * 0.5}
+              />
+            </mesh>
+          )}
+        </>
       )}
 
       {showEast && (
-        <mesh position={[0.25, 0.032, 0]}>
-          <boxGeometry args={[0.42, 0.005, 0.08]} />
-          <meshStandardMaterial
-            color={markingColor}
-            transparent={ghost}
-            opacity={opacity}
-          />
-        </mesh>
+        <>
+          <mesh position={[0.25, 0.032, 0]}>
+            <boxGeometry args={[0.42, 0.005, 0.08]} />
+            <meshStandardMaterial
+              color={markingColor}
+              transparent={ghost}
+              opacity={opacity}
+            />
+          </mesh>
+          {!connections.north && !connections.south && !connections.east && !connections.west && rotation % Math.PI !== 0 && (
+            <mesh position={[0.25, 0.035, 0]}>
+              <boxGeometry args={[0.42, 0.005, 0.02]} />
+              <meshStandardMaterial
+                color={dashColor}
+                transparent={ghost}
+                opacity={opacity * 0.5}
+              />
+            </mesh>
+          )}
+        </>
       )}
 
       {showWest && (
-        <mesh position={[-0.25, 0.032, 0]}>
-          <boxGeometry args={[0.42, 0.005, 0.08]} />
-          <meshStandardMaterial
-            color={markingColor}
-            transparent={ghost}
-            opacity={opacity}
-          />
-        </mesh>
+        <>
+          <mesh position={[-0.25, 0.032, 0]}>
+            <boxGeometry args={[0.42, 0.005, 0.08]} />
+            <meshStandardMaterial
+              color={markingColor}
+              transparent={ghost}
+              opacity={opacity}
+            />
+          </mesh>
+          {!connections.north && !connections.south && !connections.east && !connections.west && rotation % Math.PI !== 0 && (
+            <mesh position={[-0.25, 0.035, 0]}>
+              <boxGeometry args={[0.42, 0.005, 0.02]} />
+              <meshStandardMaterial
+                color={dashColor}
+                transparent={ghost}
+                opacity={opacity * 0.5}
+              />
+            </mesh>
+          )}
+        </>
       )}
     </group>
   );

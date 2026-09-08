@@ -5,13 +5,13 @@ export default function WorldGrid() {
     <Grid
       args={[50, 50]}
       cellSize={1}
-      cellThickness={0.5}
-      cellColor="#4f7f4f"
+      cellThickness={0.3}
+      cellColor="#5A8A5A"
       sectionSize={5}
-      sectionThickness={1}
-      sectionColor="#2f5f2f"
-      fadeDistance={100}
-      fadeStrength={1}
+      sectionThickness={0.8}
+      sectionColor="#3A6A3A"
+      fadeDistance={30}
+      fadeStrength={0.8}
       infiniteGrid
     />
   );
