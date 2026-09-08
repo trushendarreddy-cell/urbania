@@ -4,6 +4,7 @@ import useServiceStore from "./ServiceStore";
 import useRoadUsageStore from "./RoadUsageStore";
 import { useSimulationStore } from "../stores/useSimulationStore";
 import { getRoadGraph, findNearestRoadCell, findPath } from "../systems/PathfindingSystem";
+import useVehicleStore from "./VehicleStore";
 
 export type EventType = "fire" | "medical" | "crime";
 export type EventStatus = "active" | "responding" | "resolved";
@@ -129,6 +130,23 @@ const useEventStore = create<EventStore>((set, get) => {
 
         if (bestProvider) {
           // Assign provider
+          // Check if there is an available vehicle
+          let vehicleType: "fire_truck" | "ambulance" | "police_car" | null = null;
+          if (e.type === "fire") vehicleType = "fire_truck";
+          else if (e.type === "medical") vehicleType = "ambulance";
+          else if (e.type === "crime") vehicleType = "police_car";
+          if (!vehicleType) return e;
+
+          const vehicleStore = useVehicleStore.getState();
+          const availableVehicle = vehicleStore.getAvailableVehicle(bestProvider.id, vehicleType);
+          if (!availableVehicle) {
+            // No vehicle available, event stays active
+            return e;
+          }
+
+          // Spawn vehicle
+          vehicleStore.spawnVehicle(vehicleType, bestProvider.id, e.id, bestProvider.route);
+
           newProviderUsage[bestProvider.id] = (newProviderUsage[bestProvider.id] || 0) + 1;
           updated = true;
           return {
@@ -147,15 +165,33 @@ const useEventStore = create<EventStore>((set, get) => {
         }
       }
 
-      // If responding, check if ETA elapsed
+      // If responding, check if ETA elapsed (or vehicle arrived)
       if (e.status === "responding" && e.eta !== undefined && e.responseStartTime !== undefined) {
-        const elapsed = timeOfDay - e.responseStartTime;
-        if (elapsed >= e.eta) {
+        // Check if vehicle is at scene
+        const vehicle = useVehicleStore.getState().getVehicleForEvent(e.id);
+        if (vehicle && vehicle.status === "at_scene") {
+          // Vehicle arrived, event resolved
           updated = true;
-          // Decrease usage for this provider
           if (e.providerId) {
             newProviderUsage[e.providerId] = (newProviderUsage[e.providerId] || 0) - 1;
             if (newProviderUsage[e.providerId] < 0) newProviderUsage[e.providerId] = 0;
+          }
+          // Start vehicle return
+          useVehicleStore.getState().returnVehicle(vehicle.id);
+          return { ...e, status: "resolved", resolutionTime: timeOfDay };
+        }
+        // Also fallback to ETA if vehicle not yet arrived but time elapsed (safety)
+        const elapsed = timeOfDay - e.responseStartTime;
+        if (elapsed >= e.eta * 1.5) { // allow extra time
+          updated = true;
+          if (e.providerId) {
+            newProviderUsage[e.providerId] = (newProviderUsage[e.providerId] || 0) - 1;
+            if (newProviderUsage[e.providerId] < 0) newProviderUsage[e.providerId] = 0;
+          }
+          // If vehicle exists, force return
+          const vehicle = useVehicleStore.getState().getVehicleForEvent(e.id);
+          if (vehicle && vehicle.status !== "idle") {
+            useVehicleStore.getState().returnVehicle(vehicle.id);
           }
           return { ...e, status: "resolved", resolutionTime: timeOfDay };
         }

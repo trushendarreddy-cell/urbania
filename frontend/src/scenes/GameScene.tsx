@@ -32,6 +32,8 @@ import PoliceStation from "../world/PoliceStation";
 import FireStation from "../world/FireStation";
 import EventIndicator from "../world/EventIndicator";
 import useEventStore from "../store/EventStore";
+import useVehicleStore from "../store/VehicleStore";
+import EmergencyVehicle from "../world/EmergencyVehicle";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -70,6 +72,7 @@ export default function GameScene({
   const households = usePopulationStore((state) => state.households);
   const timeOfDay = useSimulationStore((state) => state.timeOfDay);
   const events = useEventStore((state) => state.events);
+  const vehicles = useVehicleStore((state) => state.vehicles);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -538,6 +541,39 @@ export default function GameScene({
             position={event.position}
             type={event.type}
             status={event.status}
+          />
+        );
+      })}
+
+      {/* Emergency Vehicles */}
+      {vehicles.map((vehicle) => {
+        if (vehicle.status === "idle") return null;
+        // Determine rotation based on movement direction
+        let rotation = 0;
+        const route = vehicle.route;
+        if (vehicle.routeIndex < route.length - 1) {
+          const keyA = route[vehicle.routeIndex];
+          const keyB = route[vehicle.routeIndex + 1];
+          const [ax, az] = keyA.split(',').map(Number);
+          const [bx, bz] = keyB.split(',').map(Number);
+          rotation = Math.atan2(bx - ax, bz - az);
+        } else {
+          // At destination, face forward (towards last node)
+          const key = route[route.length - 1];
+          const [x, z] = key.split(',').map(Number);
+          // Get previous node if possible
+          if (route.length > 1) {
+            const prevKey = route[route.length - 2];
+            const [px, pz] = prevKey.split(',').map(Number);
+            rotation = Math.atan2(x - px, z - pz);
+          }
+        }
+        return (
+          <EmergencyVehicle
+            key={vehicle.id}
+            type={vehicle.type}
+            position={vehicle.position}
+            rotation={rotation}
           />
         );
       })}
