@@ -25,59 +25,77 @@ export default function HUD() {
         top: 0,
         left: 0,
         right: 0,
-        padding: '8px 20px',
-        background: 'rgba(17, 24, 39, 0.85)',
-        backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        padding: '6px 24px',
+        background: 'rgba(12, 12, 16, 0.88)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         zIndex: 20,
         color: '#F3F4F6',
-        fontFamily: 'monospace',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
         fontSize: '13px',
         userSelect: 'none',
         pointerEvents: 'none',
+        boxShadow: '0 2px 20px rgba(0,0,0,0.3)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '0.05em' }}>URBANIA</span>
-        <span style={{ color: '#9CA3AF' }}>Day {day}</span>
-        <span style={{ color: '#9CA3AF' }}>{formatTime(timeOfDay)}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '0.08em', color: '#F9FAFB' }}>URBANIA</span>
+        <span style={{ color: '#9CA3AF', fontSize: '12px' }}>Day {day}</span>
+        <span style={{ color: '#9CA3AF', fontSize: '12px', fontFamily: 'monospace' }}>{formatTime(timeOfDay)}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <span>👥 {totalPopulation}</span>
-        <span>🏠 {totalHouseholds}</span>
-        <span>💰 {Math.round(totalMoney)}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '16px' }}>👥</span>
+          <span>{totalPopulation}</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '16px' }}>🏠</span>
+          <span>{totalHouseholds}</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '16px' }}>💰</span>
+          <span>{Math.round(totalMoney).toLocaleString()}</span>
+        </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'auto' }}>
         <button
           onClick={togglePaused}
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '6px',
-            padding: '4px 10px',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '8px',
+            padding: '4px 14px',
             color: '#F3F4F6',
             cursor: 'pointer',
-            fontSize: '13px',
-            fontFamily: 'monospace',
+            fontSize: '14px',
+            fontFamily: 'inherit',
+            transition: 'all 0.15s ease',
+            lineHeight: '1.5',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
         >
           {isPaused ? '▶' : '⏸'}
         </button>
         <button
           onClick={cycleSpeed}
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '6px',
-            padding: '4px 10px',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '8px',
+            padding: '4px 14px',
             color: '#F3F4F6',
             cursor: 'pointer',
             fontSize: '13px',
-            fontFamily: 'monospace',
+            fontFamily: 'inherit',
+            fontWeight: '500',
+            transition: 'all 0.15s ease',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
         >
           {speed === 0 ? '0x' : `${speed}x`}
         </button>

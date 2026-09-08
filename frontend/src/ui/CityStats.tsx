@@ -13,7 +13,7 @@ export default function CityStats() {
   const employed = usePopulationStore((state) => state.employed);
   const unemployed = usePopulationStore((state) => state.unemployed);
   const totalCitizens = usePopulationStore((state) => state.totalCitizens);
-  const activeCitizens = usePopulationStore((state) => state.activeCitizens);
+
   const dailyIncome = useEconomyStore((state) => state.dailyIncome);
   const dailySpending = useEconomyStore((state) => state.dailySpending);
   const totalBusinessRevenue = useEconomyStore((state) => state.totalBusinessRevenue);
@@ -94,58 +94,122 @@ export default function CityStats() {
     <div
       style={{
         position: "fixed",
-        top: "70px",
-        left: "20px",
-        padding: "10px 14px",
-        background: "rgba(20, 20, 20, 0.85)",
-        borderRadius: "8px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        top: "80px",
+        left: "24px",
+        padding: "12px 16px",
+        background: "rgba(12, 12, 16, 0.88)",
+        borderRadius: "16px",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        border: "1px solid rgba(255,255,255,0.06)",
         color: "#F3F4F6",
-        fontFamily: "monospace",
-        fontSize: "13px",
+        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+        fontSize: "12px",
         zIndex: 10,
         pointerEvents: "none",
         userSelect: "none",
-        lineHeight: "1.5",
+        lineHeight: "1.6",
+        minWidth: "140px",
       }}
     >
-      <div style={{ fontWeight: "700", fontSize: "14px", marginBottom: "4px" }}>
-        🏙️ URBANIA
+      <div style={{ fontWeight: "600", fontSize: "13px", marginBottom: "6px", color: "#F9FAFB", letterSpacing: "0.03em" }}>
+        🏙️ CITY STATS
       </div>
-      <div>Population  {totalPopulation}</div>
-      <div>Households  {totalHouseholds}</div>
-      <div>Citizens    {totalCitizens}</div>
-      <div>Active     {activePopulation}</div>
-      <div>ActiveCit  {activeCitizens}</div>
-      <div>Jobs       {totalJobs}</div>
-      <div>Employed   {employed}</div>
-      <div>Unemployed {unemployed}</div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
-        <div>💰 Money    {Math.round(totalMoney)}</div>
-        <div>💸 Income   {Math.round(dailyIncome)}</div>
-        <div>🛒 Spending {Math.round(dailySpending)}</div>
-        <div>🏢 Revenue  {Math.round(totalBusinessRevenue)}</div>
-        <div>📊 Employment {Math.round(employmentRate)}%</div>
-        <div>📈 Econ Health {Math.round(economicHealth)}%</div>
-        <div>📊 Demand {Math.round(aggregateDemand)}</div>
-        <div>⚠️ Unmet {Math.round(unmetDemand)}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 12px" }}>
+        <span style={{ color: "#9CA3AF" }}>Population</span>
+        <span style={{ textAlign: "right" }}>{totalPopulation}</span>
+        <span style={{ color: "#9CA3AF" }}>Households</span>
+        <span style={{ textAlign: "right" }}>{totalHouseholds}</span>
+        <span style={{ color: "#9CA3AF" }}>Citizens</span>
+        <span style={{ textAlign: "right" }}>{totalCitizens}</span>
+        <span style={{ color: "#9CA3AF" }}>Active</span>
+        <span style={{ textAlign: "right" }}>{activePopulation}</span>
+        <span style={{ color: "#9CA3AF" }}>Jobs</span>
+        <span style={{ textAlign: "right" }}>{totalJobs}</span>
+        <span style={{ color: "#9CA3AF" }}>Employed</span>
+        <span style={{ textAlign: "right" }}>{employed}</span>
+        <span style={{ color: "#9CA3AF" }}>Unemployed</span>
+        <span style={{ textAlign: "right" }}>{unemployed}</span>
       </div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
-        <div>😊 Avg Happiness {Math.round(avgHappiness)}%</div>
-        <div>😄 Happy {happyCount}</div>
-        <div>😞 Unhappy {unhappyCount}</div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "6px", paddingTop: "6px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Money</span>
+          <span>₹{Math.round(totalMoney).toLocaleString()}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Income</span>
+          <span>₹{Math.round(dailyIncome)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Spending</span>
+          <span>₹{Math.round(dailySpending)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Revenue</span>
+          <span>₹{Math.round(totalBusinessRevenue)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Employ. Rate</span>
+          <span>{Math.round(employmentRate)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Econ Health</span>
+          <span>{Math.round(economicHealth)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Demand</span>
+          <span>{Math.round(aggregateDemand)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Unmet Demand</span>
+          <span>{Math.round(unmetDemand)}</span>
+        </div>
       </div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
-        <div>🏞️ Recreation {Math.round(recreationCoverage)}%</div>
-        <div>🏥 Healthcare {Math.round(healthcareCoverage)}%</div>
-        <div>🎓 Education {Math.round(educationCoverage)}%</div>
-        <div>🛡️ Safety {Math.round(safetyCoverage)}%</div>
-        <div>🔥 Emergency {Math.round(emergencyCoverage)}%</div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "6px", paddingTop: "6px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Avg Happiness</span>
+          <span>{Math.round(avgHappiness)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Happy</span>
+          <span>{happyCount}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Unhappy</span>
+          <span>{unhappyCount}</span>
+        </div>
       </div>
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
-        <div>⚡ Electricity {Math.round(electricCoverage)}%</div>
-        <div>💧 Water {Math.round(waterCoverage)}%</div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "6px", paddingTop: "6px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Recreation</span>
+          <span>{Math.round(recreationCoverage)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Healthcare</span>
+          <span>{Math.round(healthcareCoverage)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Education</span>
+          <span>{Math.round(educationCoverage)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Safety</span>
+          <span>{Math.round(safetyCoverage)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Emergency</span>
+          <span>{Math.round(emergencyCoverage)}%</span>
+        </div>
+      </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "6px", paddingTop: "6px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Electricity</span>
+          <span>{Math.round(electricCoverage)}%</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <span style={{ color: "#9CA3AF" }}>Water</span>
+          <span>{Math.round(waterCoverage)}%</span>
+        </div>
       </div>
     </div>
   );

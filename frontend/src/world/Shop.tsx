@@ -14,10 +14,10 @@ export default function Shop({
   roadAccess,
 }: ShopProps) {
   const opacity = ghost ? 0.45 : 1;
-  const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#78716C";
-  const roofColor = ghost ? (valid ? "#86EFAC" : "#F87171") : "#B5423C";
-  const signColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FACC15";
-  const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#87CEFA";
+  const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#D4A574";
+  const roofColor = ghost ? (valid ? "#86EFAC" : "#F87171") : "#8B5A2B";
+  const signColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FBBF24";
+  const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#93C5FD";
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>

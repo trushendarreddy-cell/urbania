@@ -14,10 +14,10 @@ export default function Factory({
   roadAccess,
 }: FactoryProps) {
   const opacity = ghost ? 0.45 : 1;
-  const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#4B5563";
-  const roofColor = ghost ? (valid ? "#86EFAC" : "#F87171") : "#374151";
-  const chimneyColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#6B7280";
-  const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#87CEFA";
+  const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#6B7280";
+  const roofColor = ghost ? (valid ? "#86EFAC" : "#F87171") : "#4B5563";
+  const chimneyColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#9CA3AF";
+  const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#93C5FD";
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>

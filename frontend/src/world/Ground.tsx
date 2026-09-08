@@ -6,7 +6,7 @@ export default function Ground() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
       <primitive object={geom} />
-      <meshStandardMaterial color="#7BC67E" roughness={0.7} metalness={0} />
+      <meshStandardMaterial color="#8BC34A" roughness={0.6} metalness={0} />
     </mesh>
   );
 }

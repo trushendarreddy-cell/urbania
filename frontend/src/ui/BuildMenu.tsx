@@ -96,7 +96,7 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
       onClick={(e) => e.stopPropagation()}
       style={{
         position: 'fixed',
-        bottom: '20px',
+        bottom: '24px',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 10,
@@ -104,19 +104,20 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '8px',
-        maxWidth: '90vw',
+        maxWidth: '95vw',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
       }}
     >
       <div
         style={{
           display: 'flex',
-          gap: '6px',
-          padding: '8px 12px',
-          background: 'rgba(24, 24, 27, 0.92)',
-          borderRadius: '16px',
-          backdropFilter: 'blur(8px)',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          gap: '4px',
+          padding: '8px 14px',
+          background: 'rgba(12, 12, 16, 0.9)',
+          borderRadius: '20px',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          border: '1px solid rgba(255,255,255,0.06)',
           flexWrap: 'wrap',
           justifyContent: 'center',
         }}
@@ -128,24 +129,31 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
               <button
                 onClick={() => toggleCategory(cat.id)}
                 style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: isExpanded ? '2px solid #4ADE80' : '1px solid rgba(255,255,255,0.05)',
-                  background: isExpanded ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.04)',
-                  color: '#D1D5DB',
+                  padding: '5px 14px',
+                  borderRadius: '12px',
+                  border: isExpanded ? '2px solid #4ADE80' : '1px solid rgba(255,255,255,0.06)',
+                  background: isExpanded ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255,255,255,0.04)',
+                  color: isExpanded ? '#FFFFFF' : '#D1D5DB',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   fontSize: '13px',
-                  fontWeight: '600',
+                  fontWeight: '500',
                   transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isExpanded) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isExpanded) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
                 }}
               >
                 <span>{cat.icon}</span>
                 <span>{cat.label}</span>
-                <span style={{ fontSize: '10px', opacity: 0.6 }}>
-                  {isExpanded ? '▼' : '▶'}
+                <span style={{ fontSize: '9px', opacity: 0.5 }}>
+                  {isExpanded ? '▲' : '▼'}
                 </span>
               </button>
               {isExpanded && (
@@ -156,13 +164,13 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
                     left: '50%',
                     transform: 'translateX(-50%)',
                     display: 'flex',
-                    gap: '6px',
-                    padding: '8px 10px',
-                    background: 'rgba(24, 24, 27, 0.95)',
-                    borderRadius: '12px',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                    gap: '4px',
+                    padding: '6px 10px',
+                    background: 'rgba(12, 12, 16, 0.95)',
+                    borderRadius: '14px',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                     flexWrap: 'nowrap',
                     whiteSpace: 'nowrap',
                   }}
@@ -177,24 +185,31 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
                           setExpandedCategory(null);
                         }}
                         style={{
-                          padding: '4px 10px',
-                          borderRadius: '8px',
-                          border: isSelected ? '2px solid #4ADE80' : '1px solid rgba(255,255,255,0.05)',
-                          background: isSelected ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.04)',
+                          padding: '4px 12px',
+                          borderRadius: '10px',
+                          border: isSelected ? '2px solid #4ADE80' : '1px solid rgba(255,255,255,0.06)',
+                          background: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255,255,255,0.04)',
                           color: isSelected ? '#FFFFFF' : '#D1D5DB',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '6px',
                           fontSize: '12px',
                           fontWeight: '500',
                           transition: 'all 0.15s ease',
+                          fontFamily: 'inherit',
                         }}
                         title={`${tool.label} [${tool.key}]`}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                        }}
                       >
                         <span>{tool.icon}</span>
                         <span>{tool.label}</span>
-                        <span style={{ fontSize: '9px', opacity: 0.5, background: 'rgba(0,0,0,0.3)', padding: '1px 4px', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '9px', opacity: 0.4, background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px' }}>
                           {tool.key}
                         </span>
                       </button>
@@ -209,56 +224,72 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
         <button
           onClick={() => onSelect('bulldozer')}
           style={{
-            padding: '6px 12px',
-            borderRadius: '8px',
-            border: selected === 'bulldozer' ? '2px solid #EF4444' : '1px solid rgba(255,255,255,0.05)',
-            background: selected === 'bulldozer' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.04)',
+            padding: '5px 14px',
+            borderRadius: '12px',
+            border: selected === 'bulldozer' ? '2px solid #EF4444' : '1px solid rgba(255,255,255,0.06)',
+            background: selected === 'bulldozer' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.04)',
             color: '#D1D5DB',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             fontSize: '13px',
-            fontWeight: '600',
+            fontWeight: '500',
+            fontFamily: 'inherit',
+          }}
+          onMouseEnter={(e) => {
+            if (selected !== 'bulldozer') e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+          }}
+          onMouseLeave={(e) => {
+            if (selected !== 'bulldozer') e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
           }}
         >
           <span>🗑️</span>
           <span>Bulldoze</span>
-          <span style={{ fontSize: '10px', opacity: 0.6 }}>[4]</span>
+          <span style={{ fontSize: '9px', opacity: 0.5 }}>[4]</span>
         </button>
         <button
           onClick={() => onSelect('select')}
           style={{
-            padding: '6px 12px',
-            borderRadius: '8px',
-            border: selected === 'select' ? '2px solid #60A5FA' : '1px solid rgba(255,255,255,0.05)',
-            background: selected === 'select' ? 'rgba(96, 165, 250, 0.2)' : 'rgba(255,255,255,0.04)',
+            padding: '5px 14px',
+            borderRadius: '12px',
+            border: selected === 'select' ? '2px solid #60A5FA' : '1px solid rgba(255,255,255,0.06)',
+            background: selected === 'select' ? 'rgba(96, 165, 250, 0.15)' : 'rgba(255,255,255,0.04)',
             color: '#D1D5DB',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             fontSize: '13px',
-            fontWeight: '600',
+            fontWeight: '500',
+            fontFamily: 'inherit',
+          }}
+          onMouseEnter={(e) => {
+            if (selected !== 'select') e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+          }}
+          onMouseLeave={(e) => {
+            if (selected !== 'select') e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
           }}
         >
           <span>👆</span>
           <span>Select</span>
-          <span style={{ fontSize: '10px', opacity: 0.6 }}>[0]</span>
+          <span style={{ fontSize: '9px', opacity: 0.5 }}>[0]</span>
         </button>
       </div>
       <div
         style={{
           fontSize: '11px',
           color: '#9CA3AF',
-          background: 'rgba(17, 24, 39, 0.75)',
-          padding: '3px 10px',
-          borderRadius: '6px',
-          letterSpacing: '0.03em',
+          background: 'rgba(12, 12, 16, 0.7)',
+          padding: '4px 14px',
+          borderRadius: '12px',
+          letterSpacing: '0.05em',
           pointerEvents: 'none',
+          fontFamily: 'monospace',
+          border: '1px solid rgba(255,255,255,0.04)',
         }}
       >
-        Rotate: [R] | Cancel: [Esc]
+        Rotate: [R] &nbsp;|&nbsp; Cancel: [Esc]
       </div>
     </div>
   );

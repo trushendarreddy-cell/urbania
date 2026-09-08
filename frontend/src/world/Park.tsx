@@ -14,9 +14,9 @@ export default function Park({
   roadAccess,
 }: ParkProps) {
   const opacity = ghost ? 0.45 : 1;
-  const groundColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#4ADE80";
-  const trunkColor = ghost ? (valid ? "#86EFAC" : "#FCA5A5") : "#5D4037";
-  const leafColor = ghost ? (valid ? "#22C55E" : "#DC2626") : "#2E7D32";
+  const groundColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#6EE7B7";
+  const trunkColor = ghost ? (valid ? "#86EFAC" : "#FCA5A5") : "#78350F";
+  const leafColor = ghost ? (valid ? "#22C55E" : "#DC2626") : "#15803D";
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>

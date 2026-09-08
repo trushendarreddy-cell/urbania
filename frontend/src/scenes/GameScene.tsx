@@ -369,23 +369,26 @@ export default function GameScene({
   return (
     <>
       {/* Sky */}
-      <color attach="background" args={["#B0D4E8"]} />
+      <color attach="background" args={["#90C8E0"]} />
  
       {/* Lighting */}
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.6} />
  
       <directionalLight
-        position={[8, 12, 6]}
-        intensity={1.8}
+        position={[10, 15, 8]}
+        intensity={2.0}
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-bias={-0.001}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-bias={-0.0005}
       />
       <directionalLight
-        position={[-4, 8, -3]}
-        intensity={0.4}
-        color="#FFE4B5"
+        position={[-6, 10, -4]}
+        intensity={0.5}
+        color="#FFD9B3"
+      />
+      <hemisphereLight
+        args={["#87CEEB", "#98D8A0", 0.4]}
       />
 
       {/* World */}
@@ -501,21 +504,38 @@ export default function GameScene({
 
       {/* Selection Highlight */}
       {selectedBuilding && (
-        <mesh
-          position={[
-            selectedBuilding.position[0],
-            0.04,
-            selectedBuilding.position[2],
-          ]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <torusGeometry args={[0.68, 0.025, 8, 32]} />
-          <meshBasicMaterial
-            color="#22D3EE"
-            transparent
-            opacity={0.9}
-          />
-        </mesh>
+        <>
+          <mesh
+            position={[
+              selectedBuilding.position[0],
+              0.03,
+              selectedBuilding.position[2],
+            ]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <ringGeometry args={[0.65, 0.75, 32]} />
+            <meshBasicMaterial
+              color="#38BDF8"
+              transparent
+              opacity={0.6}
+            />
+          </mesh>
+          <mesh
+            position={[
+              selectedBuilding.position[0],
+              0.03,
+              selectedBuilding.position[2],
+            ]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <ringGeometry args={[0.3, 0.35, 16]} />
+            <meshBasicMaterial
+              color="#38BDF8"
+              transparent
+              opacity={0.4}
+            />
+          </mesh>
+        </>
       )}
 
       {/* Citizens */}
@@ -728,12 +748,12 @@ export default function GameScene({
         })}
 
       {selectedTool === "bulldozer" && (
-        <mesh position={hoverPos} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1, 1]} />
+        <mesh position={[hoverPos[0], 0.02, hoverPos[2]]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.3, 0.5, 16]} />
           <meshBasicMaterial
             color={hoveredBuilding ? "#EF4444" : "#F97316"}
             transparent
-            opacity={0.5}
+            opacity={0.4}
           />
         </mesh>
       )}

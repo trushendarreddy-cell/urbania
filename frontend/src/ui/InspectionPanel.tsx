@@ -9,8 +9,6 @@ import useEconomyStore from "../store/EconomyStore";
 import useNeedsStore from "../store/NeedsStore";
 import useServiceStore from "../store/ServiceStore";
 import useUtilityStore from "../store/UtilityStore";
-// import useEventStore from "../store/EventStore"; // not used currently
-
 import usePopulationStore from "../store/PopulationStore";
 
 function getObjectInfo(building: Building) {
@@ -201,17 +199,19 @@ export default function InspectionPanel() {
       onClick={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
-        top: "20px",
-        right: "20px",
-        width: "240px",
-        padding: "14px 16px",
-        background: "rgba(24, 24, 27, 0.92)",
-        borderRadius: "12px",
-        backdropFilter: "blur(8px)",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        top: "80px",
+        right: "24px",
+        width: "280px",
+        maxHeight: "calc(100vh - 160px)",
+        overflowY: "auto",
+        padding: "16px 20px",
+        background: "rgba(12, 12, 16, 0.92)",
+        borderRadius: "16px",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+        border: "1px solid rgba(255,255,255,0.06)",
         color: "#F3F4F6",
-        fontFamily: "monospace",
+        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
         fontSize: "13px",
         zIndex: 10,
         pointerEvents: "auto",
@@ -222,26 +222,29 @@ export default function InspectionPanel() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "10px",
-          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          marginBottom: "12px",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
           paddingBottom: "8px",
         }}
       >
-        <span style={{ fontWeight: "700", fontSize: "14px" }}>
-          OBJECT INFORMATION
+        <span style={{ fontWeight: "600", fontSize: "15px", color: "#F9FAFB" }}>
+          OBJECT INFO
         </span>
         <button
           onClick={() => setSelectedObjectId(null)}
           style={{
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.08)",
             color: "#9CA3AF",
-            borderRadius: "6px",
-            padding: "2px 8px",
+            borderRadius: "8px",
+            padding: "2px 12px",
             cursor: "pointer",
             fontSize: "12px",
-            fontFamily: "monospace",
+            fontFamily: "inherit",
+            transition: "all 0.15s ease",
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "#F3F4F6"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "#9CA3AF"; }}
         >
           ✕ Close
         </button>

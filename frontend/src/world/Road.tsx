@@ -17,7 +17,7 @@ export default function Road({
   connections = { north: false, south: false, east: false, west: false },
 }: RoadProps) {
   const opacity = ghost ? 0.45 : 1;
-  let baseAsphalt = "#27272A";
+  let baseAsphalt = "#1F2937";
   if (!ghost) {
     const key = `${Math.round(position[0])},${Math.round(position[2])}`;
     const usage = useRoadUsageStore.getState().getUsage(key);
@@ -26,8 +26,8 @@ export default function Road({
     baseAsphalt = color;
   }
   const asphaltColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : baseAsphalt;
-  const markingColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FACC15";
-  const curbColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#3F3F46";
+  const markingColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FBBF24";
+  const curbColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#374151";
 
   const hasAnyConnection =
     connections.north ||
