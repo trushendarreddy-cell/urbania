@@ -81,8 +81,10 @@ export default function App() {
         }}
         shadows
         camera={{
-          position: [10, 10, 10],
-          fov: 50,
+          position: [12, 10, 12],
+          fov: 45,
+          near: 0.1,
+          far: 1000,
         }}
       >
         <GameScene selectedTool={selectedTool} />

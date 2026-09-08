@@ -276,21 +276,22 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
           <span style={{ fontSize: '9px', opacity: 0.5 }}>[0]</span>
         </button>
       </div>
-      <div
-        style={{
-          fontSize: '11px',
-          color: '#9CA3AF',
-          background: 'rgba(12, 12, 16, 0.7)',
-          padding: '4px 14px',
-          borderRadius: '12px',
-          letterSpacing: '0.05em',
-          pointerEvents: 'none',
-          fontFamily: 'monospace',
-          border: '1px solid rgba(255,255,255,0.04)',
-        }}
-      >
-        Rotate: [R] &nbsp;|&nbsp; Cancel: [Esc]
-      </div>
+        <div
+          style={{
+            fontSize: '11px',
+            color: '#9CA3AF',
+            background: 'rgba(12, 12, 16, 0.7)',
+            padding: '4px 14px',
+            borderRadius: '12px',
+            letterSpacing: '0.05em',
+            pointerEvents: 'none',
+            fontFamily: 'monospace',
+            border: '1px solid rgba(255,255,255,0.04)',
+          }}
+        >
+          <span style={{ marginRight: '12px' }}>🔄 R: Rotate</span>
+          <span>✕ Esc: Cancel</span>
+        </div>
     </div>
   );
 }

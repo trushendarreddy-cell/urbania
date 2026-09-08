@@ -228,7 +228,7 @@ export default function InspectionPanel() {
         }}
       >
         <span style={{ fontWeight: "600", fontSize: "15px", color: "#F9FAFB" }}>
-          OBJECT INFO
+          {info.name}
         </span>
         <button
           onClick={() => setSelectedObjectId(null)}
@@ -250,16 +250,18 @@ export default function InspectionPanel() {
         </button>
       </div>
 
-      <div style={{ marginBottom: "8px" }}>
-        <span style={{ fontSize: "22px" }}>
+      <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <span style={{ fontSize: "24px" }}>
           {ICONS[building.type ?? "house"]}
-        </span>{" "}
-        <span style={{ fontWeight: "600" }}>{info.name}</span>
+        </span>
+        <div>
+          <div style={{ fontWeight: "600", fontSize: "16px", color: "#F9FAFB" }}>{info.name}</div>
+          <div style={{ fontSize: "12px", color: "#9CA3AF" }}>{info.type} · {capitalize(info.zone ?? "")}</div>
+        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Row label="Type" value={info.type} />
-        <Row label="Zone" value={capitalize(info.zone ?? "")} />
+        {/* Type and Zone moved to header */}
 
         {info.showRoadAccess && (
           <Row

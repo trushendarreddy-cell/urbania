@@ -133,35 +133,35 @@ export default function CityStats() {
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: "6px", paddingTop: "6px" }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Money</span>
+          <span style={{ color: "#9CA3AF" }}>💰 Treasury</span>
           <span>₹{Math.round(totalMoney).toLocaleString()}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Income</span>
+          <span style={{ color: "#9CA3AF" }}>📈 Income</span>
           <span>₹{Math.round(dailyIncome)}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Spending</span>
+          <span style={{ color: "#9CA3AF" }}>🛒 Spending</span>
           <span>₹{Math.round(dailySpending)}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Revenue</span>
+          <span style={{ color: "#9CA3AF" }}>🏢 Revenue</span>
           <span>₹{Math.round(totalBusinessRevenue)}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Employ. Rate</span>
+          <span style={{ color: "#9CA3AF" }}>📊 Employment</span>
           <span>{Math.round(employmentRate)}%</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Econ Health</span>
+          <span style={{ color: "#9CA3AF" }}>💪 Econ Health</span>
           <span>{Math.round(economicHealth)}%</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Demand</span>
+          <span style={{ color: "#9CA3AF" }}>📦 Demand</span>
           <span>{Math.round(aggregateDemand)}</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9CA3AF" }}>Unmet Demand</span>
+          <span style={{ color: "#9CA3AF" }}>⚠️ Unmet Demand</span>
           <span>{Math.round(unmetDemand)}</span>
         </div>
       </div>

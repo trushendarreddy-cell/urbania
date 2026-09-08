@@ -371,25 +371,43 @@ export default function GameScene({
       {/* Sky */}
       <color attach="background" args={["#90C8E0"]} />
  
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
- 
-      <directionalLight
-        position={[10, 15, 8]}
-        intensity={2.0}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-bias={-0.0005}
-      />
-      <directionalLight
-        position={[-6, 10, -4]}
-        intensity={0.5}
-        color="#FFD9B3"
-      />
-      <hemisphereLight
-        args={["#87CEEB", "#98D8A0", 0.4]}
-      />
+      {/* Lighting - Day/Night Cycle based on timeOfDay */}
+      {(() => {
+        const hour = timeOfDay;
+        // Normalize hour to 0-24
+        const sunAngle = (hour / 24) * Math.PI * 2;
+        const sunHeight = Math.sin(sunAngle);
+        const isDay = sunHeight > 0.1;
+        const skyColor = isDay ? "#90C8E0" : "#0A1628";
+        const ambientIntensity = isDay ? 0.6 : 0.2;
+        const dirIntensity = isDay ? 2.0 : 0.3;
+        const fillIntensity = isDay ? 0.5 : 0.1;
+        const sunX = Math.cos(sunAngle) * 15;
+        const sunZ = Math.sin(sunAngle) * 15;
+        const sunY = Math.max(2, sunHeight * 12 + 4);
+        return (
+          <>
+            <color attach="background" args={[skyColor]} />
+            <ambientLight intensity={ambientIntensity} />
+            <directionalLight
+              position={[sunX, sunY, sunZ]}
+              intensity={dirIntensity}
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+              shadow-bias={-0.0005}
+            />
+            <directionalLight
+              position={[-6, 10, -4]}
+              intensity={fillIntensity}
+              color="#FFD9B3"
+            />
+            <hemisphereLight
+              args={[isDay ? "#87CEEB" : "#1a2a3a", "#98D8A0", 0.4]}
+            />
+          </>
+        );
+      })()}
 
       {/* World */}
       <Ground />
@@ -508,31 +526,46 @@ export default function GameScene({
           <mesh
             position={[
               selectedBuilding.position[0],
-              0.03,
+              0.02,
               selectedBuilding.position[2],
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
-            <ringGeometry args={[0.65, 0.75, 32]} />
+            <ringGeometry args={[0.7, 0.85, 32]} />
             <meshBasicMaterial
               color="#38BDF8"
               transparent
-              opacity={0.6}
+              opacity={0.3}
             />
           </mesh>
           <mesh
             position={[
               selectedBuilding.position[0],
-              0.03,
+              0.02,
               selectedBuilding.position[2],
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
-            <ringGeometry args={[0.3, 0.35, 16]} />
+            <ringGeometry args={[0.4, 0.48, 16]} />
             <meshBasicMaterial
               color="#38BDF8"
               transparent
-              opacity={0.4}
+              opacity={0.5}
+            />
+          </mesh>
+          <mesh
+            position={[
+              selectedBuilding.position[0],
+              0.02,
+              selectedBuilding.position[2],
+            ]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <ringGeometry args={[0.1, 0.15, 8]} />
+            <meshBasicMaterial
+              color="#FFFFFF"
+              transparent
+              opacity={0.2}
             />
           </mesh>
         </>
@@ -749,11 +782,11 @@ export default function GameScene({
 
       {selectedTool === "bulldozer" && (
         <mesh position={[hoverPos[0], 0.02, hoverPos[2]]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.3, 0.5, 16]} />
+          <ringGeometry args={[0.4, 0.6, 16]} />
           <meshBasicMaterial
-            color={hoveredBuilding ? "#EF4444" : "#F97316"}
+            color={hoveredBuilding ? "#EF4444" : "#FACC15"}
             transparent
-            opacity={0.4}
+            opacity={0.5}
           />
         </mesh>
       )}
@@ -763,31 +796,42 @@ export default function GameScene({
         selectedTool !== "road" &&
         selectedTool !== "bulldozer" &&
         selectedTool !== "select" && (
-          <Html position={[hoverPos[0], 1.2, hoverPos[2]]} center>
+          <Html position={[hoverPos[0], 1.5, hoverPos[2]]} center>
             <div
               style={{
                 fontSize: "11px",
-                fontFamily: "monospace",
-                padding: "2px 6px",
-                borderRadius: "3px",
-                backgroundColor: "rgba(0,0,0,0.6)",
+                fontFamily: "Inter, system-ui, sans-serif",
+                padding: "4px 10px",
+                borderRadius: "8px",
+                backgroundColor: "rgba(12,12,16,0.85)",
+                backdropFilter: "blur(4px)",
+                border: "1px solid rgba(255,255,255,0.08)",
                 color: hasRoadAccess(hoverPos, buildings)
                   ? "#4ADE80"
                   : "#FACC15",
                 whiteSpace: "nowrap",
                 pointerEvents: "none",
                 userSelect: "none",
+                fontWeight: "500",
               }}
             >
               {hasRoadAccess(hoverPos, buildings)
-                ? "ROAD ACCESS ✓"
-                : "NO ROAD ACCESS"}
+                ? "✓ Road Access"
+                : "✗ No Road Access"}
             </div>
           </Html>
         )}
 
       {/* Camera Controls */}
-      <OrbitControls />
+      <OrbitControls
+        enableDamping
+        dampingFactor={0.08}
+        rotateSpeed={0.8}
+        zoomSpeed={1.2}
+        minDistance={3}
+        maxDistance={30}
+        target={[0, 0, 0]}
+      />
     </>
   );
 }

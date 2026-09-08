@@ -43,7 +43,7 @@ export default function HUD() {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '0.08em', color: '#F9FAFB' }}>URBANIA</span>
-        <span style={{ color: '#9CA3AF', fontSize: '12px' }}>Day {day}</span>
+        <span style={{ color: '#9CA3AF', fontSize: '12px', borderLeft: '1px solid rgba(255,255,255,0.08)', paddingLeft: '12px' }}>DAY {day}</span>
         <span style={{ color: '#9CA3AF', fontSize: '12px', fontFamily: 'monospace' }}>{formatTime(timeOfDay)}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
