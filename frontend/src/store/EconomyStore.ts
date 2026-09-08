@@ -1,12 +1,18 @@
 import { create } from "zustand";
 import usePopulationStore from "./PopulationStore";
 import useBuildingStore from "./BuildingStore";
+import useUtilityStore from "./UtilityStore";
 import { useSimulationStore } from "../stores/useSimulationStore";
 
 const SALARY_SHOP = 50;
 const SALARY_FACTORY = 70;
 const DAILY_SPENDING_PER_HOUSEHOLD = 20;
 const FACTORY_REVENUE_PER_EMPLOYEE = 15;
+const SHOP_FIXED_COST = 10;
+const SHOP_VARIABLE_COST_PER_EMPLOYEE = 2;
+const FACTORY_FIXED_COST = 20;
+const FACTORY_VARIABLE_COST_PER_EMPLOYEE = 5;
+const BASE_PRODUCTION_PER_WORKER = 10;
 
 interface EconomyStore {
   householdMoney: Record<string, number>; // householdId -> money
@@ -14,6 +20,12 @@ interface EconomyStore {
   dailySpending: number;
   businessRevenue: Record<number, number>; // buildingId -> revenue
   totalBusinessRevenue: number;
+  businessCosts: Record<number, number>; // buildingId -> cost
+  businessProfit: Record<number, number>; // buildingId -> profit
+  businessStatus: Record<number, 'HEALTHY' | 'WEAK' | 'STRUGGLING'>;
+  factoryProduction: Record<number, number>; // buildingId -> production units
+  economicHealth: number;
+  householdFinancialState: Record<string, 'STABLE' | 'TIGHT' | 'STRAINED'>;
   lastDayProcessed: number;
   initialize: () => void;
   processDailyEconomics: () => void;
@@ -115,12 +127,97 @@ const useEconomyStore = create<EconomyStore>((set, get) => {
       totalBusinessRevenue += revenue;
     }
 
+    // Compute business costs, profit, status, and production
+    const newBusinessCosts: Record<number, number> = {};
+    const newBusinessProfit: Record<number, number> = {};
+    const newBusinessStatus: Record<number, 'HEALTHY' | 'WEAK' | 'STRUGGLING'> = {};
+    const newFactoryProduction: Record<number, number> = {};
+    const utilityStore = useUtilityStore.getState();
+
+    // Shops
+    for (const shop of shops) {
+      const employees = shopEmployees[shop.id] || 0;
+      const cost = SHOP_FIXED_COST + SHOP_VARIABLE_COST_PER_EMPLOYEE * employees;
+      newBusinessCosts[shop.id] = cost;
+      const revenue = newBusinessRevenue[shop.id] || 0;
+      const profit = revenue - cost;
+      newBusinessProfit[shop.id] = profit;
+      if (profit > cost * 0.2) newBusinessStatus[shop.id] = 'HEALTHY';
+      else if (profit > 0) newBusinessStatus[shop.id] = 'WEAK';
+      else newBusinessStatus[shop.id] = 'STRUGGLING';
+    }
+
+    // Factories
+    for (const factory of factories) {
+      const employees = citizens.filter(c => c.employmentStatus === 'employed' && c.jobId === String(factory.id)).length;
+      const cost = FACTORY_FIXED_COST + FACTORY_VARIABLE_COST_PER_EMPLOYEE * employees;
+      newBusinessCosts[factory.id] = cost;
+      const revenue = newBusinessRevenue[factory.id] || 0;
+      const profit = revenue - cost;
+      newBusinessProfit[factory.id] = profit;
+      if (profit > cost * 0.2) newBusinessStatus[factory.id] = 'HEALTHY';
+      else if (profit > 0) newBusinessStatus[factory.id] = 'WEAK';
+      else newBusinessStatus[factory.id] = 'STRUGGLING';
+
+      // Production: base * workers * utility factor
+      const utilityStatus = utilityStore.getUtilityStatus(factory.id);
+      let utilityFactor = 1;
+      if (utilityStatus) {
+        if (!utilityStatus.electricity) utilityFactor *= 0.5;
+        if (!utilityStatus.water) utilityFactor *= 0.5;
+      }
+      const production = BASE_PRODUCTION_PER_WORKER * employees * utilityFactor;
+      newFactoryProduction[factory.id] = production;
+    }
+
+    // Compute household financial state
+    const newHouseholdFinancialState: Record<string, 'STABLE' | 'TIGHT' | 'STRAINED'> = {};
+    for (const h of households) {
+      const building = buildings.find(b => b.id === h.buildingId);
+      if (!building || !hasRoadAccess(building.position, buildings)) continue;
+      const income = citizens.filter(c => c.householdId === h.id && c.employmentStatus === 'employed' && c.jobId)
+        .reduce((sum, c) => {
+          const jobBuilding = buildings.find(b => b.id === parseInt(c.jobId!, 10));
+          if (jobBuilding) {
+            if (jobBuilding.type === 'shop') return sum + SALARY_SHOP;
+            else if (jobBuilding.type === 'factory') return sum + SALARY_FACTORY;
+          }
+          return sum;
+        }, 0);
+      const spending = DAILY_SPENDING_PER_HOUSEHOLD;
+      if (income >= spending * 1.5) newHouseholdFinancialState[h.id] = 'STABLE';
+      else if (income >= spending * 0.8) newHouseholdFinancialState[h.id] = 'TIGHT';
+      else newHouseholdFinancialState[h.id] = 'STRAINED';
+    }
+
+    // Compute economic health
+    const totalActiveHouseholds = households.filter(h => {
+      const b = buildings.find(bld => bld.id === h.buildingId);
+      return b && hasRoadAccess(b.position, buildings);
+    }).length;
+    const employmentRate = totalActiveHouseholds > 0 ? usePopulationStore.getState().employed / totalActiveHouseholds : 0;
+    const avgProfitRatio = Object.values(newBusinessProfit).reduce((a, b) => a + b, 0) / (Object.keys(newBusinessProfit).length || 1);
+    const avgBalance = Object.values(newHouseholdMoney).reduce((a, b) => a + b, 0) / (Object.keys(newHouseholdMoney).length || 1);
+    // Scale to 0-100
+    const healthScore = Math.min(100, Math.max(0,
+      (employmentRate * 100) * 0.4 +
+      (Math.min(1, avgProfitRatio / 20) * 100) * 0.3 +
+      (Math.min(1, avgBalance / 200) * 100) * 0.3
+    ));
+    const economicHealth = Math.round(healthScore);
+
     set({
       householdMoney: newHouseholdMoney,
       dailyIncome: totalIncome,
       dailySpending: totalSpending,
       businessRevenue: newBusinessRevenue,
       totalBusinessRevenue,
+      businessCosts: newBusinessCosts,
+      businessProfit: newBusinessProfit,
+      businessStatus: newBusinessStatus,
+      factoryProduction: newFactoryProduction,
+      economicHealth,
+      householdFinancialState: newHouseholdFinancialState,
       lastDayProcessed: day,
     });
   };
@@ -169,6 +266,12 @@ const useEconomyStore = create<EconomyStore>((set, get) => {
     dailySpending: 0,
     businessRevenue: {},
     totalBusinessRevenue: 0,
+    businessCosts: {},
+    businessProfit: {},
+    businessStatus: {},
+    factoryProduction: {},
+    economicHealth: 0,
+    householdFinancialState: {},
     lastDayProcessed: -1,
 
     initialize,

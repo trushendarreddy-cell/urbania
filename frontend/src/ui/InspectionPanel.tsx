@@ -139,6 +139,18 @@ export default function InspectionPanel() {
   const revenue = (building.type === 'shop' || building.type === 'factory') 
     ? useEconomyStore.getState().businessRevenue[building.id] || 0 
     : null;
+  const businessCost = (building.type === 'shop' || building.type === 'factory')
+    ? useEconomyStore.getState().businessCosts[building.id] || 0
+    : null;
+  const businessProfit = (building.type === 'shop' || building.type === 'factory')
+    ? useEconomyStore.getState().businessProfit[building.id] || 0
+    : null;
+  const businessStatus = (building.type === 'shop' || building.type === 'factory')
+    ? useEconomyStore.getState().businessStatus[building.id]
+    : null;
+  const factoryProduction = building.type === 'factory'
+    ? useEconomyStore.getState().factoryProduction[building.id] || 0
+    : null;
   // For park, show service info
   const serviceInfo = (building.type === 'park' || building.type === 'hospital' || building.type === 'school' || building.type === 'police_station' || building.type === 'fire_station') ? (() => {
     let serviceType: 'recreation' | 'healthcare' | 'education' | 'safety' | 'emergency' = 'recreation';
@@ -292,6 +304,19 @@ export default function InspectionPanel() {
                 ) : "0"
               }
             />
+            {household && (
+              <Row
+                label="Financial State"
+                value={
+                  (() => {
+                    const state = useEconomyStore.getState().householdFinancialState[household.id];
+                    if (!state) return 'UNKNOWN';
+                    const colors = { STABLE: '#4ADE80', TIGHT: '#FBBF24', STRAINED: '#EF4444' };
+                    return <span style={{ color: colors[state] || '#9CA3AF' }}>{state}</span>;
+                  })()
+                }
+              />
+            )}
             {avgHappiness !== null && (
               <Row
                 label="Happiness"
@@ -335,6 +360,35 @@ export default function InspectionPanel() {
           <Row
             label="Revenue"
             value={`₹${Math.round(revenue)}`}
+          />
+        )}
+        {businessCost !== null && (
+          <Row
+            label="Cost"
+            value={`₹${Math.round(businessCost)}`}
+          />
+        )}
+        {businessProfit !== null && (
+          <Row
+            label="Profit"
+            value={`₹${Math.round(businessProfit)}`}
+            valueColor={businessProfit >= 0 ? '#4ADE80' : '#EF4444'}
+          />
+        )}
+        {businessStatus && (
+          <Row
+            label="Status"
+            value={
+              <span style={{ color: businessStatus === 'HEALTHY' ? '#4ADE80' : businessStatus === 'WEAK' ? '#FBBF24' : '#EF4444' }}>
+                {businessStatus}
+              </span>
+            }
+          />
+        )}
+        {factoryProduction !== null && (
+          <Row
+            label="Production"
+            value={`${Math.round(factoryProduction)} units`}
           />
         )}
         {serviceInfo && (
@@ -499,9 +553,11 @@ export default function InspectionPanel() {
 function Row({
   label,
   value,
+  valueColor,
 }: {
   label: string;
   value: React.ReactNode;
+  valueColor?: string;
 }) {
   return (
     <div
@@ -513,7 +569,7 @@ function Row({
       }}
     >
       <span style={{ color: "#9CA3AF" }}>{label}</span>
-      <span>{value}</span>
+      <span style={valueColor ? { color: valueColor } : undefined}>{value}</span>
     </div>
   );
 }
