@@ -26,6 +26,8 @@ import { getCitizenPosition } from "../systems/CitizenMovementSystem";
 import Citizen from "../world/Citizen";
 import PowerPlant from "../world/PowerPlant";
 import WaterPlant from "../world/WaterPlant";
+import Hospital from "../world/Hospital";
+import School from "../world/School";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -442,6 +444,24 @@ export default function GameScene({
             />
           );
         }
+        if (building.type === "hospital") {
+          return (
+            <Hospital
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+            />
+          );
+        }
+        if (building.type === "school") {
+          return (
+            <School
+              key={building.id}
+              position={building.position}
+              rotation={building.rotation ?? 0}
+            />
+          );
+        }
         return null;
       })}
 
@@ -565,6 +585,24 @@ export default function GameScene({
 
       {selectedTool === "water_plant" && (
         <WaterPlant
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "hospital" && (
+        <Hospital
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          rotation={rotation}
+          ghost
+          valid={canPlace}
+        />
+      )}
+
+      {selectedTool === "school" && (
+        <School
           position={[hoverPos[0], 0, hoverPos[2]]}
           rotation={rotation}
           ghost

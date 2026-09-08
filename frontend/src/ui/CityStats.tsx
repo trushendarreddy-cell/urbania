@@ -30,15 +30,38 @@ export default function CityStats() {
   const households = usePopulationStore.getState().households;
   const allBuildings = useBuildingStore.getState().buildings;
   let coveredRecreation = 0;
+  let coveredHealthcare = 0;
   for (const h of households) {
     const building = allBuildings.find(b => b.id === h.buildingId);
     if (building) {
-      const coverage = useServiceStore.getState().getCoverage(building.position, "recreation");
-      if (coverage.covered) coveredRecreation++;
+      const recCoverage = useServiceStore.getState().getCoverage(building.position, "recreation");
+      if (recCoverage.covered) coveredRecreation++;
+      const healthCoverage = useServiceStore.getState().getCoverage(building.position, "healthcare");
+      if (healthCoverage.covered) coveredHealthcare++;
+      // For education, we check children in household (but we don't have citizen per household easily, we'll approximate via citizens)
+    }
+  }
+  // Education coverage: count children with school coverage
+  const citizens = usePopulationStore.getState().citizens;
+  let childrenWithEducation = 0;
+  let totalChildren = 0;
+  for (const c of citizens) {
+    if (c.age < 18) {
+      totalChildren++;
+      const household = households.find(h => h.id === c.householdId);
+      if (household) {
+        const building = allBuildings.find(b => b.id === household.buildingId);
+        if (building) {
+          const eduCoverage = useServiceStore.getState().getCoverage(building.position, "education");
+          if (eduCoverage.covered) childrenWithEducation++;
+        }
+      }
     }
   }
   const totalHouseholdsCount = households.length;
   const recreationCoverage = totalHouseholdsCount > 0 ? (coveredRecreation / totalHouseholdsCount) * 100 : 0;
+  const healthcareCoverage = totalHouseholdsCount > 0 ? (coveredHealthcare / totalHouseholdsCount) * 100 : 0;
+  const educationCoverage = totalChildren > 0 ? (childrenWithEducation / totalChildren) * 100 : 0;
 
   // Utility coverage stats
   let electricCovered = 0, waterCovered = 0;
@@ -97,7 +120,9 @@ export default function CityStats() {
         <div>😞 Unhappy {unhappyCount}</div>
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
-        <div>🏞️ Recreation Coverage {Math.round(recreationCoverage)}%</div>
+        <div>🏞️ Recreation {Math.round(recreationCoverage)}%</div>
+        <div>🏥 Healthcare {Math.round(healthcareCoverage)}%</div>
+        <div>🎓 Education {Math.round(educationCoverage)}%</div>
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
         <div>⚡ Electricity {Math.round(electricCoverage)}%</div>

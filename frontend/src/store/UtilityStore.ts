@@ -28,6 +28,8 @@ const BUILDING_DEMAND: Record<string, { electricity: number; water: number }> = 
   road: { electricity: 0, water: 0 },
   power_plant: { electricity: 0, water: 0 },
   water_plant: { electricity: 0, water: 0 },
+  hospital: { electricity: 2, water: 1 },
+  school: { electricity: 2, water: 1 },
 };
 
 interface UtilityStore {

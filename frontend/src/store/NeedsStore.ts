@@ -11,6 +11,8 @@ export interface CitizenNeeds {
   food: number;
   safety: number;
   recreation: number;
+  healthcare: number;
+  education: number;
 }
 
 export interface CitizenHappiness extends CitizenNeeds {
@@ -33,6 +35,18 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
     const serviceStore = useServiceStore.getState();
 
     const newNeeds: Record<string, CitizenHappiness> = {};
+    // Helper: get service coverage for a position
+    const getServiceSatisfaction = (pos: [number, number, number], serviceType: 'recreation' | 'healthcare' | 'education'): number => {
+      const coverage = serviceStore.getCoverage(pos, serviceType);
+      if (coverage.covered && coverage.distance !== null) {
+        const dist = coverage.distance;
+        if (dist <= 3) return 100;
+        else if (dist <= 6) return 75;
+        else if (dist <= 10) return 50;
+        else return 30;
+      }
+      return 20;
+    };
 
     for (const citizen of citizens) {
       const household = households.find(h => h.id === citizen.householdId);
@@ -66,17 +80,20 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       // basic infrastructure bonus if there are roads nearby? keep simple
       if (isActive) safety = Math.min(100, safety + 10);
 
-      // Recreation: based on service coverage
-      let recreation = 20;
-      const coverage = serviceStore.getCoverage(homeBuilding.position, "recreation");
-      if (coverage.covered && coverage.distance !== null) {
-        const dist = coverage.distance;
-        if (dist <= 3) recreation = 100;
-        else if (dist <= 6) recreation = 75;
-        else if (dist <= 10) recreation = 50;
-        else recreation = 30;
-      }
+      // Recreation, healthcare, education: based on service coverage
+      let recreation = getServiceSatisfaction(homeBuilding.position, "recreation");
       if (!isActive) recreation = Math.max(10, recreation - 20);
+
+      let healthcare = getServiceSatisfaction(homeBuilding.position, "healthcare");
+      if (!isActive) healthcare = Math.max(10, healthcare - 20);
+
+      let education = 20; // base for children
+      if (citizen.age < 18) {
+        education = getServiceSatisfaction(homeBuilding.position, "education");
+        if (!isActive) education = Math.max(10, education - 20);
+      } else {
+        education = 100; // adults don't need education for this milestone
+      }
 
       // Clamp all needs 0-100
       const clamp = (v: number) => Math.max(0, Math.min(100, v));
@@ -85,8 +102,10 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
         food: clamp(food),
         safety: clamp(safety),
         recreation: clamp(recreation),
+        healthcare: clamp(healthcare),
+        education: clamp(education),
       };
-      const happiness = clamp((needs.housing + needs.food + needs.safety + needs.recreation) / 4);
+      const happiness = clamp((needs.housing + needs.food + needs.safety + needs.recreation + needs.healthcare + needs.education) / 6);
 
       let category: CitizenHappiness['category'];
       if (happiness >= 80) category = 'Very Happy';

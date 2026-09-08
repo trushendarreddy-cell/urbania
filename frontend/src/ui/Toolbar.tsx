@@ -81,6 +81,18 @@ export default function Toolbar({
       label: "Water",
       key: "0",
     },
+    {
+      id: "hospital",
+      icon: "🏥",
+      label: "Hospital",
+      key: "h",
+    },
+    {
+      id: "school",
+      icon: "🎓",
+      label: "School",
+      key: "s",
+    },
   ];
 
   return (

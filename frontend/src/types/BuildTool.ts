@@ -10,4 +10,6 @@ export type BuildTool =
   | "road"
   | "bulldozer"
   | "power_plant"
-  | "water_plant";
+  | "water_plant"
+  | "hospital"
+  | "school";

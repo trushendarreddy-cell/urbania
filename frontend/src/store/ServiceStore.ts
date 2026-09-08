@@ -3,6 +3,8 @@ import useBuildingStore from "./BuildingStore";
 import usePopulationStore from "./PopulationStore";
 
 export type ServiceType = "housing" | "recreation" | "healthcare" | "education" | "safety" | "water" | "electricity";
+// For now, we'll support recreation, healthcare, education.
+// Safety, water, electricity are handled elsewhere (utilities for water/electricity).
 
 export interface ServiceProvider {
   buildingId: number;
@@ -18,6 +20,7 @@ interface ServiceStore {
   getCoverage: (position: [number, number, number], serviceType: ServiceType) => { covered: boolean; providerId: number | null; distance: number | null };
   getProvidersForService: (serviceType: ServiceType) => ServiceProvider[];
   getHouseholdsServed: (buildingId: number) => number;
+  getCitizensServed: (buildingId: number) => number;
   recompute: () => void;
 }
 
@@ -33,10 +36,23 @@ const useServiceStore = create<ServiceStore>((set, get) => {
           buildingId: b.id,
           serviceType: "recreation",
           position: b.position,
-          radius: 8, // coverage radius in tiles
+          radius: 8,
+        });
+      } else if (b.type === "hospital") {
+        newProviders.push({
+          buildingId: b.id,
+          serviceType: "healthcare",
+          position: b.position,
+          radius: 10,
+        });
+      } else if (b.type === "school") {
+        newProviders.push({
+          buildingId: b.id,
+          serviceType: "education",
+          position: b.position,
+          radius: 10,
         });
       }
-      // Future: add hospital, school, etc.
     }
     set({ providers: newProviders });
   };
@@ -94,6 +110,25 @@ const useServiceStore = create<ServiceStore>((set, get) => {
           const coverage = get().getCoverage(building.position, provider.serviceType);
           if (coverage.covered && coverage.providerId === buildingId) {
             count++;
+          }
+        }
+      }
+      return count;
+    },
+  getCitizensServed: (buildingId) => {
+      const provider = get().providers.find(p => p.buildingId === buildingId);
+      if (!provider) return 0;
+      const citizens = usePopulationStore.getState().citizens;
+      let count = 0;
+      for (const c of citizens) {
+        const household = usePopulationStore.getState().households.find(h => h.id === c.householdId);
+        if (household) {
+          const building = useBuildingStore.getState().buildings.find(b => b.id === household.buildingId);
+          if (building) {
+            const coverage = get().getCoverage(building.position, provider.serviceType);
+            if (coverage.covered && coverage.providerId === buildingId) {
+              count++;
+            }
           }
         }
       }

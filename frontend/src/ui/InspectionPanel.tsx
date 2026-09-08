@@ -139,12 +139,15 @@ export default function InspectionPanel() {
     ? useEconomyStore.getState().businessRevenue[building.id] || 0 
     : null;
   // For park, show service info
-  const serviceInfo = building.type === 'park' ? (() => {
-    const providers = useServiceStore.getState().getProvidersForService('recreation');
+  const serviceInfo = (building.type === 'park' || building.type === 'hospital' || building.type === 'school') ? (() => {
+    const serviceType = building.type === 'park' ? 'recreation' : building.type === 'hospital' ? 'healthcare' : 'education';
+    const providers = useServiceStore.getState().getProvidersForService(serviceType);
     const provider = providers.find(p => p.buildingId === building.id);
     if (provider) {
       const householdsServed = useServiceStore.getState().getHouseholdsServed(building.id);
-      return { radius: provider.radius, householdsServed };
+      const citizensServed = useServiceStore.getState().getCitizensServed(building.id);
+      const serviceName = serviceType.charAt(0).toUpperCase() + serviceType.slice(1);
+      return { serviceName, radius: provider.radius, householdsServed, citizensServed };
     }
     return null;
   })() : null;
@@ -329,7 +332,7 @@ export default function InspectionPanel() {
           <>
             <Row
               label="Service"
-              value="Recreation"
+              value={serviceInfo.serviceName}
             />
             <Row
               label="Coverage Radius"
@@ -338,6 +341,10 @@ export default function InspectionPanel() {
             <Row
               label="Households Served"
               value={serviceInfo.householdsServed}
+            />
+            <Row
+              label="Citizens Served"
+              value={serviceInfo.citizensServed}
             />
           </>
         )}
