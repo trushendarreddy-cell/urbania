@@ -2,7 +2,8 @@ import { Canvas } from "@react-three/fiber";
 import { useEffect, useState } from "react";
 
 import GameScene from "./scenes/GameScene";
-import Toolbar from "./ui/Toolbar";
+import BuildMenu from "./ui/BuildMenu";
+import HUD from "./ui/HUD";
 import InspectionPanel from "./ui/InspectionPanel";
 import CityStats from "./ui/CityStats";
 import EventPanel from "./ui/EventPanel";
@@ -69,55 +70,10 @@ export default function App() {
     };
   }, []);
 
-  const getIndicatorText = () => {
-    switch (selectedTool) {
-      case "select":
-        return "SELECT MODE";
-      case "house":
-        return "BUILDING: HOUSE";
-      case "shop":
-        return "BUILDING: SHOP";
-      case "factory":
-        return "BUILDING: FACTORY";
-      case "park":
-        return "BUILDING: PARK";
-      case "tree":
-        return "BUILDING: TREE";
-      case "rock":
-        return "BUILDING: ROCK";
-      case "road":
-        return "BUILDING: ROAD";
-      case "bulldozer":
-        return "BULLDOZER MODE";
-      case "none":
-      default:
-        return "BUILD MODE OFF";
-    }
-  };
+  // Removed in favor of HUD indicator
 
   return (
     <>
-      <div
-        style={{
-          position: "fixed",
-          top: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          padding: "8px 16px",
-          background: "rgba(20, 20, 20, 0.85)",
-          color: selectedTool === "none" ? "#9CA3AF" : "#F3F4F6",
-          borderRadius: "8px",
-          fontSize: "13px",
-          fontWeight: "600",
-          letterSpacing: "0.05em",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          pointerEvents: "none",
-          zIndex: 10,
-        }}
-      >
-        {getIndicatorText()}
-      </div>
-
       <Canvas
         style={{
           width: "100vw",
@@ -132,10 +88,8 @@ export default function App() {
         <GameScene selectedTool={selectedTool} />
       </Canvas>
 
-      <Toolbar
-        selected={selectedTool}
-        onSelect={setSelectedTool}
-      />
+      <HUD />
+      <BuildMenu selected={selectedTool} onSelect={setSelectedTool} />
       <InspectionPanel />
       <CityStats />
       <EventPanel />

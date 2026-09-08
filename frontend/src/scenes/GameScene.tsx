@@ -369,15 +369,23 @@ export default function GameScene({
   return (
     <>
       {/* Sky */}
-      <color attach="background" args={["#87CEEB"]} />
-
+      <color attach="background" args={["#B0D4E8"]} />
+ 
       {/* Lighting */}
-      <ambientLight intensity={0.6} />
-
+      <ambientLight intensity={0.5} />
+ 
       <directionalLight
-        position={[10, 15, 8]}
-        intensity={2}
+        position={[8, 12, 6]}
+        intensity={1.8}
         castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-bias={-0.001}
+      />
+      <directionalLight
+        position={[-4, 8, -3]}
+        intensity={0.4}
+        color="#FFE4B5"
       />
 
       {/* World */}

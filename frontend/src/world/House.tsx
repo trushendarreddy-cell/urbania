@@ -14,12 +14,12 @@ export default function House({
   roadAccess,
 }: HouseProps) {
   const opacity = ghost ? 0.45 : 1;
-  const foundationColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#808080";
-  const wallsColor = ghost ? (valid ? "#86EFAC" : "#FCA5A5") : "#E9D8A6";
-  const roofColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#B5423C";
-  const doorColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#5D4037";
-  const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#87CEFA";
-  const chimneyColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#666666";
+  const foundationColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#9CA3AF";
+  const wallsColor = ghost ? (valid ? "#86EFAC" : "#FCA5A5") : "#FDE68A";
+  const roofColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#B91C1C";
+  const doorColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#78350F";
+  const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#93C5FD";
+  const chimneyColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#6B7280";
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
