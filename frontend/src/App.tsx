@@ -8,6 +8,16 @@ import InspectionPanel from "./ui/InspectionPanel";
 import CityStats from "./ui/CityStats";
 import EventPanel from "./ui/EventPanel";
 import TrafficPanel from "./ui/TrafficPanel";
+import AlertPanel from "./ui/AlertPanel";
+import ServiceOverview from "./ui/ServiceOverview";
+import useAlertStore from "./store/AlertStore";
+import { evaluateAlerts } from "./systems/AlertSystem";
+import { useSimulationStore } from "./stores/useSimulationStore";
+import useBuildingStore from "./store/BuildingStore";
+import usePopulationStore from "./store/PopulationStore";
+import useServiceStore from "./store/ServiceStore";
+import useUtilityStore from "./store/UtilityStore";
+import useNeedsStore from "./store/NeedsStore";
 import useBuildingStore from "./store/BuildingStore";
 import usePopulationStore from "./store/PopulationStore";
 import { useSimulationStore } from "./stores/useSimulationStore";
@@ -60,15 +70,40 @@ export default function App() {
         useVehicleStore.getState().updateVehicles(deltaHours);
         // Spawn civilian traffic
         updateTrafficSystem(deltaHours, timeOfDay);
+        // Evaluate alerts on day change (when day > prevDay)
+        if (day > prevDay) {
+          evaluateAlerts();
+          // Also recompute needs (they might have changed due to day change)
+          useNeedsStore.getState().recomputeAll();
+        }
       }
 
       prevTime = timeOfDay;
       prevDay = day;
     });
 
+    // Also evaluate alerts on building changes (debounced)
+    const buildingUnsubscribe = useBuildingStore.subscribe(() => {
+      // Debounce to avoid excessive calls
+      clearTimeout(window._alertDebounce);
+      window._alertDebounce = setTimeout(() => {
+        evaluateAlerts();
+      }, 500);
+    });
+
+    // Also on population changes
+    const popUnsubscribe = usePopulationStore.subscribe(() => {
+      clearTimeout(window._alertDebounce2);
+      window._alertDebounce2 = setTimeout(() => {
+        evaluateAlerts();
+      }, 500);
+    });
+
     return () => {
       unsubscribe();
       clearInterval(cleanupInterval);
+      buildingUnsubscribe();
+      popUnsubscribe();
     };
   }, []);
 
@@ -149,6 +184,8 @@ export default function App() {
       <CityStats />
       <EventPanel />
       <TrafficPanel />
+      <AlertPanel />
+      <ServiceOverview />
     </>
   );
 }

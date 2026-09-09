@@ -117,6 +117,7 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       const activeEvents = useEventStore.getState().getActiveEvents();
       let eventPenalty = 0;
       for (const e of activeEvents) {
+        if (e.status === 'resolved') continue;
         const dx = homeBuilding.position[0] - e.position[0];
         const dz = homeBuilding.position[2] - e.position[2];
         const dist = Math.hypot(dx, dz);
@@ -125,6 +126,10 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
         }
       }
       happiness = clamp(happiness - eventPenalty);
+      // Also factor in road access: if inactive, reduce happiness further
+      if (!isActive) {
+        happiness = Math.max(0, happiness - 10);
+      }
 
       let category: CitizenHappiness['category'];
       if (happiness >= 80) category = 'Very Happy';
