@@ -319,52 +319,7 @@ export default function GameScene({
     })),
   ];
 
-  function BuildingComponent({
-    type,
-    position,
-    rotation,
-  }: {
-    type: BuildTool;
-    position: [number, number, number];
-    rotation: number;
-  }) {
-    const access = hasRoadAccess(position, buildings);
-    switch (type) {
-      case "shop":
-        return (
-          <Shop
-            position={position}
-            rotation={rotation}
-            roadAccess={access}
-          />
-        );
-      case "factory":
-        return (
-          <Factory
-            position={position}
-            rotation={rotation}
-            roadAccess={access}
-          />
-        );
-      case "park":
-        return (
-          <Park
-            position={position}
-            rotation={rotation}
-            roadAccess={access}
-          />
-        );
-      case "house":
-      default:
-        return (
-          <House
-            position={position}
-            rotation={rotation}
-            roadAccess={access}
-          />
-        );
-    }
-  }
+  // function BuildingComponent removed - unused
 
   return (
     <>
@@ -454,12 +409,23 @@ export default function GameScene({
           building.type === "park" ||
           !building.type
         ) {
+          // For house/shop/factory, pass level
+          const level = (building as any).level || 1;
+          const Component = (() => {
+            switch (building.type) {
+              case 'shop': return Shop;
+              case 'factory': return Factory;
+              case 'park': return Park;
+              default: return House;
+            }
+          })();
           return (
-            <BuildingComponent
+            <Component
               key={building.id}
-              type={building.type ?? "house"}
               position={building.position}
               rotation={building.rotation ?? 0}
+              roadAccess={hasRoadAccess(building.position, buildings)}
+              level={level}
             />
           );
         }
@@ -632,7 +598,7 @@ export default function GameScene({
         return (
           <EmergencyVehicle
             key={vehicle.id}
-            type={vehicle.type}
+            type={vehicle.type === "car" ? "police_car" : vehicle.type}
             position={vehicle.position}
             rotation={rotation}
           />

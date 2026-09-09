@@ -8,9 +8,9 @@ const SPAWN_INTERVAL_HOURS = 0.2; // spawn every 0.2 hours (12 minutes)
 
 let lastSpawnTime = 0;
 
-export function updateTrafficSystem(deltaHours: number, timeOfDay: number) {
+export function updateTrafficSystem(deltaHours: number, _timeOfDay: number) {
   const vehicleStore = useVehicleStore.getState();
-  const currentCount = vehicleStore.getVehicleCount();
+  // const currentCount = vehicleStore.getVehicleCount();
   const civilianCount = vehicleStore.getVehiclesByType("car").length;
 
   // Only spawn if not at max

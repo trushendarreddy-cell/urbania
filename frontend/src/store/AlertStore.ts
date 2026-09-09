@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useSimulationStore } from "../stores/useSimulationStore";
 
 export type AlertSeverity = 'info' | 'warning' | 'critical';
 export type AlertCategory = 'service' | 'economy' | 'population' | 'traffic' | 'utility';

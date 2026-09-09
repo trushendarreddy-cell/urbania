@@ -4,7 +4,7 @@ import useNeedsStore from "../store/NeedsStore";
 import useServiceStore from "../store/ServiceStore";
 import useUtilityStore from "../store/UtilityStore";
 import useBuildingStore from "../store/BuildingStore";
-import useCityDemandStore from "../store/CityDemandStore";
+// import useCityDemandStore from "../store/CityDemandStore";
 
 export default function CityStats() {
   const totalPopulation = usePopulationStore((state) => state.totalPopulation);
@@ -21,7 +21,7 @@ export default function CityStats() {
   const economicHealth = useEconomyStore((state) => state.economicHealth);
   const aggregateDemand = useEconomyStore((state) => state.aggregateDemand);
   const unmetDemand = useEconomyStore((state) => state.unmetDemand);
-  const demand = useCityDemandStore((state) => state);
+  // const demand = useCityDemandStore((state) => state);
   // Total household money
   const householdMoneyMap = useEconomyStore((state) => state.householdMoney);
   const totalMoney = Object.values(householdMoneyMap).reduce((a, b) => a + b, 0);

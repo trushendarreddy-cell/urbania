@@ -4,6 +4,7 @@ interface ShopProps {
   ghost?: boolean;
   valid?: boolean;
   roadAccess?: boolean;
+  level?: number;
 }
 
 export default function Shop({
@@ -12,6 +13,7 @@ export default function Shop({
   ghost = false,
   valid = true,
   roadAccess,
+  level = 1,
 }: ShopProps) {
   const opacity = ghost ? 0.45 : 1;
   const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#D4A574";
@@ -43,7 +45,7 @@ export default function Shop({
       </mesh>
 
       <mesh position={[0, 0.6, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.0, 1.0, 0.8]} />
+        <boxGeometry args={[1.0, 1.0 * (1 + (level-1)*0.12), 0.8]} />
         <meshStandardMaterial
           color={baseColor}
           transparent={ghost}
@@ -52,11 +54,11 @@ export default function Shop({
       </mesh>
 
       <mesh
-        position={[0, 1.15, 0]}
+        position={[0, 1.15 + (level-1)*0.1, 0]}
         rotation={[0, Math.PI / 4, 0]}
         castShadow
       >
-        <coneGeometry args={[0.75, 0.5, 4]} />
+        <coneGeometry args={[0.75 + (level-1)*0.04, 0.5 + (level-1)*0.06, 4]} />
         <meshStandardMaterial
           color={roofColor}
           transparent={ghost}

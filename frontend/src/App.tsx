@@ -10,18 +10,13 @@ import EventPanel from "./ui/EventPanel";
 import TrafficPanel from "./ui/TrafficPanel";
 import AlertPanel from "./ui/AlertPanel";
 import ServiceOverview from "./ui/ServiceOverview";
-import useAlertStore from "./store/AlertStore";
 import { evaluateAlerts } from "./systems/AlertSystem";
 import { useSimulationStore } from "./stores/useSimulationStore";
 import useBuildingStore from "./store/BuildingStore";
 import usePopulationStore from "./store/PopulationStore";
-import useServiceStore from "./store/ServiceStore";
-import useUtilityStore from "./store/UtilityStore";
 import useNeedsStore from "./store/NeedsStore";
-import useBuildingStore from "./store/BuildingStore";
-import usePopulationStore from "./store/PopulationStore";
-import { useSimulationStore } from "./stores/useSimulationStore";
 import useVehicleStore from "./store/VehicleStore";
+import useDevelopmentStore from "./store/DevelopmentStore";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import type { BuildTool } from "./types/BuildTool";
@@ -75,6 +70,8 @@ export default function App() {
           evaluateAlerts();
           // Also recompute needs (they might have changed due to day change)
           useNeedsStore.getState().recomputeAll();
+          // Process development (building upgrades)
+          useDevelopmentStore.getState().processDevelopment();
         }
       }
 

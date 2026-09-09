@@ -4,6 +4,7 @@ interface FactoryProps {
   ghost?: boolean;
   valid?: boolean;
   roadAccess?: boolean;
+  level?: number;
 }
 
 export default function Factory({
@@ -12,6 +13,7 @@ export default function Factory({
   ghost = false,
   valid = true,
   roadAccess,
+  level = 1,
 }: FactoryProps) {
   const opacity = ghost ? 0.45 : 1;
   const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#6B7280";
@@ -43,7 +45,7 @@ export default function Factory({
       </mesh>
 
       <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.2, 1.3, 1.0]} />
+        <boxGeometry args={[1.2, 1.3 * (1 + (level-1)*0.1), 1.0]} />
         <meshStandardMaterial
           color={baseColor}
           transparent={ghost}
@@ -51,8 +53,8 @@ export default function Factory({
         />
       </mesh>
 
-      <mesh position={[0, 1.7, 0]} castShadow>
-        <boxGeometry args={[1.0, 0.5, 0.8]} />
+      <mesh position={[0, 1.7 + (level-1)*0.08, 0]} castShadow>
+        <boxGeometry args={[1.0, 0.5 + (level-1)*0.05, 0.8]} />
         <meshStandardMaterial
           color={roofColor}
           transparent={ghost}

@@ -4,6 +4,7 @@ interface HouseProps {
   ghost?: boolean;
   valid?: boolean;
   roadAccess?: boolean;
+  level?: number;
 }
 
 export default function House({
@@ -12,6 +13,7 @@ export default function House({
   ghost = false,
   valid = true,
   roadAccess,
+  level = 1,
 }: HouseProps) {
   const opacity = ghost ? 0.45 : 1;
   const foundationColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#9CA3AF";
@@ -47,7 +49,7 @@ export default function House({
 
       {/* Walls */}
       <mesh position={[0, 0.55, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.9, 0.9, 0.9]} />
+        <boxGeometry args={[0.9, 0.9 * (1 + (level-1)*0.15), 0.9]} />
         <meshStandardMaterial
           color={wallsColor}
           transparent={ghost}
@@ -57,11 +59,11 @@ export default function House({
 
       {/* Roof */}
       <mesh
-        position={[0, 1.15, 0]}
+        position={[0, 1.15 + (level-1)*0.12, 0]}
         rotation={[0, Math.PI / 4, 0]}
         castShadow
       >
-        <coneGeometry args={[0.82, 0.6, 4]} />
+        <coneGeometry args={[0.82 + (level-1)*0.05, 0.6 + (level-1)*0.08, 4]} />
         <meshStandardMaterial
           color={roofColor}
           transparent={ghost}

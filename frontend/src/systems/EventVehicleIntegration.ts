@@ -1,8 +1,7 @@
 import useEventStore from "../store/EventStore";
 import useVehicleStore from "../store/VehicleStore";
 import useBuildingStore from "../store/BuildingStore";
-import { getRoadGraph, findPath, findPathWithTraffic } from "./PathfindingSystem";
-import useRoadUsageStore from "../store/RoadUsageStore";
+import { getRoadGraph, findPath } from "./PathfindingSystem";
 
 // This function should be called when an emergency event is dispatched.
 // It finds the nearest available vehicle of the appropriate type and sends it.

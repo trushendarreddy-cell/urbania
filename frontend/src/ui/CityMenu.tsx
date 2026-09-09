@@ -1,9 +1,13 @@
 import { saveCity, loadCity, hasSave, newCity } from '../services/PersistenceService';
 import { useState } from 'react';
+import LandValueOverlay from './LandValueOverlay';
+import DevelopmentOverlay from './DevelopmentOverlay';
 
 export default function CityMenu() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [hasSavedGame, setHasSavedGame] = useState(hasSave());
+  const [showLandValue, setShowLandValue] = useState(false);
+  const [showDevelopment, setShowDevelopment] = useState(false);
 
   const handleSave = () => {
     setSaveStatus('saving');
@@ -22,6 +26,19 @@ export default function CityMenu() {
   const handleNewCity = () => {
     newCity();
     setHasSavedGame(false);
+  };
+
+  const buttonStyle = {
+    padding: '4px 14px',
+    borderRadius: '8px',
+    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.04)',
+    color: '#D1D5DB',
+    cursor: 'pointer',
+    fontWeight: '500',
+    transition: 'all 0.15s ease',
+    fontSize: '13px',
+    fontFamily: 'inherit',
   };
 
   return (
@@ -47,16 +64,7 @@ export default function CityMenu() {
     >
       <button
         onClick={handleSave}
-        style={{
-          padding: '4px 14px',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.08)',
-          background: 'rgba(255,255,255,0.04)',
-          color: '#D1D5DB',
-          cursor: 'pointer',
-          fontWeight: '500',
-          transition: 'all 0.15s ease',
-        }}
+        style={buttonStyle}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
       >
@@ -66,14 +74,10 @@ export default function CityMenu() {
         onClick={handleLoad}
         disabled={!hasSavedGame}
         style={{
-          padding: '4px 14px',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.08)',
+          ...buttonStyle,
           background: hasSavedGame ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
           color: hasSavedGame ? '#D1D5DB' : '#6B7280',
           cursor: hasSavedGame ? 'pointer' : 'default',
-          fontWeight: '500',
-          transition: 'all 0.15s ease',
         }}
         onMouseEnter={(e) => {
           if (hasSavedGame) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
@@ -87,19 +91,34 @@ export default function CityMenu() {
       <button
         onClick={handleNewCity}
         style={{
-          padding: '4px 14px',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.08)',
+          ...buttonStyle,
           background: 'rgba(239,68,68,0.1)',
           color: '#F87171',
-          cursor: 'pointer',
-          fontWeight: '500',
-          transition: 'all 0.15s ease',
         }}
         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.2)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
       >
         🗑️ New
+      </button>
+      <button
+        onClick={() => setShowLandValue(!showLandValue)}
+        style={{
+          ...buttonStyle,
+          background: showLandValue ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.04)',
+          borderColor: showLandValue ? '#4ADE80' : 'rgba(255,255,255,0.08)',
+        }}
+      >
+        📊 Land Value
+      </button>
+      <button
+        onClick={() => setShowDevelopment(!showDevelopment)}
+        style={{
+          ...buttonStyle,
+          background: showDevelopment ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.04)',
+          borderColor: showDevelopment ? '#4ADE80' : 'rgba(255,255,255,0.08)',
+        }}
+      >
+        📈 Dev Pressure
       </button>
       {saveStatus !== 'idle' && (
         <span
@@ -112,6 +131,8 @@ export default function CityMenu() {
           {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Failed'}
         </span>
       )}
+      <LandValueOverlay visible={showLandValue} />
+      <DevelopmentOverlay visible={showDevelopment} />
     </div>
   );
 }

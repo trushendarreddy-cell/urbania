@@ -8,6 +8,10 @@ export interface Building {
   zoneType?: ZoneType;
   position: [number, number, number];
   rotation?: number;
+  // Development fields
+  level?: number; // 1,2,3
+  developmentProgress?: number; // 0-100
+  lastUpgradeDay?: number; // simulation day of last upgrade
 }
 
 interface BuildingStore {
@@ -47,6 +51,9 @@ const useBuildingStore = create<BuildingStore>((set) => ({
           zoneType,
           position,
           rotation,
+          level: 1,
+          developmentProgress: 0,
+          lastUpgradeDay: 0,
         },
       ],
     }));
@@ -62,6 +69,8 @@ const useBuildingStore = create<BuildingStore>((set) => ({
         zoneType: b.zoneType,
         position: b.position,
         rotation: b.rotation ?? 0,
+        // Only add development fields if not a road
+        ...(b.type !== "road" ? { level: 1, developmentProgress: 0, lastUpgradeDay: 0 } : {}),
       }));
       return {
         buildings: [...state.buildings, ...created],

@@ -10,6 +10,8 @@ import useNeedsStore from "../store/NeedsStore";
 import useServiceStore from "../store/ServiceStore";
 import useUtilityStore from "../store/UtilityStore";
 import usePopulationStore from "../store/PopulationStore";
+import useLandValueStore from "../store/LandValueStore";
+import useDevelopmentStore from "../store/DevelopmentStore";
 
 function getObjectInfo(building: Building) {
   switch (building.type) {
@@ -192,6 +194,12 @@ export default function InspectionPanel() {
     }
     return count > 0 ? sum / count : null;
   })();
+
+  // Land value and development pressure
+  const landValue = building ? useLandValueStore.getState().getLandValue(building.id) : null;
+  const devPressure = building ? useDevelopmentStore.getState().getDevelopmentPressure(building.id) : null;
+  const devProgress = building ? (building as any).developmentProgress || 0 : 0;
+  const level = building ? (building as any).level || 1 : 1;
 
   return (
     <div
@@ -412,6 +420,22 @@ export default function InspectionPanel() {
             label="Production"
             value={`${Math.round(factoryProduction)} units`}
           />
+        )}
+        {/* Development Info */}
+        {building && (building.type === 'house' || building.type === 'shop' || building.type === 'factory') && (
+          <>
+            <Row label="Level" value={`${level}`} />
+            <Row label="Land Value" value={`${Math.round(landValue || 0)}`} />
+            <Row label="Dev Pressure" value={`${Math.round(devPressure || 0)}`} />
+            <Row
+              label="Progress"
+              value={
+                <span style={{ color: devProgress >= 100 ? '#4ADE80' : '#FBBF24' }}>
+                  {Math.round(devProgress)}%
+                </span>
+              }
+            />
+          </>
         )}
         {serviceInfo && (
           <>

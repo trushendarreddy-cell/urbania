@@ -1,5 +1,4 @@
 import useAlertStore from "../store/AlertStore";
-import { useEffect, useState } from "react";
 
 export default function AlertPanel() {
   const alerts = useAlertStore((state) => state.alerts.filter(a => !a.resolved));

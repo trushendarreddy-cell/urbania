@@ -15,18 +15,18 @@ interface CityDemandStore extends CityDemand {
   recompute: () => void;
 }
 
-const useCityDemandStore = create<CityDemandStore>((set, get) => {
+const useCityDemandStore = create<CityDemandStore>((set) => {
   const recompute = () => {
     const buildings = useBuildingStore.getState().buildings;
     const popStore = usePopulationStore.getState();
-    const econStore = useEconomyStore.getState();
+    // const econStore = useEconomyStore.getState();
     const needsStore = useNeedsStore.getState();
 
     const totalPopulation = popStore.totalPopulation;
     const totalHouseholds = popStore.totalHouseholds;
     const employed = popStore.employed;
     const unemployed = popStore.unemployed;
-    const totalJobs = popStore.totalJobs;
+    // const totalJobs = popStore.totalJobs;
     const avgHappiness = (() => {
       const values = Object.values(needsStore.needs).map(n => n.happiness);
       return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 50;

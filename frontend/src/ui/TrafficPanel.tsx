@@ -1,7 +1,6 @@
 import useVehicleStore from "../store/VehicleStore";
-import useRoadUsageStore, { getCongestionLevel, ROAD_CAPACITY } from "../store/RoadUsageStore";
+import useRoadUsageStore, { getCongestionLevel } from "../store/RoadUsageStore";
 import useBuildingStore from "../store/BuildingStore";
-import { getRoadGraph } from "../systems/PathfindingSystem";
 import { useSimulationStore } from "../stores/useSimulationStore";
 
 export default function TrafficPanel() {
@@ -16,7 +15,7 @@ export default function TrafficPanel() {
   let totalUsage = 0;
   let congestedRoads = 0;
   let overloadedRoads = 0;
-  for (const [key, usage] of usageMap.entries()) {
+  for (const [, usage] of usageMap.entries()) {
     totalUsage += usage;
     const level = getCongestionLevel(usage);
     if (level === 'high' || level === 'overloaded') congestedRoads++;

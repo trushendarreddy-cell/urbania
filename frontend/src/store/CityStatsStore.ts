@@ -35,7 +35,7 @@ interface CityStatsStore extends CityStatistics {
   recompute: () => void;
 }
 
-const useCityStatsStore = create<CityStatsStore>((set, get) => {
+const useCityStatsStore = create<CityStatsStore>((set) => {
   const recompute = () => {
     const pop = usePopulationStore.getState();
     const econ = useEconomyStore.getState();
