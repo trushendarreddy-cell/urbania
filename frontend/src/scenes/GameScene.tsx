@@ -34,6 +34,7 @@ import EventIndicator from "../world/EventIndicator";
 import useEventStore from "../store/EventStore";
 import useVehicleStore from "../store/VehicleStore";
 import EmergencyVehicle from "../world/EmergencyVehicle";
+import useActivityStore from "../store/ActivityStore";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -73,6 +74,7 @@ export default function GameScene({
   const timeOfDay = useSimulationStore((state) => state.timeOfDay);
   const events = useEventStore((state) => state.events);
   const vehicles = useVehicleStore((state) => state.vehicles);
+  const getWindowIntensity = useActivityStore((state) => state.getWindowIntensity);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -409,8 +411,11 @@ export default function GameScene({
           building.type === "park" ||
           !building.type
         ) {
-          // For house/shop/factory, pass level
+          // For house/shop/factory, pass level and window intensity
           const level = (building as any).level || 1;
+          const windowIntensity = (building.type === 'house' || building.type === 'shop' || building.type === 'factory')
+            ? getWindowIntensity(building.type, level)
+            : 0;
           const Component = (() => {
             switch (building.type) {
               case 'shop': return Shop;
@@ -426,6 +431,7 @@ export default function GameScene({
               rotation={building.rotation ?? 0}
               roadAccess={hasRoadAccess(building.position, buildings)}
               level={level}
+              windowIntensity={windowIntensity}
             />
           );
         }

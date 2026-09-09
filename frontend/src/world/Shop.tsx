@@ -5,6 +5,7 @@ interface ShopProps {
   valid?: boolean;
   roadAccess?: boolean;
   level?: number;
+  windowIntensity?: number;
 }
 
 export default function Shop({
@@ -14,12 +15,15 @@ export default function Shop({
   valid = true,
   roadAccess,
   level = 1,
+  windowIntensity = 0,
 }: ShopProps) {
   const opacity = ghost ? 0.45 : 1;
   const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#D4A574";
   const roofColor = ghost ? (valid ? "#86EFAC" : "#F87171") : "#8B5A2B";
   const signColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#FBBF24";
   const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#93C5FD";
+  const windowEmissiveColor = "#FFD700";
+  const windowEmissiveIntensity = windowIntensity * 1.0;
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
@@ -79,6 +83,8 @@ export default function Shop({
         <boxGeometry args={[0.15, 0.15, 0.05]} />
         <meshStandardMaterial
           color={windowColor}
+          emissive={windowEmissiveColor}
+          emissiveIntensity={windowEmissiveIntensity}
           transparent={ghost}
           opacity={ghost ? 0.35 : 0.9}
         />
@@ -88,6 +94,8 @@ export default function Shop({
         <boxGeometry args={[0.15, 0.15, 0.05]} />
         <meshStandardMaterial
           color={windowColor}
+          emissive={windowEmissiveColor}
+          emissiveIntensity={windowEmissiveIntensity}
           transparent={ghost}
           opacity={ghost ? 0.35 : 0.9}
         />

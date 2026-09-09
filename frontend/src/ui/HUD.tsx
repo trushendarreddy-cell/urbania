@@ -3,6 +3,7 @@ import usePopulationStore from '../store/PopulationStore';
 import useEconomyStore from '../store/EconomyStore';
 import TrafficIndicator from './TrafficIndicator';
 import useProgressionStore from '../store/ProgressionStore';
+import useActivityStore from '../store/ActivityStore';
 import { useState } from 'react';
 import ProgressionPanel from './ProgressionPanel';
 
@@ -16,6 +17,8 @@ export default function HUD() {
   const togglePaused = useSimulationStore((state) => state.togglePaused);
   const cycleSpeed = useSimulationStore((state) => state.cycleSpeed);
   const currentStage = useProgressionStore((state) => state.currentStage);
+  const activityLevel = useActivityStore((state) => state.level);
+  const timeLabel = useActivityStore((state) => state.timeLabel);
   const [showProgression, setShowProgression] = useState(false);
   const stageNames: Record<string, string> = {
     village: 'Village',
@@ -23,6 +26,18 @@ export default function HUD() {
     city: 'City',
     large_city: 'Large City',
     metropolis: 'Metropolis',
+  };
+  const activityColors: Record<string, string> = {
+    QUIET: '#6B7280',
+    NORMAL: '#60A5FA',
+    BUSY: '#FBBF24',
+    PEAK: '#EF4444',
+  };
+  const timeLabels: Record<string, string> = {
+    DAWN: '🌅 Dawn',
+    DAY: '☀️ Day',
+    DUSK: '🌇 Dusk',
+    NIGHT: '🌙 Night',
   };
 
   const formatTime = (hours: number) => {
@@ -73,6 +88,11 @@ export default function HUD() {
           <span>{Math.round(totalMoney).toLocaleString()}</span>
         </span>
         <TrafficIndicator />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#9CA3AF' }}>
+          <span style={{ color: activityColors[activityLevel] || '#9CA3AF' }}>●</span>
+          <span>{activityLevel}</span>
+          <span style={{ marginLeft: '4px' }}>{timeLabels[timeLabel] || timeLabel}</span>
+        </div>
         <button
           onClick={() => setShowProgression(!showProgression)}
           style={{

@@ -5,6 +5,7 @@ interface FactoryProps {
   valid?: boolean;
   roadAccess?: boolean;
   level?: number;
+  windowIntensity?: number;
 }
 
 export default function Factory({
@@ -14,12 +15,15 @@ export default function Factory({
   valid = true,
   roadAccess,
   level = 1,
+  windowIntensity = 0,
 }: FactoryProps) {
   const opacity = ghost ? 0.45 : 1;
   const baseColor = ghost ? (valid ? "#4ADE80" : "#EF4444") : "#6B7280";
   const roofColor = ghost ? (valid ? "#86EFAC" : "#F87171") : "#4B5563";
   const chimneyColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#9CA3AF";
   const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#93C5FD";
+  const windowEmissiveColor = "#FFAA00";
+  const windowEmissiveIntensity = windowIntensity * 0.6;
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
@@ -84,6 +88,8 @@ export default function Factory({
         <boxGeometry args={[0.15, 0.2, 0.05]} />
         <meshStandardMaterial
           color={windowColor}
+          emissive={windowEmissiveColor}
+          emissiveIntensity={windowEmissiveIntensity}
           transparent={ghost}
           opacity={ghost ? 0.35 : 0.9}
         />
@@ -93,6 +99,8 @@ export default function Factory({
         <boxGeometry args={[0.15, 0.2, 0.05]} />
         <meshStandardMaterial
           color={windowColor}
+          emissive={windowEmissiveColor}
+          emissiveIntensity={windowEmissiveIntensity}
           transparent={ghost}
           opacity={ghost ? 0.35 : 0.9}
         />

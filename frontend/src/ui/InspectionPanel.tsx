@@ -12,6 +12,7 @@ import useUtilityStore from "../store/UtilityStore";
 import usePopulationStore from "../store/PopulationStore";
 import useLandValueStore from "../store/LandValueStore";
 import useDevelopmentStore from "../store/DevelopmentStore";
+import useActivityStore from "../store/ActivityStore";
 
 function getObjectInfo(building: Building) {
   switch (building.type) {
@@ -200,6 +201,16 @@ export default function InspectionPanel() {
   const devPressure = building ? useDevelopmentStore.getState().getDevelopmentPressure(building.id) : null;
   const devProgress = building ? (building as any).developmentProgress || 0 : 0;
   const level = building ? (building as any).level || 1 : 1;
+  // Activity for building
+  const buildingActivity = building ? (() => {
+    if (building.type === 'house' || building.type === 'shop' || building.type === 'factory') {
+      const intensity = useActivityStore.getState().getWindowIntensity(building.type, level);
+      if (intensity > 0.5) return 'HIGH';
+      if (intensity > 0.2) return 'MODERATE';
+      return 'LOW';
+    }
+    return null;
+  })() : null;
 
   return (
     <div
@@ -435,6 +446,7 @@ export default function InspectionPanel() {
                 </span>
               }
             />
+            {buildingActivity && <Row label="Activity" value={buildingActivity} />}
           </>
         )}
         {serviceInfo && (

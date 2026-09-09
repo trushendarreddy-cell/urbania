@@ -5,6 +5,7 @@ interface HouseProps {
   valid?: boolean;
   roadAccess?: boolean;
   level?: number;
+  windowIntensity?: number;
 }
 
 export default function House({
@@ -14,6 +15,7 @@ export default function House({
   valid = true,
   roadAccess,
   level = 1,
+  windowIntensity = 0,
 }: HouseProps) {
   const opacity = ghost ? 0.45 : 1;
   const foundationColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#9CA3AF";
@@ -22,6 +24,8 @@ export default function House({
   const doorColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#78350F";
   const windowColor = ghost ? (valid ? "#A7F3D0" : "#FECACA") : "#93C5FD";
   const chimneyColor = ghost ? (valid ? "#6EE7B7" : "#F87171") : "#6B7280";
+  const windowEmissiveColor = "#FFD700";
+  const windowEmissiveIntensity = windowIntensity * 0.8;
 
   return (
     <group position={position} rotation={[0, rotation, 0]}>
@@ -86,6 +90,8 @@ export default function House({
         <boxGeometry args={[0.18, 0.18, 0.05]} />
         <meshStandardMaterial
           color={windowColor}
+          emissive={windowEmissiveColor}
+          emissiveIntensity={windowEmissiveIntensity}
           transparent={ghost}
           opacity={ghost ? 0.35 : 0.9}
         />
@@ -96,6 +102,8 @@ export default function House({
         <boxGeometry args={[0.18, 0.18, 0.05]} />
         <meshStandardMaterial
           color={windowColor}
+          emissive={windowEmissiveColor}
+          emissiveIntensity={windowEmissiveIntensity}
           transparent={ghost}
           opacity={ghost ? 0.35 : 0.9}
         />
