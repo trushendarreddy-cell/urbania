@@ -2,63 +2,110 @@ import { create } from "zustand";
 import useBuildingStore from "./BuildingStore";
 import useRoadUsageStore from "./RoadUsageStore";
 
-export type VehicleType = "fire_truck" | "ambulance" | "police_car";
-export type VehicleStatus = "idle" | "responding" | "at_scene" | "returning";
+export type VehicleType = "fire_truck" | "ambulance" | "police_car" | "car";
+export type VehicleStatus = "idle" | "responding" | "at_scene" | "returning" | "traveling";
 
 export interface Vehicle {
   id: string;
   type: VehicleType;
-  providerId: number; // building id of fire station, hospital, police station
-  eventId: string; // event this vehicle is responding to
+  providerId?: number; // optional for civilian cars
+  eventId?: string; // optional for civilian cars
   status: VehicleStatus;
-  route: string[]; // road cell keys
-  routeIndex: number; // current position along route
-  position: [number, number, number]; // current world position (interpolated)
-  targetPosition: [number, number, number]; // next node position
-  speed: number; // cells per hour
-  eta: number; // remaining time to destination
-  returnRoute?: string[]; // route back to provider
+  route: string[];
+  routeIndex: number;
+  position: [number, number, number];
+  targetPosition: [number, number, number];
+  speed: number;
+  eta: number;
+  returnRoute?: string[];
   returnIndex?: number;
+  isEmergency: boolean; // true for emergency vehicles, false for civilian
 }
 
-// Fleet configuration per provider type
 const FLEET_SIZES: Record<string, number> = {
   fire_station: 2,
   hospital: 2,
   police_station: 2,
 };
 
-// Base speed in cells per hour
-const BASE_VEHICLE_SPEED = 4; // cells per hour
+const BASE_VEHICLE_SPEED = 4;
+const CIVILIAN_SPEED = 3;
 
 interface VehicleStore {
   vehicles: Vehicle[];
-  spawnVehicle: (type: VehicleType, providerId: number, eventId: string, route: string[]) => void;
+  spawnVehicle: (
+    type: VehicleType,
+    providerId: number | undefined,
+    eventId: string | undefined,
+    route: string[],
+    isEmergency?: boolean
+  ) => void;
   updateVehicles: (deltaHours: number) => void;
   getAvailableVehicle: (providerId: number, type: VehicleType) => Vehicle | null;
   getVehicleForEvent: (eventId: string) => Vehicle | null;
   returnVehicle: (vehicleId: string) => void;
+  removeVehicle: (vehicleId: string) => void;
   clear: () => void;
+  getVehicleCount: () => number;
+  getVehiclesByType: (type: VehicleType) => Vehicle[];
+  getVehicles: () => Vehicle[]; // added for debugging/UI
 }
 
 const useVehicleStore = create<VehicleStore>((set, get) => {
+  const incrementRouteUsage = (route: string[]) => {
+    const usageStore = useRoadUsageStore.getState();
+    for (const key of route) {
+      usageStore.increment(key);
+    }
+  };
+
+  const decrementRouteUsage = (route: string[]) => {
+    const usageStore = useRoadUsageStore.getState();
+    for (const key of route) {
+      usageStore.decrement(key);
+    }
+  };
+
+  const isValidRoute = (route: string[]): boolean => {
+    const buildings = useBuildingStore.getState().buildings;
+    const roadSet = new Set(
+      buildings
+        .filter(b => b.type === "road")
+        .map(b => `${Math.round(b.position[0])},${Math.round(b.position[2])}`)
+    );
+    for (const key of route) {
+      if (!roadSet.has(key)) return false;
+    }
+    return true;
+  };
+
   const updateVehicles = (deltaHours: number) => {
     const roadUsage = useRoadUsageStore.getState();
     const vehicles = get().vehicles;
     let updated = false;
+    const updatedVehicles: Vehicle[] = [];
 
-    const updatedVehicles = vehicles.map((v) => {
-      if (v.status === "idle" || v.status === "at_scene" || v.status === "returning" && v.routeIndex === v.route.length - 1) {
-        // Idle or done returning
-        return v;
+    for (const v of vehicles) {
+      if (v.status === "idle" || v.status === "at_scene") {
+        updatedVehicles.push(v);
+        continue;
       }
 
-      // Responding or returning
-      const isResponding = v.status === "responding";
-      const route = isResponding ? v.route : v.returnRoute;
-      if (!route || route.length === 0) return v;
+      // If route invalid, remove vehicle
+      if (!isValidRoute(v.route)) {
+        decrementRouteUsage(v.route);
+        updated = true;
+        continue; // skip adding
+      }
 
-      // Calculate speed with traffic congestion factor
+      const isResponding = v.status === "responding" || v.status === "traveling";
+      const route = isResponding ? v.route : v.returnRoute;
+      if (!route || route.length === 0) {
+        updatedVehicles.push(v);
+        continue;
+      }
+
+      // Speed with congestion
       let avgCongestion = 0;
       for (const key of route) {
         const usage = roadUsage.getUsage(key);
@@ -66,17 +113,19 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
         avgCongestion += Math.min(ratio, 1);
       }
       avgCongestion /= route.length;
-      const speedFactor = 1 - avgCongestion * 0.5; // 1 (no congestion) to 0.5 (max)
+      let speedFactor;
+      if (v.isEmergency) {
+        // Emergency vehicles get priority: less congestion penalty
+        speedFactor = 1 - avgCongestion * 0.2; // 1 to 0.8
+      } else {
+        speedFactor = 1 - avgCongestion * 0.5; // 1 to 0.5
+      }
       const speed = v.speed * speedFactor;
 
-      // Distance to cover in this step
-      const dist = speed * deltaHours;
-      let remaining = dist;
+      let remaining = speed * deltaHours;
       let newIndex = v.routeIndex;
       let progress = 0;
-      // Move along route
       while (remaining > 0 && newIndex < route.length - 1) {
-        // distance to next node (Euclidean)
         const keyA = route[newIndex];
         const keyB = route[newIndex + 1];
         const [ax, az] = keyA.split(',').map(Number);
@@ -86,71 +135,89 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
           remaining -= cellDist;
           newIndex++;
         } else {
-          // partial progress
           progress = remaining / cellDist;
           remaining = 0;
-          // Interpolate position between nodes
           const pos: [number, number, number] = [
             ax + (bx - ax) * progress,
             0.02,
             az + (bz - az) * progress,
           ];
           updated = true;
-          return {
+          updatedVehicles.push({
             ...v,
             routeIndex: newIndex,
             position: pos,
             targetPosition: [bx, 0.02, bz],
             eta: (route.length - newIndex) / speed,
-          } as Vehicle;
+          });
+          break;
         }
       }
 
-      // If we've reached the end of the route
-      if (newIndex >= route.length - 1) {
+      // If we finished the loop without breaking, we reached the end
+      if (remaining >= 0 && newIndex >= route.length - 1) {
         updated = true;
-        if (isResponding) {
-          // Arrived at incident
-          return {
+        if (isResponding && v.isEmergency) {
+          // Emergency arrived at scene
+          decrementRouteUsage(v.route);
+          updatedVehicles.push({
             ...v,
             status: "at_scene",
             routeIndex: newIndex,
-            position: [parseInt(route[route.length-1].split(',')[0]), 0.02, parseInt(route[route.length-1].split(',')[1])],
-            targetPosition: [0,0,0],
+            position: [
+              parseInt(route[route.length - 1].split(',')[0]),
+              0.02,
+              parseInt(route[route.length - 1].split(',')[1]),
+            ],
+            targetPosition: [0, 0, 0],
             eta: 0,
-          } as Vehicle;
+          });
+        } else if (isResponding && !v.isEmergency) {
+          // Civilian car reached destination -> despawn
+          decrementRouteUsage(v.route);
+          updated = true;
+          // do not add to updatedVehicles
         } else {
-          // Returned to station
-          return {
+          // Returning to station (emergency only)
+          decrementRouteUsage(v.route);
+          updatedVehicles.push({
             ...v,
             status: "idle",
             routeIndex: newIndex,
-            position: [parseInt(route[route.length-1].split(',')[0]), 0.02, parseInt(route[route.length-1].split(',')[1])],
-            targetPosition: [0,0,0],
+            position: [
+              parseInt(route[route.length - 1].split(',')[0]),
+              0.02,
+              parseInt(route[route.length - 1].split(',')[1]),
+            ],
+            targetPosition: [0, 0, 0],
             eta: 0,
-          } as Vehicle;
+          });
+        }
+      } else {
+        // Still on route, but we might have already pushed in the loop
+        // If we broke out early, we already pushed; otherwise we need to push
+        if (remaining >= 0 && newIndex < route.length - 1) {
+          // need to compute position for remaining
+          const keyA = route[newIndex];
+          const keyB = route[newIndex + 1];
+          const [ax, az] = keyA.split(',').map(Number);
+          const [bx, bz] = keyB.split(',').map(Number);
+          const pos: [number, number, number] = [
+            ax + (bx - ax) * progress,
+            0.02,
+            az + (bz - az) * progress,
+          ];
+          updatedVehicles.push({
+            ...v,
+            routeIndex: newIndex,
+            position: pos,
+            targetPosition: [bx, 0.02, bz],
+            eta: (route.length - newIndex) / speed,
+          });
+          updated = true;
         }
       }
-
-      // Still on route
-      const keyA = route[newIndex];
-      const keyB = route[newIndex + 1];
-      const [ax, az] = keyA.split(',').map(Number);
-      const [bx, bz] = keyB.split(',').map(Number);
-      const pos: [number, number, number] = [
-        ax + (bx - ax) * progress,
-        0.02,
-        az + (bz - az) * progress,
-      ];
-      updated = true;
-      return {
-        ...v,
-        routeIndex: newIndex,
-        position: pos,
-        targetPosition: [bx, 0.02, bz],
-        eta: (route.length - newIndex) / speed,
-      } as Vehicle;
-    });
+    }
 
     if (updated) {
       set({ vehicles: updatedVehicles });
@@ -159,52 +226,58 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
 
   return {
     vehicles: [],
-    spawnVehicle: (type, providerId, eventId, route) => {
-      const providerBuilding = useBuildingStore.getState().buildings.find(b => b.id === providerId);
-      if (!providerBuilding) return;
-      // Determine fleet size for this provider type
-      let fleetSize = 2; // default
-      const buildingType = providerBuilding.type;
-      if (buildingType === 'fire_station') fleetSize = FLEET_SIZES.fire_station;
-      else if (buildingType === 'hospital') fleetSize = FLEET_SIZES.hospital;
-      else if (buildingType === 'police_station') fleetSize = FLEET_SIZES.police_station;
+    spawnVehicle: (type, providerId, eventId, route, isEmergency = false) => {
+      // Determine speed
+      const speed = isEmergency ? BASE_VEHICLE_SPEED : CIVILIAN_SPEED;
 
-      // Count active vehicles from this provider
-      const activeVehicles = get().vehicles.filter(v => v.providerId === providerId && v.status !== "idle");
-      if (activeVehicles.length >= fleetSize) {
-        console.warn(`No available vehicle for provider ${providerId}`);
-        return;
+      // For emergency vehicles, check fleet capacity
+      if (isEmergency && providerId !== undefined) {
+        const providerBuilding = useBuildingStore.getState().buildings.find(b => b.id === providerId);
+        if (!providerBuilding) return;
+        let fleetSize = 2;
+        const buildingType = providerBuilding.type;
+        if (buildingType === 'fire_station') fleetSize = FLEET_SIZES.fire_station;
+        else if (buildingType === 'hospital') fleetSize = FLEET_SIZES.hospital;
+        else if (buildingType === 'police_station') fleetSize = FLEET_SIZES.police_station;
+        const activeVehicles = get().vehicles.filter(v => v.providerId === providerId && v.status !== "idle");
+        if (activeVehicles.length >= fleetSize) {
+          console.warn(`No available vehicle for provider ${providerId}`);
+          return;
+        }
       }
 
-      // Get start position: nearest road cell of provider
       const startRoad = route[0];
       const [sx, sz] = startRoad.split(',').map(Number);
       const startPos: [number, number, number] = [sx, 0.02, sz];
       const endRoad = route[route.length - 1];
       const [ex, ez] = endRoad.split(',').map(Number);
       const endPos: [number, number, number] = [ex, 0.02, ez];
+      // Ensure route is valid before registering
+      if (!isValidRoute(route)) return;
 
       const newVehicle: Vehicle = {
         id: `vehicle-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         type,
         providerId,
         eventId,
-        status: "responding",
+        status: isEmergency ? "responding" : "traveling",
         route,
         routeIndex: 0,
         position: startPos,
         targetPosition: endPos,
-        speed: BASE_VEHICLE_SPEED,
-        eta: route.length / BASE_VEHICLE_SPEED,
+        speed,
+        eta: route.length / speed,
+        isEmergency,
       };
+
+      // Register road usage (only if route is valid)
+      incrementRouteUsage(route);
 
       set((state) => ({
         vehicles: [...state.vehicles, newVehicle],
       }));
     },
     updateVehicles: (deltaHours) => {
-      // We'll handle update in a separate subscription in App
-      // For now, we'll call this from App on time change
       updateVehicles(deltaHours);
     },
     getAvailableVehicle: (providerId, type) => {
@@ -215,14 +288,11 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
       return get().vehicles.find(v => v.eventId === eventId) || null;
     },
     returnVehicle: (vehicleId) => {
-      // Calculate return route from current position to provider
-      // For simplicity, we can use the reverse of the original route
-      // We'll set status to returning and use the reverse route
       const vehicle = get().vehicles.find(v => v.id === vehicleId);
-      if (!vehicle) return;
-      // Reverse the route (excluding the current node?)
+      if (!vehicle || !vehicle.isEmergency) return;
       const returnRoute = [...vehicle.route].reverse();
-      // We need to set the vehicle to returning state with the reverse route
+      // Remove current route usage (will be re-added when returning)
+      decrementRouteUsage(vehicle.route);
       set((state) => ({
         vehicles: state.vehicles.map((v) =>
           v.id === vehicleId
@@ -232,18 +302,45 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
                 returnRoute: returnRoute,
                 returnIndex: 0,
                 routeIndex: 0,
-                route: returnRoute, // use route as the active path
+                route: returnRoute,
                 position: v.position,
-                targetPosition: [parseInt(returnRoute[1]?.split(',')[0] || '0'), 0.02, parseInt(returnRoute[1]?.split(',')[1] || '0')],
+                targetPosition: [
+                  parseInt(returnRoute[1]?.split(',')[0] || '0'),
+                  0.02,
+                  parseInt(returnRoute[1]?.split(',')[1] || '0'),
+                ],
                 eta: returnRoute.length / v.speed,
               }
             : v
         ),
       }));
+      // Register usage for return route
+      incrementRouteUsage(returnRoute);
+    },
+    removeVehicle: (vehicleId) => {
+      const vehicle = get().vehicles.find(v => v.id === vehicleId);
+      if (vehicle) {
+        decrementRouteUsage(vehicle.route);
+        set((state) => ({
+          vehicles: state.vehicles.filter(v => v.id !== vehicleId),
+        }));
+      }
     },
     clear: () => {
+      const vehicles = get().vehicles;
+      for (const v of vehicles) {
+        decrementRouteUsage(v.route);
+      }
       set({ vehicles: [] });
     },
+    getVehicleCount: () => {
+      return get().vehicles.length;
+    },
+    getVehiclesByType: (type) => {
+      return get().vehicles.filter(v => v.type === type);
+    },
+    // For debugging: get all vehicles
+    getVehicles: () => get().vehicles,
   };
 });
 

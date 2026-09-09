@@ -7,8 +7,13 @@ import HUD from "./ui/HUD";
 import InspectionPanel from "./ui/InspectionPanel";
 import CityStats from "./ui/CityStats";
 import EventPanel from "./ui/EventPanel";
+import TrafficPanel from "./ui/TrafficPanel";
 import useBuildingStore from "./store/BuildingStore";
 import usePopulationStore from "./store/PopulationStore";
+import { useSimulationStore } from "./stores/useSimulationStore";
+import useVehicleStore from "./store/VehicleStore";
+import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
+import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import type { BuildTool } from "./types/BuildTool";
 import CityMenu from "./ui/CityMenu";
 
@@ -19,6 +24,52 @@ export default function App() {
   // Initialize population for existing houses on mount
   useEffect(() => {
     usePopulationStore.getState().initialize();
+  }, []);
+
+  // Traffic update loop synchronized with simulation clock
+  useEffect(() => {
+    const simulationStore = useSimulationStore;
+    let prevTime = simulationStore.getState().timeOfDay;
+    let prevDay = simulationStore.getState().day;
+
+    // Reset traffic system on mount (and when simulation resets)
+    resetTrafficSystem();
+    // Clean up any orphaned road usage periodically
+    const cleanupInterval = setInterval(() => {
+      cleanRoadUsage();
+    }, 10000); // every 10 seconds
+
+    const unsubscribe = simulationStore.subscribe((state) => {
+      const { timeOfDay, day, isPaused, speed } = state;
+      if (isPaused || speed === 0) {
+        prevTime = timeOfDay;
+        prevDay = day;
+        return;
+      }
+
+      // Compute delta hours, handling day rollover
+      let deltaHours = timeOfDay - prevTime;
+      if (day > prevDay) {
+        deltaHours += 24; // wrapped around
+      }
+      // Avoid negative deltas (e.g., when time decreases due to store reset)
+      if (deltaHours < 0) deltaHours = 0;
+
+      if (deltaHours > 0) {
+        // Update vehicles
+        useVehicleStore.getState().updateVehicles(deltaHours);
+        // Spawn civilian traffic
+        updateTrafficSystem(deltaHours, timeOfDay);
+      }
+
+      prevTime = timeOfDay;
+      prevDay = day;
+    });
+
+    return () => {
+      unsubscribe();
+      clearInterval(cleanupInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -97,6 +148,7 @@ export default function App() {
       <InspectionPanel />
       <CityStats />
       <EventPanel />
+      <TrafficPanel />
     </>
   );
 }

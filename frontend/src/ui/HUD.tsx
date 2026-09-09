@@ -1,6 +1,7 @@
 import { useSimulationStore } from '../stores/useSimulationStore';
 import usePopulationStore from '../store/PopulationStore';
 import useEconomyStore from '../store/EconomyStore';
+import TrafficIndicator from './TrafficIndicator';
 
 export default function HUD() {
   const { day, timeOfDay, isPaused, speed } = useSimulationStore();
@@ -59,6 +60,7 @@ export default function HUD() {
           <span style={{ fontSize: '16px' }}>💰</span>
           <span>{Math.round(totalMoney).toLocaleString()}</span>
         </span>
+        <TrafficIndicator />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'auto' }}>
         <button

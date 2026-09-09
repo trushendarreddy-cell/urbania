@@ -58,7 +58,6 @@ export function findPath(
         visited.add(neighbor);
         parent.set(neighbor, current);
         if (neighbor === endKey) {
-          // Reconstruct path
           const path: string[] = [];
           let node: string | undefined = endKey;
           while (node) {
@@ -68,6 +67,55 @@ export function findPath(
           return path;
         }
         queue.push(neighbor);
+      }
+    }
+  }
+  return null;
+}
+
+export function findPathWithTraffic(
+  startKey: string,
+  endKey: string,
+  graph: Map<string, string[]>,
+  getUsage: (key: string) => number,
+  emergency: boolean = false
+): string[] | null {
+  if (startKey === endKey) return [startKey];
+  const distances = new Map<string, number>();
+  const previous = new Map<string, string>();
+  const visited = new Set<string>();
+  const pq: { key: string; dist: number }[] = [];
+
+  distances.set(startKey, 0);
+  pq.push({ key: startKey, dist: 0 });
+
+  // Emergency vehicles have lower congestion penalty
+  const congestionPenalty = emergency ? 0.05 : 0.2;
+
+  while (pq.length > 0) {
+    pq.sort((a, b) => a.dist - b.dist);
+    const { key: current, dist: currentDist } = pq.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+    if (current === endKey) {
+      const path: string[] = [];
+      let node: string | undefined = endKey;
+      while (node) {
+        path.unshift(node);
+        node = previous.get(node);
+      }
+      return path;
+    }
+    const neighbors = graph.get(current) || [];
+    for (const neighbor of neighbors) {
+      if (visited.has(neighbor)) continue;
+      const usage = getUsage(neighbor);
+      const cost = 1 + usage * congestionPenalty;
+      const newDist = currentDist + cost;
+      if (!distances.has(neighbor) || newDist < distances.get(neighbor)!) {
+        distances.set(neighbor, newDist);
+        previous.set(neighbor, current);
+        pq.push({ key: neighbor, dist: newDist });
       }
     }
   }
