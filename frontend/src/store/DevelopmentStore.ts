@@ -7,7 +7,9 @@ import usePopulationStore from "./PopulationStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
 import useServiceStore from "./ServiceStore";
 import useAlertStore from "./AlertStore";
+import useMunicipalStore from "./MunicipalStore";
 import { useSimulationStore } from "../stores/useSimulationStore";
+import { POLICY_EFFECTS } from "./MunicipalStore";
 
 // Configuration
 const DEV_CONFIG = {
@@ -71,6 +73,11 @@ const useDevelopmentStore = create<DevelopmentStore>((_, get) => ({
       if (cov.covered) coveredServices++;
     }
     pressure += (coveredServices / serviceTypes.length) * 15;
+
+    // Policy effect on development pressure
+    const policy = useMunicipalStore.getState().cityPolicy;
+    const policyEffect = POLICY_EFFECTS[policy]?.devPressureMod || 0;
+    pressure += policyEffect;
 
     // Clamp to 0-100
     return Math.max(0, Math.min(100, pressure));

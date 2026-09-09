@@ -4,8 +4,10 @@ import useEconomyStore from '../store/EconomyStore';
 import TrafficIndicator from './TrafficIndicator';
 import useProgressionStore from '../store/ProgressionStore';
 import useActivityStore from '../store/ActivityStore';
+import useMunicipalStore from '../store/MunicipalStore';
 import { useState } from 'react';
 import ProgressionPanel from './ProgressionPanel';
+import MunicipalPanel from './MunicipalPanel';
 
 export default function HUD() {
   const { day, timeOfDay, isPaused, speed } = useSimulationStore();
@@ -19,7 +21,10 @@ export default function HUD() {
   const currentStage = useProgressionStore((state) => state.currentStage);
   const activityLevel = useActivityStore((state) => state.level);
   const timeLabel = useActivityStore((state) => state.timeLabel);
+  const treasury = useMunicipalStore((state) => state.treasury);
+  const dailyNet = useMunicipalStore((state) => state.dailyNet);
   const [showProgression, setShowProgression] = useState(false);
+  const [showMunicipal, setShowMunicipal] = useState(false);
   const stageNames: Record<string, string> = {
     village: 'Village',
     town: 'Town',
@@ -94,6 +99,31 @@ export default function HUD() {
           <span style={{ marginLeft: '4px' }}>{timeLabels[timeLabel] || timeLabel}</span>
         </div>
         <button
+          onClick={() => setShowMunicipal(!showMunicipal)}
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '8px',
+            padding: '2px 10px',
+            color: '#F3F4F6',
+            cursor: 'pointer',
+            fontSize: '11px',
+            fontFamily: 'inherit',
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+        >
+          <span>🏛️</span>
+          <span>{Math.round(treasury).toLocaleString()}</span>
+          <span style={{ color: dailyNet >= 0 ? '#4ADE80' : '#EF4444', fontSize: '10px' }}>
+            {dailyNet >= 0 ? '+' : ''}{Math.round(dailyNet)}
+          </span>
+        </button>
+        <button
           onClick={() => setShowProgression(!showProgression)}
           style={{
             background: 'rgba(255,255,255,0.06)',
@@ -116,6 +146,7 @@ export default function HUD() {
           <span>{stageNames[currentStage] || currentStage}</span>
         </button>
       </div>
+      {showMunicipal && <MunicipalPanel />}
       {showProgression && <ProgressionPanel />}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'auto' }}>
         <button

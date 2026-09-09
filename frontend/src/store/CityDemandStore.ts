@@ -4,6 +4,8 @@ import usePopulationStore from "./PopulationStore";
 import useEconomyStore from "./EconomyStore";
 import useNeedsStore from "./NeedsStore";
 import { useSimulationStore } from "../stores/useSimulationStore";
+import useMunicipalStore from "./MunicipalStore";
+import { TAX_EFFECTS } from "./MunicipalStore";
 
 interface CityDemand {
   residential: number; // 0-100
@@ -55,6 +57,11 @@ const useCityDemandStore = create<CityDemandStore>((set) => {
     residential += (avgHappiness - 50) * 0.3;
     residential = Math.max(0, Math.min(100, residential));
 
+    // Apply tax effect on demand
+    const taxRate = useMunicipalStore.getState().taxRate;
+    const taxEffect = TAX_EFFECTS[taxRate]?.demandMod || 0;
+    residential = Math.max(0, Math.min(100, residential + taxEffect * 0.3));
+
     // Commercial demand: based on population vs shops, employment, happiness
     let commercial = 50;
     if (totalPopulation > 0 && shops > 0) {
@@ -69,7 +76,7 @@ const useCityDemandStore = create<CityDemandStore>((set) => {
     const employmentRate = totalPopulation > 0 ? employed / totalPopulation : 0;
     commercial += employmentRate * 20;
     commercial += (avgHappiness - 50) * 0.2;
-    commercial = Math.max(0, Math.min(100, commercial));
+    commercial = Math.max(0, Math.min(100, commercial + taxEffect * 0.2));
 
     // Industrial demand: based on commercial demand, population, factories
     let industrial = 30;

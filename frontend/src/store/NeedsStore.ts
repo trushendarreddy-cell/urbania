@@ -5,7 +5,9 @@ import useBuildingStore from "./BuildingStore";
 import useServiceStore from "./ServiceStore";
 import useUtilityStore from "./UtilityStore";
 import useEventStore from "./EventStore";
+import useMunicipalStore from "./MunicipalStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
+import { TAX_EFFECTS } from "./MunicipalStore";
 
 export interface CitizenNeeds {
   housing: number;
@@ -130,6 +132,10 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       if (!isActive) {
         happiness = Math.max(0, happiness - 10);
       }
+      // Tax effect on happiness
+      const taxRate = useMunicipalStore.getState().taxRate;
+      const taxEffect = TAX_EFFECTS[taxRate]?.happinessMod || 0;
+      happiness = clamp(happiness + taxEffect);
 
       let category: CitizenHappiness['category'];
       if (happiness >= 80) category = 'Very Happy';

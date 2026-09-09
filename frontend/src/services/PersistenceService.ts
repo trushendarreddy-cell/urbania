@@ -7,6 +7,7 @@ import useEventStore from '../store/EventStore';
 import useVehicleStore from '../store/VehicleStore';
 import useRoadUsageStore from '../store/RoadUsageStore';
 import useNeedsStore from '../store/NeedsStore';
+import useMunicipalStore from '../store/MunicipalStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
 import type { Household, Citizen } from '../store/PopulationStore';
@@ -53,6 +54,13 @@ export interface SaveData {
     };
     events: CityEvent[];
     vehicles: Vehicle[];
+    municipal: {
+      treasury: number;
+      taxRate: string;
+      cityPolicy: string;
+      serviceFunding: Record<string, number>;
+      lastPolicyChangeDay: number;
+    };
   };
 }
 
@@ -65,6 +73,7 @@ export function saveCity() {
     const econ = useEconomyStore.getState();
     const events = useEventStore.getState().events;
     const vehicles = useVehicleStore.getState().vehicles;
+    const municipal = useMunicipalStore.getState();
 
     const saveData: SaveData = {
       version: VERSION,
@@ -102,6 +111,13 @@ export function saveCity() {
         },
         events,
         vehicles,
+        municipal: {
+          treasury: municipal.treasury,
+          taxRate: municipal.taxRate,
+          cityPolicy: municipal.cityPolicy,
+          serviceFunding: municipal.serviceFunding,
+          lastPolicyChangeDay: municipal.lastPolicyChangeDay,
+        },
       },
     };
 
@@ -177,6 +193,21 @@ export function loadCity() {
     // Restore vehicles
     useVehicleStore.setState({ vehicles: city.vehicles });
 
+    // Restore municipal
+    if (city.municipal) {
+      useMunicipalStore.setState({
+        treasury: city.municipal.treasury,
+        taxRate: city.municipal.taxRate as any,
+        cityPolicy: city.municipal.cityPolicy as any,
+        serviceFunding: city.municipal.serviceFunding,
+        lastPolicyChangeDay: city.municipal.lastPolicyChangeDay,
+      });
+    } else {
+      useMunicipalStore.getState().reset();
+    }
+    // Process budget for current day
+    useMunicipalStore.getState().processDailyBudget();
+
     // Recompute utilities and services (they subscribe to building store, but we need to force)
     useUtilityStore.getState().recompute();
     useServiceStore.getState().recompute();
@@ -231,6 +262,7 @@ export function newCity() {
   useVehicleStore.setState({ vehicles: [] });
   useRoadUsageStore.setState({ usage: new Map() });
   useSimulationStore.getState().reset();
+  useMunicipalStore.getState().reset();
 
   // Recompute derived states
   usePopulationStore.getState().recompute();

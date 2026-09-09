@@ -18,6 +18,7 @@ import useNeedsStore from "./store/NeedsStore";
 import useVehicleStore from "./store/VehicleStore";
 import useDevelopmentStore from "./store/DevelopmentStore";
 import useProgressionStore from "./store/ProgressionStore";
+import useMunicipalStore from "./store/MunicipalStore";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import type { BuildTool } from "./types/BuildTool";
@@ -75,6 +76,8 @@ export default function App() {
           useDevelopmentStore.getState().processDevelopment();
           // Update progression (milestones, stage)
           useProgressionStore.getState().recompute();
+          // Process municipal budget
+          useMunicipalStore.getState().processDailyBudget();
         }
       }
 
