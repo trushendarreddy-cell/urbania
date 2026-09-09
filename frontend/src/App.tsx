@@ -10,6 +10,7 @@ import EventPanel from "./ui/EventPanel";
 import useBuildingStore from "./store/BuildingStore";
 import usePopulationStore from "./store/PopulationStore";
 import type { BuildTool } from "./types/BuildTool";
+import CityMenu from "./ui/CityMenu";
 
 export default function App() {
   const [selectedTool, setSelectedTool] =
@@ -91,6 +92,7 @@ export default function App() {
       </Canvas>
 
       <HUD />
+      <CityMenu />
       <BuildMenu selected={selectedTool} onSelect={setSelectedTool} />
       <InspectionPanel />
       <CityStats />
