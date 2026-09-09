@@ -17,6 +17,7 @@ import usePopulationStore from "./store/PopulationStore";
 import useNeedsStore from "./store/NeedsStore";
 import useVehicleStore from "./store/VehicleStore";
 import useDevelopmentStore from "./store/DevelopmentStore";
+import useProgressionStore from "./store/ProgressionStore";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import type { BuildTool } from "./types/BuildTool";
@@ -72,6 +73,8 @@ export default function App() {
           useNeedsStore.getState().recomputeAll();
           // Process development (building upgrades)
           useDevelopmentStore.getState().processDevelopment();
+          // Update progression (milestones, stage)
+          useProgressionStore.getState().recompute();
         }
       }
 

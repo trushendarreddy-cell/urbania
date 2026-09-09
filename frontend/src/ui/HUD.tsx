@@ -2,6 +2,9 @@ import { useSimulationStore } from '../stores/useSimulationStore';
 import usePopulationStore from '../store/PopulationStore';
 import useEconomyStore from '../store/EconomyStore';
 import TrafficIndicator from './TrafficIndicator';
+import useProgressionStore from '../store/ProgressionStore';
+import { useState } from 'react';
+import ProgressionPanel from './ProgressionPanel';
 
 export default function HUD() {
   const { day, timeOfDay, isPaused, speed } = useSimulationStore();
@@ -12,6 +15,15 @@ export default function HUD() {
   );
   const togglePaused = useSimulationStore((state) => state.togglePaused);
   const cycleSpeed = useSimulationStore((state) => state.cycleSpeed);
+  const currentStage = useProgressionStore((state) => state.currentStage);
+  const [showProgression, setShowProgression] = useState(false);
+  const stageNames: Record<string, string> = {
+    village: 'Village',
+    town: 'Town',
+    city: 'City',
+    large_city: 'Large City',
+    metropolis: 'Metropolis',
+  };
 
   const formatTime = (hours: number) => {
     const h = Math.floor(hours);
@@ -61,7 +73,30 @@ export default function HUD() {
           <span>{Math.round(totalMoney).toLocaleString()}</span>
         </span>
         <TrafficIndicator />
+        <button
+          onClick={() => setShowProgression(!showProgression)}
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '8px',
+            padding: '2px 10px',
+            color: '#F3F4F6',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontFamily: 'inherit',
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+        >
+          <span>🏙️</span>
+          <span>{stageNames[currentStage] || currentStage}</span>
+        </button>
       </div>
+      {showProgression && <ProgressionPanel />}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pointerEvents: 'auto' }}>
         <button
           onClick={togglePaused}

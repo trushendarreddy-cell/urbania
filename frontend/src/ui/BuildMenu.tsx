@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { BuildTool } from '../types/BuildTool';
+import useProgressionStore from '../store/ProgressionStore';
 
 interface BuildMenuProps {
   selected: BuildTool;
@@ -85,6 +86,15 @@ const categories: Category[] = [
 
 export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const unlockedBuildings = useProgressionStore((state) => state.unlockedBuildings);
+  const currentStage = useProgressionStore((state) => state.currentStage);
+  const stageNames: Record<string, string> = {
+    village: 'Village',
+    town: 'Town',
+    city: 'City',
+    large_city: 'Large City',
+    metropolis: 'Metropolis',
+  };
 
   const toggleCategory = (id: string) => {
     setExpandedCategory(expandedCategory === id ? null : id);
@@ -177,20 +187,24 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
                 >
                   {cat.tools.map((tool) => {
                     const isSelected = selected === tool.id;
+                    const isUnlocked = unlockedBuildings.includes(tool.id);
+                    const isLocked = !isUnlocked;
                     return (
                       <button
                         key={tool.id}
                         onClick={() => {
-                          onSelect(tool.id);
-                          setExpandedCategory(null);
+                          if (isUnlocked) {
+                            onSelect(tool.id);
+                            setExpandedCategory(null);
+                          }
                         }}
                         style={{
                           padding: '4px 12px',
                           borderRadius: '10px',
                           border: isSelected ? '2px solid #4ADE80' : '1px solid rgba(255,255,255,0.06)',
                           background: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255,255,255,0.04)',
-                          color: isSelected ? '#FFFFFF' : '#D1D5DB',
-                          cursor: 'pointer',
+                          color: isLocked ? '#6B7280' : (isSelected ? '#FFFFFF' : '#D1D5DB'),
+                          cursor: isLocked ? 'default' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '6px',
@@ -198,17 +212,19 @@ export default function BuildMenu({ selected, onSelect }: BuildMenuProps) {
                           fontWeight: '500',
                           transition: 'all 0.15s ease',
                           fontFamily: 'inherit',
+                          opacity: isLocked ? 0.6 : 1,
                         }}
-                        title={`${tool.label} [${tool.key}]`}
+                        title={isLocked ? `Unlocks at ${stageNames[currentStage] || ''} stage` : `${tool.label} [${tool.key}]`}
                         onMouseEnter={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                          if (!isSelected && isUnlocked) e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
                         }}
                         onMouseLeave={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                          if (!isSelected && isUnlocked) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
                         }}
                       >
                         <span>{tool.icon}</span>
                         <span>{tool.label}</span>
+                        {isLocked && <span style={{ fontSize: '11px' }}>🔒</span>}
                         <span style={{ fontSize: '9px', opacity: 0.4, background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: '4px' }}>
                           {tool.key}
                         </span>
