@@ -10,6 +10,7 @@ import useNeedsStore from '../store/NeedsStore';
 import useMunicipalStore from '../store/MunicipalStore';
 import useZoneStore from '../store/ZoneStore';
 import useDistrictStore from '../store/DistrictStore';
+import { resetDistrictNotifications } from '../systems/DistrictSystem';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
 import type { Household, Citizen } from '../store/PopulationStore';
@@ -284,6 +285,7 @@ export function newCity() {
   useRoadUsageStore.setState({ usage: new Map() });
   useZoneStore.getState().clear();
   useDistrictStore.getState().clear();
+  resetDistrictNotifications();
   useSimulationStore.getState().reset();
   useMunicipalStore.getState().reset();
 

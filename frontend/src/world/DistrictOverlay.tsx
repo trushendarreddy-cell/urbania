@@ -1,10 +1,11 @@
 import { Html } from "@react-three/drei";
-import type { District } from "../store/DistrictStore";
+import type { District, DistrictStats } from "../store/DistrictStore";
 
 interface DistrictOverlayProps {
   district: District;
   selected: boolean;
   showLabel?: boolean;
+  stat?: DistrictStats;
 }
 
 const parseCell = (key: string): [number, number] => {
@@ -16,21 +17,34 @@ export default function DistrictOverlay({
   district,
   selected,
   showLabel = false,
+  stat,
 }: DistrictOverlayProps) {
   if (district.cells.length === 0) return null;
 
   let sumX = 0;
   let sumZ = 0;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
   for (const c of district.cells) {
     const [x, z] = parseCell(c);
     sumX += x;
     sumZ += z;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
   }
   const centroidX = sumX / district.cells.length;
   const centroidZ = sumZ / district.cells.length;
+  const spanX = maxX - minX + 1;
+  const spanZ = maxZ - minZ + 1;
 
   const baseOpacity = selected ? 0.42 : 0.16;
   const y = selected ? 0.026 : 0.022;
+
+  const labelHeight = Math.max(1.2, Math.min(spanX, spanZ) * 0.35 + 1);
 
   return (
     <group>
@@ -63,27 +77,29 @@ export default function DistrictOverlay({
         );
       })}
       {showLabel && (
-        <Html
-          position={[centroidX, 1.4, centroidZ]}
-          center
-          pointerEvents="none"
-        >
+        <Html position={[centroidX, labelHeight, centroidZ]} center pointerEvents="none">
           <div
             style={{
               fontFamily: "Inter, system-ui, sans-serif",
-              fontSize: "12px",
-              fontWeight: 600,
               color: "#F9FAFB",
               background: "rgba(12,12,16,0.85)",
               border: `1px solid ${district.color}`,
               borderRadius: "8px",
-              padding: "3px 10px",
+              padding: selected ? "4px 10px" : "3px 8px",
               whiteSpace: "nowrap",
               pointerEvents: "none",
               userSelect: "none",
+              textAlign: "center",
             }}
           >
-            {district.name}
+            <div style={{ fontSize: selected ? "13px" : "12px", fontWeight: 700 }}>
+              {district.name.toUpperCase()}
+            </div>
+            {stat && (
+              <div style={{ fontSize: "10px", color: "#9CA3AF", marginTop: "1px" }}>
+                {stat.character} • {stat.trend} • Q{stat.quality}
+              </div>
+            )}
           </div>
         </Html>
       )}

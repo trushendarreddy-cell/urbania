@@ -4,6 +4,8 @@
 - Road ghost preview valid state may not always update during drag (minor visual issue).
 - District overlays render one small mesh per district cell; very large districts may add draw calls.
 - District specialization affects organic development pressure but does not yet apply district-level policies.
+- Neighborhood development trend is derived from current state only (no historical trend tracking).
+- District notifications are throttled by trend/traffic/health transitions but are not yet grouped into a dedicated district feed.
 - Civilian vehicles have no dedicated 3D model (rendered using emergency vehicle model).
 - Building upgrades (levels 2–3) are visual/status only; capacity/economy scaling not yet wired.
 - Progress toward next city stage is based on population ratio only (simplified).

@@ -236,7 +236,20 @@
 - Persistence: districts saved/loaded; New City clears districts
 - Max 20 districts; a cell belongs to at most one district
 
-## Current Version — 2.47
+## 2.48 - Neighborhood Identity & Local Development
+- Neighborhood Profile: derived character (Emerging/Residential/Commercial/Industrial/Mixed/Civic) computed from actual building mix
+- Development Trend: Rapid Growth / Growing / Stable / Stagnating / Declining from pressure, land value, happiness, services, traffic, vacant zones
+- Neighborhood Quality score (0–100) with a transparent breakdown (happiness, services, land value, accessibility, development minus traffic)
+- Local service analysis per district (Parks, Healthcare, Education, Police, Fire) with Good/Fair/Poor/None levels and a priority recommendation
+- Local traffic condition (Low/Moderate/Heavy) from road usage
+- Development activity indicator (High/Moderate/Low/None)
+- District overlay labels now show name, character, trend, and quality
+- Throttled district notifications (rapid growth, decline, heavy traffic, needs attention) via the existing AlertStore
+- District panel shows profile, quality breakdown, services, priority, and a compact city-wide district summary
+- Specialization (intent) kept separate from derived character (reality)
+
+## Current Version — 2.48
 - Fully functional 3D city-building simulation with population, citizens, economy,
   services, utilities, events, emergency response, land value, building progression,
-  city progression, municipal budget, organic zoning, districts, and persistent save/load
+  city progression, municipal budget, organic zoning, districts with neighborhood identity,
+  and persistent save/load

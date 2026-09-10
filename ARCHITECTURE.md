@@ -56,7 +56,7 @@ frontend/src/
 - **RoadUsageCleanup**: periodic stale-usage cleanup.
 - **AlertSystem**: evaluates service/utility/happiness shortages.
 - **OrganicDevelopmentSystem**: `getZoneDevelopmentPressure`, `isZoneEligible`, `processOrganicDevelopment` (run on day change; gates on road access, demand, pressure, progression; creates buildings at land-value-derived level). Pressure includes a district specialization modifier.
-- **DistrictSystem**: `cellKey`, `computeDistrictStats`, `recomputeDistrictStats`, `getDistrictSpecializationPressureModifier` — aggregates district stats from existing stores on day change and building changes.
+- **DistrictSystem**: `cellKey`, `computeDistrictStats`, `recomputeDistrictStats`, `getDistrictSpecializationPressureModifier`, `resetDistrictNotifications` — aggregates district stats (including derived character, trend, quality, services, priority) from existing stores on day change and building changes, and emits throttled district notifications via AlertStore.
 
 ## Interaction Architecture
 - Single pointer pipeline in `GameScene`:

@@ -168,8 +168,16 @@
 - District specialization modifier for organic development pressure
 - Persistence + New City reset
 
+## Phase 35 — Neighborhood Identity & Local Development
+- Neighborhood character derived from actual building mix
+- Development trend and activity indicators
+- Neighborhood Quality score (0–100) with breakdown
+- Local service analysis, priority recommendation, and traffic condition
+- Identity overlay labels and throttled district notifications
+- Specialization (intent) kept separate from character (reality)
+
 ## Current State
-- Fully functional 3D city-building simulation (v2.47)
+- Fully functional 3D city-building simulation (v2.48)
 - Core building, simulation, economy, services, emergency, progression,
   and persistence systems complete
 - Stable, TypeScript clean, production build passing

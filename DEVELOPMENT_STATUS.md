@@ -1,7 +1,7 @@
 # Urbania Development Status
 
 ## Current Version
-2.47 — Districts & Neighborhoods
+2.48 — Neighborhood Identity & Local Development
 
 ## Current Phase
 Active Development
@@ -73,14 +73,18 @@ Active Development
 - ZoneInspectionPanel explains why a zone is or isn't developing
 - Zones persist in save/load; New City clears them
 
-### Districts (2.47)
+### Districts & Neighborhood Identity (2.47–2.48)
 - DistrictStore: named, colored districts with cell lists and specialization
 - District tool (key D) paints cells into the active district
-- DistrictOverlay renders cell color, selected highlight, and name label
-- DistrictPanel: create/rename/recolor/specialize/delete/paint
-- District stats derived from existing systems (population, jobs, buildings, land value, happiness, traffic, services) with health rating and strengths/problems
-- Specialization adds a small deterministic modifier to organic development pressure
-- Districts persist in save/load; New City clears them
+- DistrictOverlay renders cell color, selected highlight, and an identity label (name, character, trend, quality)
+- DistrictPanel: create/rename/recolor/specialize/delete/paint, profile, quality breakdown, service levels, priority, city-wide summary
+- Derived neighborhood character (Emerging/Residential/Commercial/Industrial/Mixed/Civic) from actual building mix
+- Development trend (Rapid Growth → Declining) and activity (High/Moderate/Low/None)
+- Neighborhood Quality score (0–100) with transparent reasons
+- Local service analysis and traffic condition from existing systems
+- Throttled district notifications via AlertStore
+- Specialization (player intent) shown separately from derived character (reality)
+- Districts persist in save/load; New City clears them and resets notifications
 
 ### City Systems
 - Simulation Clock (day, timeOfDay, pause, speed 0/1/2/4)

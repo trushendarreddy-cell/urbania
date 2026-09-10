@@ -6,7 +6,7 @@
 
 ## Current Development Status
 
-**Version:** 2.47 — Districts & Neighborhoods
+**Version:** 2.48 — Neighborhood Identity & Local Development
 
 Urbania has progressed well beyond the initial prototype. Core city-building foundations, an expanding simulation layer (population, economy, services, emergencies, traffic), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
 
@@ -64,7 +64,11 @@ The project is an evolving **city-building simulation** — a proving ground for
 - Create named, colored districts and paint cells into them (District tool, key D)
 - District specialization (General/Residential/Commercial/Industrial/Mixed) gives a small deterministic development preference
 - District panel shows derived statistics: population, households, jobs, building breakdown, land value, happiness, traffic, service coverage, health rating, strengths and problems
-- District overlays show boundaries with a highlight for the selected district and a name label
+- District overlays show boundaries with a highlight for the selected district and an identity label (name, character, trend, quality)
+- Neighborhood profile: derived character (from actual building mix), development trend and activity, and a 0–100 quality score with a transparent breakdown
+- Local service analysis (Parks, Healthcare, Education, Police, Fire) with a priority recommendation, plus local traffic condition
+- Throttled district notifications (rapid growth, decline, heavy traffic, needs attention)
+- Specialization (player intent) is shown separately from the derived character (actual reality)
 - Districts persist in save/load and are cleared on New City
 
 ### Roads & Transportation

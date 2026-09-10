@@ -88,6 +88,7 @@ export default function GameScene({
   const selectedDistrictId = useDistrictStore((state) => state.selectedDistrictId);
   const setSelectedDistrictId = useDistrictStore((state) => state.setSelectedDistrictId);
   const districtMode = useDistrictStore((state) => state.districtMode);
+  const districtStats = useDistrictStore((state) => state.stats);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -456,6 +457,7 @@ export default function GameScene({
           district={district}
           selected={district.id === selectedDistrictId}
           showLabel={districtMode || district.id === selectedDistrictId}
+          stat={districtStats[district.id]}
         />
       ))}
 

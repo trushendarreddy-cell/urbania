@@ -16,6 +16,28 @@ export interface District {
   createdAtDay: number;
 }
 
+export type NeighborhoodCharacter =
+  | "Emerging"
+  | "Residential"
+  | "Commercial"
+  | "Industrial"
+  | "Mixed"
+  | "Civic";
+
+export type DevelopmentTrend =
+  | "Rapid Growth"
+  | "Growing"
+  | "Stable"
+  | "Stagnating"
+  | "Declining";
+
+export type ServiceLevel = "Good" | "Fair" | "Poor" | "None";
+
+export interface ServiceBreakdown {
+  label: string;
+  level: ServiceLevel;
+}
+
 export interface DistrictStats {
   population: number;
   households: number;
@@ -33,6 +55,14 @@ export interface DistrictStats {
   health: "Thriving" | "Good" | "Fair" | "Needs Attention";
   strengths: string[];
   problems: string[];
+  character: NeighborhoodCharacter;
+  trend: DevelopmentTrend;
+  quality: number;
+  qualityReasons: string[];
+  services: ServiceBreakdown[];
+  priority: string | null;
+  trafficLevel: "Low" | "Moderate" | "Heavy" | "None";
+  developmentActivity: "High" | "Moderate" | "Low" | "None";
 }
 
 export const MAX_DISTRICTS = 20;

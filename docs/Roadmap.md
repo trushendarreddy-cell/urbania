@@ -70,6 +70,7 @@
 - City Policies, Taxes & Municipal Budget
 - Dynamic Zoning & Organic City Development (vacant zones, organic development, zoning tools, zone inspection)
 - Districts & Neighborhoods (district creation/painting, statistics, specialization, persistence)
+- Neighborhood Identity & Local Development (character, trend, quality score, service analysis, notifications)
 
 ## In Progress
 - Road intersection visual refinement (minor)

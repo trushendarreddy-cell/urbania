@@ -14,6 +14,13 @@ const SPECIALIZATIONS: DistrictSpecialization[] = [
   "mixed",
 ];
 
+const SERVICE_COLORS: Record<string, string> = {
+  Good: "#4ADE80",
+  Fair: "#FBBF24",
+  Poor: "#EF4444",
+  None: "#6B7280",
+};
+
 export default function DistrictPanel() {
   const districts = useDistrictStore((state) => state.districts);
   const stats = useDistrictStore((state) => state.stats);
@@ -37,6 +44,17 @@ export default function DistrictPanel() {
 
   const stat = district ? stats[district.id] : undefined;
 
+  const allStats = districts
+    .map((d) => ({ district: d, stat: stats[d.id] }))
+    .filter((x) => x.stat);
+
+  const healthy = allStats.filter((x) => x.stat.health === "Thriving" || x.stat.health === "Good").length;
+  const needsAttention = allStats.filter((x) => x.stat.health === "Needs Attention").length;
+  const declining = allStats.filter((x) => x.stat.trend === "Declining" || x.stat.trend === "Stagnating").length;
+  const fastestGrowing = [...allStats].sort((a, b) => b.stat.avgDevPressure - a.stat.avgDevPressure)[0];
+  const highestQuality = [...allStats].sort((a, b) => b.stat.quality - a.stat.quality)[0];
+  const mostTraffic = [...allStats].sort((a, b) => b.stat.traffic - a.stat.traffic)[0];
+
   return (
     <div
       onPointerDown={(e) => e.stopPropagation()}
@@ -45,7 +63,7 @@ export default function DistrictPanel() {
         position: "fixed",
         top: "80px",
         right: "24px",
-        width: "300px",
+        width: "310px",
         maxHeight: "calc(100vh - 160px)",
         overflowY: "auto",
         padding: "16px 20px",
@@ -66,13 +84,11 @@ export default function DistrictPanel() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "12px",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          paddingBottom: "8px",
+          marginBottom: "8px",
         }}
       >
         <span style={{ fontWeight: "600", fontSize: "15px", color: "#F9FAFB" }}>
-          {district ? district.name : "Districts"}
+          {district ? district.name.toUpperCase() : "Districts"}
         </span>
         {district && (
           <button onClick={() => setSelectedDistrictId(null)} style={closeBtn}>
@@ -80,6 +96,12 @@ export default function DistrictPanel() {
           </button>
         )}
       </div>
+
+      {district && stat && (
+        <div style={{ color: "#9CA3AF", fontSize: "12px", marginBottom: "10px" }}>
+          {stat.character} • {stat.trend}
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: "6px", marginBottom: "10px" }}>
         <button
@@ -119,7 +141,60 @@ export default function DistrictPanel() {
 
       {district && (
         <>
-          <Row label="Cells" value={district.cells.length} />
+          {stat && (
+            <>
+              <Row label="Quality" value={
+                <span style={{ fontWeight: 600, color: qualityColor(stat.quality) }}>
+                  {stat.quality} / 100
+                </span>
+              } />
+              {stat.qualityReasons.map((r) => (
+                <div
+                  key={r}
+                  style={{
+                    fontSize: "11px",
+                    color: r.startsWith("Low") || r.startsWith("Weak") || r.startsWith("Heavy") || r.startsWith("Poor")
+                      ? "#FBBF24"
+                      : "#4ADE80",
+                  }}
+                >
+                  {r.startsWith("Low") || r.startsWith("Weak") || r.startsWith("Heavy") || r.startsWith("Poor") ? "−" : "+"} {r}
+                </div>
+              ))}
+
+              <Section title="Overview" />
+              <Row label="Population" value={stat.population} />
+              <Row label="Households" value={stat.households} />
+              <Row label="Jobs" value={stat.jobs} />
+              <Row label="Buildings" value={stat.buildingCount} />
+              <Row label="Land Value" value={Math.round(stat.avgLandValue)} />
+              <Row label="Traffic" value={stat.trafficLevel} />
+              <Row label="Development" value={stat.trend} />
+              <Row label="Activity" value={stat.developmentActivity} />
+              {stat.priority && (
+                <Row
+                  label="Priority"
+                  value={<span style={{ color: "#FBBF24" }}>{stat.priority}</span>}
+                />
+              )}
+
+              <Section title="Services" />
+              {stat.services.map((s) => (
+                <Row
+                  key={s.label}
+                  label={s.label}
+                  value={
+                    <span style={{ color: SERVICE_COLORS[s.level] }}>{s.level}</span>
+                  }
+                />
+              ))}
+
+              <Section title="Buildings" />
+              {Object.entries(stat.byType).map(([type, n]) => (
+                <Row key={type} label={capitalize(type)} value={n} />
+              ))}
+            </>
+          )}
 
           <div style={{ marginTop: "8px", marginBottom: "8px" }}>
             <div style={{ color: "#9CA3AF", fontSize: "11px", marginBottom: "4px" }}>
@@ -166,7 +241,7 @@ export default function DistrictPanel() {
 
           <div style={{ marginBottom: "8px" }}>
             <div style={{ color: "#9CA3AF", fontSize: "11px", marginBottom: "4px" }}>
-              Specialization
+              Specialization (intent)
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
               {SPECIALIZATIONS.map((spec) => (
@@ -240,37 +315,6 @@ export default function DistrictPanel() {
 
           {stat && (
             <>
-              <Section title="Overview" />
-              <Row label="Population" value={stat.population} />
-              <Row label="Households" value={stat.households} />
-              <Row label="Jobs" value={stat.jobs} />
-              <Row label="Buildings" value={stat.buildingCount} />
-              <Row label="Developed" value={stat.developedCells} />
-              <Row label="Zoned (vacant)" value={stat.zonedCells} />
-
-              <Section title="Quality" />
-              <Row label="Avg Land Value" value={Math.round(stat.avgLandValue)} />
-              <Row label="Avg Happiness" value={`${Math.round(stat.avgHappiness)}%`} />
-              <Row label="Dev Pressure" value={Math.round(stat.avgDevPressure)} />
-              <Row
-                label="Service Coverage"
-                value={`${Math.round(stat.serviceCoverage * 100)}%`}
-              />
-              <Row label="Traffic" value={`${Math.round(stat.traffic * 100)}%`} />
-
-              <Section title="Buildings" />
-              {Object.entries(stat.byType).map(([type, n]) => (
-                <Row key={type} label={capitalize(type)} value={n} />
-              ))}
-              {Object.keys(stat.levelCounts).length > 0 && (
-                <Row
-                  label="Levels"
-                  value={Object.entries(stat.levelCounts)
-                    .map(([lvl, n]) => `L${lvl}: ${n}`)
-                    .join("  ")}
-                />
-              )}
-
               <Section title="Status" />
               <Row
                 label="District Health"
@@ -291,24 +335,6 @@ export default function DistrictPanel() {
                   </span>
                 }
               />
-              {stat.strengths.length > 0 && (
-                <div style={{ marginTop: "4px" }}>
-                  {stat.strengths.map((s) => (
-                    <div key={s} style={{ fontSize: "11px", color: "#4ADE80" }}>
-                      ✓ {s}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {stat.problems.length > 0 && (
-                <div style={{ marginTop: "4px" }}>
-                  {stat.problems.map((p) => (
-                    <div key={p} style={{ fontSize: "11px", color: "#FBBF24" }}>
-                      ⚠ {p}
-                    </div>
-                  ))}
-                </div>
-              )}
             </>
           )}
         </>
@@ -316,49 +342,77 @@ export default function DistrictPanel() {
 
       {districts.length > 0 && (
         <>
-          <Section title="All Districts" />
-          {districts.map((d) => (
-            <button
-              key={d.id}
-              onClick={() => setSelectedDistrictId(d.id)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                width: "100%",
-                padding: "4px 6px",
-                background:
-                  d.id === selectedDistrictId
-                    ? "rgba(255,255,255,0.08)"
-                    : "transparent",
-                border: "none",
-                borderRadius: "6px",
-                color: "#D1D5DB",
-                cursor: "pointer",
-                fontSize: "12px",
-                fontFamily: "inherit",
-                textAlign: "left",
-              }}
-            >
-              <span
+          <Section title="City Districts" />
+          <div style={{ fontSize: "11px", color: "#9CA3AF", marginBottom: "4px" }}>
+            {districts.length} neighborhood{districts.length === 1 ? "" : "s"}
+          </div>
+          {allStats.length > 0 && (
+            <>
+              <Row label="Healthy" value={healthy} />
+              <Row label="Needs Attention" value={needsAttention} />
+              <Row label="Declining" value={declining} />
+              {fastestGrowing && (
+                <Row label="Fastest Growing" value={fastestGrowing.district.name} />
+              )}
+              {highestQuality && (
+                <Row label="Highest Quality" value={highestQuality.district.name} />
+              )}
+              {mostTraffic && (
+                <Row label="Most Traffic" value={mostTraffic.district.name} />
+              )}
+            </>
+          )}
+          <div style={{ marginTop: "6px" }}>
+            {districts.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setSelectedDistrictId(d.id)}
                 style={{
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "3px",
-                  background: d.color,
-                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  width: "100%",
+                  padding: "4px 6px",
+                  background:
+                    d.id === selectedDistrictId
+                      ? "rgba(255,255,255,0.08)"
+                      : "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  color: "#D1D5DB",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  fontFamily: "inherit",
+                  textAlign: "left",
                 }}
-              />
-              <span style={{ flex: 1 }}>{d.name}</span>
-              <span style={{ color: "#6B7280", fontSize: "11px" }}>
-                {d.cells.length}
-              </span>
-            </button>
-          ))}
+              >
+                <span
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "3px",
+                    background: d.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ flex: 1 }}>{d.name}</span>
+                <span style={{ color: "#6B7280", fontSize: "11px" }}>
+                  {d.cells.length}
+                </span>
+              </button>
+            ))}
+          </div>
         </>
       )}
     </div>
   );
+}
+
+function qualityColor(q: number) {
+  if (q >= 75) return "#4ADE80";
+  if (q >= 55) return "#60A5FA";
+  if (q >= 35) return "#FBBF24";
+  return "#EF4444";
 }
 
 function Section({ title }: { title: string }) {
