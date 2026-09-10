@@ -21,100 +21,200 @@
 
 ## 0.2.0 - Mouse Interaction
 - Implemented raycasting from mouse coordinates to ground plane
-- Converted continuous world coordinates to discrete grid tile positions using Math.floor
+- Converted continuous world coordinates to discrete grid tile positions
 - Built HoverTile component for cursor-following preview
 - Added mousemove and click event listeners on the canvas
-- Established coordinate normalization for device pixel ratio compatibility
 
 ## 0.3.0 - Building Prototype
 - Designed low-poly house model with multiple mesh parts
-- Added foundation slab, walls, roof cone, door, windows, and chimney
 - Created BuildingStore using Zustand for global building state
 - Implemented addBuilding action with timestamp-based unique IDs
-- Rendered placed buildings by mapping over store state in the scene
+- Rendered placed buildings by mapping over store state
 
 ## 0.4.0 - Ghost Preview System
 - Added ghost prop to House component for preview mode
 - Reduced opacity and adjusted window transparency for ghost state
-- Rendered ghost house at hover position alongside placed buildings
-- Improved visual feedback loop for placement prediction
 
 ## 0.5.0 - UI Toolbar
 - Created fixed-position Toolbar component with glass-morphism styling
-- Added tool buttons for House, Tree, and Rock with emoji icons
-- Connected selected tool state to placement behavior
-- Styled toolbar with dark background, rounded corners, and active state highlighting
+- Added tool buttons for House, Tree, and Rock
 
 ## 0.6.0 - Architecture and Documentation
 - Refined folder structure for scalability
 - Added DEVELOPMENT_PROGRESS.md for phase tracking
-- Created comprehensive README with project overview, tech stack, and setup instructions
-- Added .gitignore to exclude node_modules, dist, and build artifacts
-- Removed node_modules from git tracking to reduce repository size
+- Created comprehensive README
 
 ## 0.7.0 - Building Tools
-- Added Tree and Rock placement with distinct low-poly models
-- Implemented building rotation with R key (90-degree increments)
-- Added Bulldozer tool for removing placed buildings
+- Added Tree and Rock placement
+- Implemented building rotation with R key
+- Added Bulldozer tool
 - Created placement validation system with green/red ghost feedback
-- Extended BuildTool type to support all building types
-- Added keyboard shortcuts for tool selection (1-4)
-- Added Escape key to cancel tool selection
+- Added keyboard shortcuts for tool selection
 
 ## 0.8.0 - Road System
 - Added road placement tool with drag-to-build interaction
 - Implemented road auto-connection based on neighboring road tiles
-- Support for horizontal and vertical road segments
 - Road connection types: isolated, straight, corner, T-junction, four-way intersection
-- Atomic road placement (entire segment or nothing)
-- Road deletion with Bulldozer tool
-- Road preview during drag with validity feedback
+- Atomic road placement
 - Added Road component with lane markings and curb details
-- Added RoadSystem for neighbor detection and line generation
 
 ## 0.9.0 - Zoning, Road Access, Inspection, Simulation Clock
-- Added Shop (commercial), Factory (industrial), and Park (public) buildings with zone types
-- ZoneType enum centralizes zoning (residential, commercial, industrial, park)
-- Road access detection: `hasRoadAccess` checks cardinal neighbors only
-- Inspection panel: Select mode (key 0) to inspect objects; shows type, zone, road access, position, and road connections
-- Simulation clock: `useSimulationStore` with day, timeOfDay, pause, speed (0, 1x, 2x, 4x)
-- UI overlay for simulation controls (time, day, pause/resume, speed cycle)
-- Keyboard shortcuts: 0 for Select, 6-8 for Shop/Factory/Park
-- Road access feedback on ghost preview ("ROAD ACCESS ✓" / "NO ROAD ACCESS")
+- Added Shop (commercial), Factory (industrial), and Park (public) buildings
+- Road access detection: `hasRoadAccess` checks cardinal neighbors
+- Inspection panel: Select mode to inspect objects
+- Simulation clock: `useSimulationStore` with day, timeOfDay, pause, speed
 
 ## 1.0.0 - Stabilization and Cleanup
 - Removed dead code: MouseSystem.tsx, useBuildMode.ts, game.ts
 - Fixed camera drag accidentally placing objects (drag threshold of 6 pixels)
-- Updated all documentation to reflect current implementation
 - Created DEVELOPMENT_STATUS.md, ROADMAP.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
-- Project now stable with all core milestones complete (except population, which is future)
 
 ## 1.0.1 - Road ghost preview fix
-- Fixed road ghost preview not updating validity during drag: per-tile validation now computed on each render pass.
+- Fixed road ghost preview not updating validity during drag
 
 ## 1.1.0 - Population & Households
 - Added PopulationStore to manage households and population
 - Houses create a household of 4 people on placement
-- Active population calculated from road access (cardinal neighbors)
-- CityStats UI shows total population, households, active population
-- Inspection panel shows household size and active/inactive status
-- Bulldozer removes associated household
-- Existing houses get households on app initialization (safe migration)
-- Reuses RoadAccessSystem for active population calculation
-- No visible citizens, jobs, economy, or migration yet
+- Active population calculated from road access
+- CityStats UI shows population stats
+- Inspection panel shows household info
+
+## 1.2.0 - Jobs & Employment
+- Added job capacity: Shop provides 2 jobs, Factory provides 5 jobs
+- Employment/unemployment tracked
+- Citizen model: each household generates 4 citizens with ages
+- Employment status assigned to adult citizens
 
 ## 1.3.0 - Citizen Visualization Foundation
-- Citizens now appear visually in the world as low-poly characters near their household
-- Each citizen has a body and head with color coding: active (green), inactive (gray), employed (blue), unemployed (orange)
-- Citizens update reactively when road access or employment status changes
-- No movement or AI implemented; citizens remain stationary at fixed offsets around the house
-- Integrated with existing selection/inspection; citizens are not selectable (limitation)
+- Citizens render as low-poly characters near their household
+- Color coding: active (green), inactive (gray), employed (blue), unemployed (orange)
 
-## Current Version - 1.3.0
-- Fully functional 3D city-building prototype with population, jobs, citizens, and citizen visualization
-- Supports residential, commercial, industrial, park, nature (tree, rock), and road placement
-- Road auto-connection with full intersection support
-- Road access and inspection
-- Simulation clock with day/night cycle and speed control
-- Stable interaction with drag threshold to prevent accidental placement
-- Ready for future citizen AI, economy, and advanced simulation
+## 2.18 - Citizen Visualization Foundation
+- (Milestone) Citizens visually represented with state-based coloring
+
+## 2.19 - Citizen Daily Routines & Schedules
+- Deterministic daily activity (home/working/leisure) derived from SimulationClock
+- No movement; visual state changes only
+
+## 2.20 - Citizen Walking Foundation
+- Employed active citizens move between home and workplace via lerp
+- Simulation-clock-driven movement windows
+
+## 2.21 - Road-Aware Pedestrian Pathfinding
+- BFS on road graph; citizens follow road cells instead of straight lines
+- Path caching per citizen/direction
+
+## 2.22 - Traffic & Pedestrian Congestion Foundation
+- RoadUsageStore (usage, capacity 5, congestion levels)
+- Citizen movement speed reduced by congestion
+- Road color reflects congestion
+
+## 2.23 - Economy Foundation
+- EconomyStore: household money, daily income/spending, business revenue
+- Salaries (Shop 50/day, Factory 70/day)
+- Business costs, profit, status
+
+## 2.24 - Citizen Needs & Happiness Foundation
+- NeedsStore: housing, food, safety, recreation (+ later healthcare, education)
+- Happiness derived from average needs
+
+## 2.25 - City Services & Infrastructure Foundation
+- ServiceStore with providers and coverage
+- Recreation service (Park)
+
+## 2.26 - Electricity & Water Infrastructure Foundation
+- UtilityStore: providers, demand, connections, capacity
+- Power Plant, Water Plant buildings
+
+## 2.27 - Healthcare & Education Service Foundation
+- Hospital (healthcare), School (education) providers
+- Healthcare/education needs integrated
+
+## 2.28 - Safety & Emergency Services Foundation
+- Police Station (safety), Fire Station (emergency)
+- Safety need integrated
+
+## 2.29 - City Events & Emergency Incidents Foundation
+- EventStore: fire, medical, crime with lifecycle
+- Event indicators and EventPanel
+
+## 2.30 - Emergency Dispatch & Response System
+- Road-aware provider selection, pathfinding, traffic-aware ETA
+- Dispatch lifecycle
+
+## 2.31 - Physical Emergency Vehicles
+- VehicleStore: Fire Truck, Ambulance, Police Car
+- Route following, fleet limits, return to station
+
+## 2.32 - City Economy & Production Foundation
+- Business costs, profit, status
+- Factory production (workers × utility factor)
+- Economic health, household financial state
+
+## 2.33 - Consumer Demand & Business Demand
+- Household demand from needs/income/size
+- Shop demand allocation (distance, capacity, road access)
+- Factory demand from aggregate consumer demand
+- Unmet demand tracking
+
+## 2.34 - Visual & UI Overhaul
+- BuildMenu (categorized), HUD, panel styling
+- Improved world visuals (sky, lighting, ground, grid, materials)
+
+## 2.35 - Immersive 3D UI & Presentation
+- Consistent design system, refined panels
+- Day/night lighting cycle, camera damping
+
+## 2.36 - Premium City-Builder Experience
+- Refined HUD, build dock, selection rings, world labels
+
+## 2.37 - World Visual Fidelity Pass
+- Procedural ground texture, enhanced building details
+- Road markings, tree/rock/citizen variation, detailed vehicles
+
+## 2.38 - Persistence & City Management
+- Centralized PersistenceService
+- Save/Load/New City with versioned save format
+- CityMenu UI
+
+## 2.39 - Dynamic City Simulation
+- CityDemandStore (residential/commercial/industrial demand)
+- CityStatsStore (aggregated statistics)
+- Demand UI
+
+## 2.40 - Traffic & Transportation Simulation
+- Traffic-aware pathfinding (`findPathWithTraffic`)
+- Civilian vehicle spawning
+- TrafficPanel, TrafficIndicator, road inspection
+
+## 2.41 - Services, Coverage & Citizen Wellbeing
+- AlertStore + AlertSystem (service/utility/happiness shortages)
+- ServiceOverview UI
+- Citizen wellbeing enhancements
+
+## 2.42 - Land Value, Development Pressure & Building Progression
+- LandValueStore, DevelopmentStore
+- Building levels 1–3 with visual scaling
+- Land value / development overlays
+
+## 2.43 - City Progression, Milestones & Unlock System
+- ProgressionStore: 5 stages (Village → Metropolis)
+- 10 milestones
+- BuildMenu lock indicators, ProgressionPanel
+
+## 2.44 - City Life, Ambient Activity & Living World
+- ActivityStore (QUIET/NORMAL/BUSY/PEAK, time labels)
+- Window illumination (emissive by type, level, time, activity)
+- HUD activity indicator, inspection activity state
+
+## 2.45 - City Policies, Taxes & Municipal Budget
+- MunicipalStore: treasury, revenue, expenses, net balance
+- Tax rate (low/normal/high) with happiness/demand effects
+- City policies (growth/balanced/austerity)
+- Service funding controls
+- MunicipalPanel UI
+
+## Current Version — 2.45
+- Fully functional 3D city-building simulation with population, citizens, economy,
+  services, utilities, events, emergency response, land value, building progression,
+  city progression, municipal budget, and persistent save/load

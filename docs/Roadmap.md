@@ -2,6 +2,7 @@
 
 ## Completed
 
+### Foundation (0.x)
 - React + TypeScript + Vite project initialization
 - Three.js + React Three Fiber + Drei integration
 - Zustand state management
@@ -10,7 +11,7 @@
 - Orbit controls
 - Mouse raycasting to ground plane
 - Grid-snapped hover tile preview
-- Low-poly House model (foundation, walls, roof, door, windows, chimney)
+- Low-poly House model
 - Click-to-place building system
 - Building store with unique IDs
 - Ghost/preview building
@@ -20,45 +21,67 @@
 - Building rotation with R key
 - Bulldozer tool
 - Placement validation (green/red ghost)
-- Keyboard shortcuts (1-5 for tools, Escape to cancel)
+- Keyboard shortcuts
 - Road placement with drag-to-build
 - Road auto-connection (straight, corner, T-junction, four-way)
-- Atomic road placement
-- **Zoning:** residential (House), commercial (Shop), industrial (Factory), park (Park)
-- **Additional buildings:** Shop, Factory, Park
-- **Road access:** cardinal neighbor detection (north, south, east, west)
-- **Inspection panel:** Select mode, object info, road connections
-- **Simulation clock:** day/night, pause, speed control (0, 1x, 2x, 4x)
-- **Population & Households:** households with 4 people, active population based on road access
-- **Jobs & Employment:** Shop provides 2 jobs, Factory provides 5 jobs; employment/unemployment tracked
-- **Citizen Simulation Foundation:** citizens with ages, employment status, active/inactive state
+- Zoning (residential, commercial, industrial, park)
+- Shop, Factory, Park buildings
+- Road access (cardinal neighbor detection)
+- Inspection panel
+- Simulation clock (day/night, pause, speed 0/1/2/4)
+
+### Population & Citizens (1.x – 2.x)
+- Population & Households (households of 4, active population via road access)
+- Jobs & Employment (Shop: 2 jobs, Factory: 5 jobs)
+- Citizen Simulation Foundation (ages, employment, active/inactive)
+- Citizen Visualization Foundation (low-poly citizens, visual states)
+- Citizen Daily Routines & Schedules (home/working/leisure)
+- Citizen Walking Foundation (home↔work movement)
+- Road-Aware Pedestrian Pathfinding (BFS on road graph)
+
+### Simulation Systems (2.20 – 2.32)
+- Traffic & Pedestrian Congestion Foundation (RoadUsageStore)
+- Economy Foundation (household money, income, spending, business revenue)
+- Citizen Needs & Happiness Foundation
+- City Services & Infrastructure Foundation
+- Electricity & Water Infrastructure Foundation
+- Healthcare & Education Service Foundation
+- Safety & Emergency Services Foundation
+- City Events & Emergency Incidents Foundation
+- Emergency Dispatch & Response System
+- Physical Emergency Vehicles
+- City Economy & Production Foundation
+
+### Polish & UI (2.33 – 2.37)
+- Consumer Demand & Business Demand
+- Visual & UI Overhaul
+- Immersive 3D UI & Presentation
+- Premium City-Builder Experience
+- World Visual Fidelity Pass
+
+### Persistence & Progression (2.38 – 2.45)
+- Persistence & City Management (Save/Load/New City)
+- Dynamic City Simulation (demand, needs, happiness, stats)
+- Traffic & Transportation Simulation
+- Services, Coverage & Citizen Wellbeing
+- Land Value, Development Pressure & Building Progression
+- City Progression, Milestones & Unlock System
+- City Life, Ambient Activity & Living World
+- City Policies, Taxes & Municipal Budget
 
 ## In Progress
-
 - Road intersection visual refinement (minor)
 - Building variant randomization (planned)
 - Terrain variation (water, elevation) (planned)
 
-## Completed
-- Citizen Visualization Foundation (low-poly citizens rendered near households, visual states for active/inactive and employment)
-
-## Next
-
-See Future for upcoming features.
-
 ## Future
-
-- Citizen AI and walking
-- Pathfinding and traffic
-- Economy and resource management
-- Advanced citizen needs and happiness
-
-## Future
-
-- Economy and resource management
-- AI-assisted urban planning suggestions
-- Event system and random city events
-- Save/load functionality
+- Advanced citizen AI and migration
+- Aging, births, deaths
+- Education progression, healthcare simulation, crime AI
+- Public transport, traffic lights, lane simulation
+- Banking, loans, debt, inflation, supply chains
+- Natural disasters, building damage
+- Save/load multiple slots, export/import
 - Sound design and background music
-- Multiplayer/shared city viewing
+- Multiplayer / shared city viewing
 - Mobile touch controls

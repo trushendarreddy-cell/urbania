@@ -16,6 +16,16 @@
 | R | Rotate ghost preview by 90° |
 | Escape | Cancel tool selection / close inspection panel |
 
+Additional building shortcuts (via BuildMenu):
+| Key | Action |
+|-----|--------|
+| 9 | Power Plant |
+| 0 | Water Plant |
+| h | Hospital |
+| s | School |
+| p | Police Station |
+| f | Fire Station |
+
 ## Mouse
 
 | Action | Effect |
@@ -30,11 +40,25 @@
 - **Pause/Resume** button (⏸/▶) toggles simulation advance.
 - **Speed** button cycles through 0x (paused), 1x, 2x, 4x.
 
-## Toolbar
+## HUD Controls (UI)
 
-- Bottom-center fixed toolbar with buttons for each tool.
-- Active tool highlighted with green border.
-- Each button displays its keyboard shortcut.
+- **🏛️ Municipal** — opens MunicipalPanel (budget / policies).
+- **🏙️ Stage** — opens ProgressionPanel (stages / milestones).
+- **🚦 Traffic** indicator — shows congestion level.
+- **Activity indicator** — shows QUIET/NORMAL/BUSY/PEAK and time label.
+
+## City Menu (UI)
+
+- **Save** — saves city to localStorage.
+- **Load** — loads saved city (disabled if none).
+- **New** — resets to a new city (with confirmation).
+- **📊 Land Value** — toggles land value overlay.
+- **📈 Dev Pressure** — toggles development pressure overlay.
+
+## BuildMenu (UI)
+
+- Bottom-centered categorized menu (Residential, Commercial, Industrial, Services, Decoration, Roads, Utilities).
+- Locked buildings show a 🔒 and are disabled until unlocked by city progression.
 
 ## Interaction Behavior
 

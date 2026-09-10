@@ -1,80 +1,98 @@
 # Architecture
 
 ## Overview
-Urbania uses a clean separation of concerns: 3D world rendering (React Three Fiber), state management (Zustand), interaction handling, and UI overlays.
+Urbania uses a clean separation of concerns: 3D world rendering (React Three Fiber), state management (Zustand), simulation systems, interaction handling, and UI overlays.
 
 ## Directory Structure
 
 ```
 frontend/src/
 ├── scenes/           # GameScene composition & interaction logic
-├── world/            # 3D object components (Ground, Grid, House, Shop, Factory, Park, Road, Tree, Rock)
-├── ui/               # Overlay UI (Toolbar, InspectionPanel, SimulationClock)
-├── store/            # BuildingStore (Zustand)
-├── stores/           # SimulationStore (Zustand)
-├── systems/          # PlacementSystem, RoadSystem, RoadAccessSystem
+├── world/            # 3D object components (Ground, Grid, buildings, Road, Citizen, vehicles, indicators)
+├── ui/               # Overlay UI (HUD, BuildMenu, panels, overlays)
+├── store/            # Zustand stores (buildings, population, economy, services, etc.)
+├── stores/           # useSimulationStore (clock)
+├── systems/          # Placement, Road, RoadAccess, Pathfinding, CitizenMovement, Traffic, Alert
+├── services/         # PersistenceService
 ├── types/            # BuildTool, ZoneType
-├── hooks/            # Custom hooks (currently unused)
 ├── App.tsx           # Root component with Canvas and UI
 └── main.tsx          # Entry point
 ```
 
-## State Architecture
-- **BuildingStore** (`store/BuildingStore.ts`): Manages all placed objects. Contains `buildings` array, `selectedObjectId`, and actions: `addBuilding` (returns id), `addBuildings`, `removeBuilding`, `setSelectedObjectId`.
-- **PopulationStore** (`store/PopulationStore.ts`): Manages households and population. Tracks `households`, `totalPopulation`, `totalHouseholds`, `activePopulation`. Actions: `addHousehold`, `removeHousehold`, `initialize`, `recompute`. Subscribes to BuildingStore changes to update active population.
-- **SimulationStore** (`stores/useSimulationStore.ts`): Manages simulation clock: `day`, `timeOfDay`, `isPaused`, `speed`, with actions `advanceTime`, `togglePaused`, `cycleSpeed`, etc.
-- **Local component state**: `selectedTool` in App, `hoverPos` and `rotation` in GameScene.
+## State Architecture (Zustand Stores)
+
+### Core
+- **BuildingStore** (`store/BuildingStore.ts`): `buildings` array (with `level`, `developmentProgress`, `lastUpgradeDay`), `selectedObjectId`. Actions: `addBuilding`, `addBuildings`, `removeBuilding`.
+- **PopulationStore** (`store/PopulationStore.ts`): `households`, `citizens`, `totalPopulation`, `totalHouseholds`, `activePopulation`, `totalJobs`, `employed`, `unemployed`. Actions: `addHousehold`, `removeHousehold`, `initialize`, `recompute`.
+- **SimulationStore** (`stores/useSimulationStore.ts`): `day`, `timeOfDay`, `isPaused`, `speed`. Actions: `advanceTime`, `togglePaused`, `cycleSpeed`, `reset`.
+
+### Simulation
+- **RoadUsageStore** (`store/RoadUsageStore.ts`): road cell usage Map, `ROAD_CAPACITY = 5`, congestion levels/colors.
+- **EconomyStore** (`store/EconomyStore.ts`): household money, daily income/spending, business revenue/costs/profit/status, factory production, demand, economic health, financial state.
+- **NeedsStore** (`store/NeedsStore.ts`): per-citizen needs (housing, food, safety, recreation, healthcare, education), happiness, category.
+- **ServiceStore** (`store/ServiceStore.ts`): service providers (recreation, healthcare, education, safety, emergency) with coverage queries.
+- **UtilityStore** (`store/UtilityStore.ts`): electricity/water providers, demand, connections, capacity.
+- **EventStore** (`store/EventStore.ts`): city events (fire, medical, crime), lifecycle, dispatch, provider usage.
+- **VehicleStore** (`store/VehicleStore.ts`): emergency + civilian vehicles, route following, fleet limits.
+- **CityDemandStore** (`store/CityDemandStore.ts`): residential/commercial/industrial demand.
+- **CityStatsStore** (`store/CityStatsStore.ts`): aggregated city statistics.
+- **LandValueStore** (`store/LandValueStore.ts`): computed land value per building.
+- **DevelopmentStore** (`store/DevelopmentStore.ts`): development pressure, building upgrade processing.
+- **ProgressionStore** (`store/ProgressionStore.ts`): city stages, milestones, unlocked buildings.
+- **ActivityStore** (`store/ActivityStore.ts`): city activity level, time labels, window intensity.
+- **MunicipalStore** (`store/MunicipalStore.ts`): treasury, tax rate, city policy, service funding, budget processing.
+- **AlertStore** (`store/AlertStore.ts`): city alerts (severity, category).
+
+## Simulation Systems
+- **PlacementSystem**: validation for building placement.
+- **RoadSystem**: `getRoadNeighbors` (cardinal connections), `generateRoadLine` (straight segments).
+- **RoadAccessSystem**: `hasRoadAccess` (cardinal road neighbor check).
+- **PathfindingSystem**: `getRoadGraph`, `findNearestRoadCell`, `findPath` (BFS), `findPathWithTraffic` (congestion-aware).
+- **CitizenMovementSystem**: derives citizen positions from home/work/leisure and time; congestion-aware speed; path caching.
+- **CitizenActivitySystem**: `getCitizenActivity` (home/working/leisure from employment, age, time).
+- **TrafficSystem**: civilian vehicle spawning on road graph.
+- **RoadUsageCleanup**: periodic stale-usage cleanup.
+- **AlertSystem**: evaluates service/utility/happiness shortages.
 
 ## Interaction Architecture
 - Single pointer pipeline in `GameScene`:
-  - `mousemove` on canvas updates `hoverPos` via raycasting.
+  - `mousemove` updates `hoverPos` via raycasting.
   - `pointerdown` records drag start and road start.
-  - `pointerup` on window checks drag distance (threshold 6px) to distinguish click vs drag.
-  - Click actions: bulldoze, select/inspect, place building (if valid).
-- Keyboard shortcuts handled in `App` (0-8, Escape) and `GameScene` (R for rotation).
-- OrbitControls from `@react-three/drei` handles camera movement; drag threshold prevents accidental placement during orbit.
+  - `pointerup` checks drag distance (threshold 6px) to distinguish click vs drag.
+  - Click actions: bulldoze, select/inspect, place (if valid).
+- Keyboard shortcuts handled in `App` (0-8, Escape) and `GameScene` (R rotation).
+- OrbitControls handles camera; drag threshold prevents accidental placement.
 
 ## Rendering Architecture
-- React Three Fiber declarative scene.
-- `GameScene` renders:
+- React Three Fiber declarative scene in `GameScene`:
   - World (Ground, Grid)
-  - All buildings from `BuildingStore.buildings` (with appropriate component per type)
-  - Selection highlight (torus) for selected object
-  - Ghost previews (semi-transparent) for hovered tile
-  - Road access feedback (HTML label via `<Html>`)
-- Components receive `ghost`, `valid`, `roadAccess` props for visual feedback.
+  - Buildings from `BuildingStore` (component per type, with `level`, `windowIntensity`, `roadAccess`)
+  - Citizens from `PopulationStore` (position via `CitizenMovementSystem`)
+  - Emergency/civilian vehicles from `VehicleStore`
+  - Event indicators from `EventStore`
+  - Selection highlight (rings), ghost previews, road access label (`<Html>`)
+  - Day/night lighting derived from `timeOfDay`
 
-## Road Architecture
-- `RoadSystem.ts`: `getRoadNeighbors` returns cardinal connections; `generateRoadLine` produces straight segments between two points.
-- `RoadAccessSystem.ts`: `hasRoadAccess` checks cardinal neighbors for any road.
-- `Road.tsx`: visual component with asphalt, curbs, and directional markings based on connections.
+## Simulation Flow (per day change, driven by SimulationStore)
+1. `evaluateAlerts()` — service/utility/happiness checks.
+2. `NeedsStore.recomputeAll()` — citizen needs/happiness.
+3. `DevelopmentStore.processDevelopment()` — building level upgrades.
+4. `ProgressionStore.recompute()` — stage + milestones.
+5. `MunicipalStore.processDailyBudget()` — revenue, expenses, treasury.
 
-## Building Types and Zoning
-- `BuildTool` type defines all tools.
-- `ZoneType` enum defines zone categories.
-- `getZoneType` in GameScene maps tool to zone.
-- Building components (House, Shop, Factory, Park) accept `zoneType` prop (stored in BuildingStore) and `roadAccess` prop for visual indicator.
+## Traffic Flow (per time tick)
+- `VehicleStore.updateVehicles(deltaHours)` — move vehicles.
+- `TrafficSystem.updateTrafficSystem(deltaHours)` — spawn civilian vehicles.
+- Periodic `cleanRoadUsage()`.
 
-## Population, Households, Jobs, and Citizens
-- Only residential buildings (House) create households.
-- Each house adds one household of 4 people on successful placement.
-- Households are stored in PopulationStore, keyed by building ID.
-- Active population is the sum of population of households whose building has road access (cardinal neighbors).
-- **Jobs:** Shop provides 2 jobs, Factory provides 5 jobs; `totalJobs` computed from buildings.
-- **Employment:** `employed = min(activePopulation, totalJobs)`, `unemployed = activePopulation - employed`.
-- **Citizens:** Each household generates 4 citizens with deterministic ages (32, 30, 8, 5) and stable IDs. Adult citizens (age ≥ 18) are assigned employment status (employed/unemployed) based on job availability; inactive if household lacks road access.
-- **Citizen Visualization:** Citizens are rendered as low-poly characters (body + head) using shared geometries. They appear at fixed offsets around their household building. Visual color indicates state: green = active, gray = inactive, blue = employed, orange = unemployed. Citizens are updated reactively when road access or employment changes.
-- PopulationStore subscribes to BuildingStore changes to recompute active population, jobs, and employment.
-- Bulldozer removes the associated household and its citizens.
-- Existing houses are initialized on app mount (no duplicate households).
-- CityStats UI displays population, households, citizens, active population, jobs, employed, unemployed.
-- InspectionPanel shows household size, citizen count, and job count for shops/factories.
-
-## Simulation Clock
-- `useSimulationStore` advances time based on delta seconds, speed, and pause state.
-- SimulationClock UI shows time, day, pause/resume, speed cycle.
+## Persistence
+- **PersistenceService** (`services/PersistenceService.ts`): `saveCity`, `loadCity`, `hasSave`, `newCity`.
+- Versioned save format (`version: 1`) persisted to localStorage.
+- Durable state saved: buildings (incl. level/progress), households, citizens, simulation, economy, events, vehicles, municipal.
+- Derived state (needs, land value, demand, services, utilities, alerts, activity) recomputed after load.
 
 ## Future Considerations
-- Add population simulation using BuildingStore data and road access.
-- Introduce economy and resource tracking.
-- Save/load state to localStorage.
+- Advanced citizen AI, migration, aging
+- Education/healthcare/crime simulation
+- Public transport, traffic lights
+- Multiple save slots, export/import

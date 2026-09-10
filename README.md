@@ -1,6 +1,18 @@
 # Urbania
 
-**Urbania** is an interactive 3D city-building prototype built with React, TypeScript, and Three.js. It evolved into a voxel-style world where you can place residential, commercial, industrial, and park buildings, trees, rocks, and roads on a grid-based terrain using mouse clicks and keyboard shortcuts.
+**Urbania** is an interactive 3D city-building simulation built with React, TypeScript, and Three.js. It renders a low-poly 3D world where you place residential, commercial, industrial, and service buildings, roads, utilities, and decoration on a grid — then watch a living simulation unfold: citizens commute, businesses trade, services respond to emergencies, land value shifts, buildings upgrade, and city policies shape the budget.
+
+---
+
+## Current Development Status
+
+**Version:** 2.45 — City Policies, Taxes & Municipal Budget
+
+Urbania has progressed well beyond the initial prototype. Core city-building foundations, an expanding simulation layer (population, economy, services, emergencies, traffic), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
+
+- **TypeScript:** clean
+- **Production build:** passing (chunk-size warning only)
+- **Save/Load/New City:** functional
 
 ---
 
@@ -8,105 +20,134 @@
 
 Urbania is a browser-based city builder running entirely in the browser using **React Three Fiber**. It renders a low-poly 3D world with:
 
-- A large green terrain plane
+- A large terrain plane with procedural ground texture
 - A translucent grid for placement guidance
 - Mouse-driven raycasting to detect tile positions
 - A ghost/preview building system that follows the cursor
 - Click-to-place mechanics for buildings, trees, rocks, and roads
-- A floating UI toolbar for selecting building tools
-- Orbit controls for camera navigation
+- A floating categorized build menu
+- Orbit controls for camera navigation (with damping)
 - Road placement with drag-to-build and auto-connection
 - Building rotation with keyboard shortcuts
 - Bulldozer tool for removing placed objects
 - Placement validation with green/red ghost feedback
-- **Zoning** – residential (House), commercial (Shop), industrial (Factory), and park (Park)
-- **Road access** detection for buildings (cardinal neighbors only)
-- **Inspection panel** showing object details and road connections
-- **Simulation clock** with day/night cycle, pause, and speed control
-- **Jobs & Employment** – Shop provides 2 jobs, Factory provides 5 jobs; employment/unemployment tracked
-- **Citizens** – each household has 4 citizens with ages and employment status; citizens are visually represented in the world with active/inactive and employment states
+- A day/night lighting cycle driven by the simulation clock
 
-The project is a **prototype** — a proving ground for 3D rendering, state management, and interactive building mechanics that will eventually expand into a full city simulation.
+The project is an evolving **city-building simulation** — a proving ground for 3D rendering, state management, and interactive simulation mechanics in the browser.
 
 ---
 
-## Why am I building this?
+## Features
 
-I wanted to explore how modern web technologies can be used to build immersive 3D experiences without requiring heavy game engines like Unity or Unreal.
+### World
+- R3F scene with ground, grid, sky, and dynamic lighting
+- Day/night cycle (dawn/day/dusk/night) from the simulation clock
+- Procedural ground texture with subtle variation
 
-This project is my way of learning and demonstrating:
-1. **Real-time 3D rendering** in the browser using Three.js and React Three Fiber
-2. **Declarative 3D scene composition** using React components
-3. **State management** for game entities using Zustand
-4. **Mouse interaction in 3D space** using raycasting
-5. **Scalable architecture** separating world, scene, systems, store, and UI
-6. **Low-poly aesthetics** as a performance-friendly art style
+### City Building
+- Grid snapping, placement validation, ghost previews
+- Buildings: House, Shop, Factory, Park, Tree, Rock, Road
+- Services: Hospital, School, Police Station, Fire Station
+- Utilities: Power Plant, Water Plant
+- Bulldozer, selection, and inspection
+- Categorized BuildMenu with keyboard shortcuts
+
+### Zoning
+- Residential (House), Commercial (Shop), Industrial (Factory), Park
+
+### Roads & Transportation
+- Drag-to-build roads with auto-connections (straight, corner, T-junction, intersection)
+- Road access detection (cardinal neighbors)
+- Road usage and congestion (capacity per road cell)
+- Traffic-aware pathfinding (BFS with congestion penalty)
+- Civilian vehicle traffic and emergency vehicles (Fire Truck, Ambulance, Police Car)
+
+### Population & Citizens
+- Households of 4; active population based on road access
+- Jobs & employment (Shop: 2 jobs, Factory: 5 jobs)
+- Citizens with ages, employment, activity, and stable IDs
+- Daily routines (home / working / leisure) from the simulation clock
+- Road-aware walking between home and work with congestion-aware speed
+- Low-poly citizen visualization with state-based color and scale variation
+
+### Economy
+- Household money, income, spending
+- Business revenue, costs, profit, and status (HEALTHY/WEAK/STRUGGLING)
+- Factory production (workers × utility factor × demand)
+- Consumer demand (household/shop/factory) and unmet demand
+- Economic health and household financial state
+- Municipal budget: treasury, revenue, expenses, net balance
+- Tax rate (low/normal/high) with happiness and demand trade-offs
+- City policies (growth / balanced / austerity) and service funding
+
+### Services & Utilities
+- Service providers with coverage: Recreation (Park), Healthcare (Hospital), Education (School), Safety (Police), Emergency (Fire)
+- Utilities: Electricity (Power Plant) and Water (Water Plant) with demand, capacity, and coverage
+- Citizen needs (housing, food, safety, recreation, healthcare, education) and derived happiness
+- Service shortage alerts and a compact service overview panel
+
+### Events & Emergencies
+- City events: fire, medical, crime with a full lifecycle (active → responding → resolved)
+- Emergency dispatch: road-aware provider selection, pathfinding, traffic-aware ETA
+- Emergency vehicles physically follow routes and return to their stations
+
+### City Systems
+- Simulation clock (day, time, pause, speed 0/1/2/4)
+- Land Value derived from access, services, utilities, happiness, congestion, demand
+- Development Pressure driving building upgrades
+- Building progression (levels 1–3) with visual scaling and cooldowns
+- City progression stages: Village → Town → City → Large City → Metropolis
+- Milestones and an unlock system (buildings unlock by stage)
+- City Activity level (QUIET/NORMAL/BUSY/PEAK) and day/night labels
+- Window illumination (emissive, varying by type, level, time, activity)
+
+### Persistence & UI
+- Save / Load / New City (versioned localStorage persistence with metadata)
+- HUD (day, time, population, households, money, traffic, activity, stage, municipal treasury)
+- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview
+- Toggleable Land Value and Development Pressure overlays
 
 ---
 
-## How I built this
+## Controls
 
-### Phase 1 – Project Setup
-- Created with **Vite + React + TypeScript**
-- Installed Three.js, React Three Fiber, Drei, and Zustand
+### Keyboard
 
-### Phase 2 – 3D Scene Foundation
-- R3F Canvas with shadows, camera, and sky color
-- Ambient and directional lighting
-- Large ground plane and infinite grid
-- OrbitControls for camera movement
+| Key | Action |
+|-----|--------|
+| 0 | Select mode (inspect) |
+| 1 | House (residential) |
+| 2 | Tree |
+| 3 | Rock |
+| 4 | Bulldozer (delete) |
+| 5 | Road |
+| 6 | Shop (commercial) |
+| 7 | Factory (industrial) |
+| 8 | Park (public) |
+| 9 | Power Plant |
+| 0 | Water Plant |
+| h | Hospital |
+| s | School |
+| p | Police Station |
+| f | Fire Station |
+| R | Rotate ghost by 90° |
+| Escape | Cancel selection / close inspection |
 
-### Phase 3 – Mouse Interaction
-- Raycaster projects mouse coordinates onto the ground plane
-- Grid-aligned tile positions using `Math.floor`
-- HoverTile component (yellow translucent plane)
-- Click listeners for placement
+### Mouse
 
-### Phase 4 – Building System
-- Low-poly House with foundation, walls, roof, door, windows, chimney
-- Zustand store (`BuildingStore`) for placed buildings
-- Ghost/preview building with reduced opacity
+| Action | Effect |
+|--------|--------|
+| Left Click (no drag) | Place / select / delete (tool-dependent) |
+| Left Click + Drag | Orbit camera (drag > 6px threshold) |
+| Scroll | Zoom in/out |
 
-### Phase 5 – UI Toolbar
-- Fixed-position toolbar with tool buttons
-- Glass-morphism styling
-- Tool selection drives placement behavior
+### Simulation (UI)
+- Pause/Resume (⏸/▶)
+- Speed cycle (0x, 1x, 2x, 4x)
 
-### Phase 6 – Architecture
-- Code organized into `world/`, `scenes/`, `systems/`, `store/`, `ui/`, `hooks/`, `types/`
-
-### Phase 7 – Building Tools Expansion
-- Added Tree and Rock placement
-- Building rotation with R key
-- Bulldozer tool for removal
-- Placement validation with green/red feedback
-
-### Phase 8 – Road System
-- Road placement with drag-to-build
-- Auto-connection to neighboring road tiles
-- Straight, corner, T-junction, and four-way intersections
-- Atomic road placement (all or nothing)
-
-### Phase 9 – Zoning and Additional Buildings
-- Added Shop (commercial), Factory (industrial), Park (public)
-- Zone types centralized in `ZoneType` enum
-- Each building type gets appropriate zone assignment
-
-### Phase 10 – Road Access
-- `hasRoadAccess` function checks cardinal neighbors only (north, south, east, west)
-- Visual indicator on buildings and ghost preview
-
-### Phase 11 – Inspection Panel
-- Select mode (key 0) to click objects
-- Panel shows type, zone, road access, position
-- For roads, shows north/south/east/west connections
-- Escape closes panel
-
-### Phase 12 – Simulation Clock
-- Zustand store (`useSimulationStore`) manages day, time of day, pause, speed
-- Speeds: 0 (paused), 1x, 2x, 4x
-- AdvanceTime updates time and day rollover
-- UI overlay shows time, day, pause button, speed button
+### City Menu (UI)
+- Save, Load, New (with confirmation)
+- Land Value overlay toggle, Development Pressure overlay toggle
 
 ---
 
@@ -145,37 +186,83 @@ npm run lint
 
 ---
 
-## Controls
+## Architecture
 
-| Key | Action |
-|-----|--------|
-| 0 | Select mode (inspect) |
-| 1 | House (residential) |
-| 2 | Tree |
-| 3 | Rock |
-| 4 | Bulldozer (delete) |
-| 5 | Road |
-| 6 | Shop (commercial) |
-| 7 | Factory (industrial) |
-| 8 | Park (public) |
-| R | Rotate ghost by 90° |
-| Escape | Cancel selection / close inspection |
-| Left Click | Place / select / delete (context-dependent) |
-| Mouse Drag | Orbit camera |
-| Scroll | Zoom in/out |
+State is managed with Zustand stores, rendered declaratively with React Three Fiber, and driven by systems under `frontend/src/systems/`.
 
-Additional simulation controls (via UI):
-- Pause/Resume (▶/⏸)
-- Cycle speed (1x, 2x, 4x)
-| R | Rotate ghost by 90° |
-| Escape | Cancel selection / close inspection |
-| Left Click | Place / select / delete (context-dependent) |
-| Mouse Drag | Orbit camera |
-| Scroll | Zoom in/out |
+```
+frontend/src/
+├── scenes/       # GameScene composition & interaction
+├── world/        # 3D objects (Ground, Grid, buildings, Road, Citizen, vehicles)
+├── ui/           # HUD, BuildMenu, panels, overlays
+├── store/        # Zustand stores (buildings, population, economy, services, etc.)
+├── stores/       # useSimulationStore (clock)
+├── systems/      # Placement, Road, RoadAccess, Pathfinding, CitizenMovement, Traffic, Alert
+├── services/     # PersistenceService
+├── types/        # BuildTool, ZoneType
+├── App.tsx       # Root component
+└── main.tsx      # Entry point
+```
 
-Additional simulation controls (via UI):
-- Pause/Resume (▶/⏸)
-- Cycle speed (1x, 2x, 4x)
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full detail.
+
+---
+
+## Development
+
+### How it was built
+
+**Phase 1 – Project Setup** — Vite + React + TypeScript; installed Three.js, R3F, Drei, Zustand.
+
+**Phase 2 – 3D Scene Foundation** — R3F Canvas with shadows, camera, sky, lighting, ground, grid, OrbitControls.
+
+**Phase 3 – Mouse Interaction** — Raycasting to ground, grid-aligned tiles, hover preview, click placement.
+
+**Phase 4 – Building System** — Low-poly House, BuildingStore, ghost preview.
+
+**Phase 5 – UI Toolbar** — Tool selection driving placement.
+
+**Phase 6 – Architecture** — Organized into world/scenes/systems/store/ui/hooks/types.
+
+**Phase 7 – Building Tools** — Tree, Rock, rotation, bulldozer, placement validation.
+
+**Phase 8 – Road System** — Drag-to-build, auto-connection, intersections.
+
+**Phase 9 – Zoning** — Shop, Factory, Park with zone types.
+
+**Phase 10 – Road Access** — Cardinal neighbor detection with visual indicators.
+
+**Phase 11 – Inspection** — Select mode, object info, road connections.
+
+**Phase 12 – Simulation Clock** — Day/time, pause, speed control.
+
+**Phase 13 – Stabilization** — Dead code removal, camera drag threshold fix.
+
+**Phase 14+ – Simulation Expansion** — Population, jobs, citizens, visualization, routines, walking, pathfinding, traffic, economy, needs, services, utilities, healthcare, education, safety, events, emergency dispatch, emergency vehicles, demand, production, persistence, dynamic simulation, land value, development, progression, unlocks, activity, and municipal policies. (See [`docs/Changelog.md`](./docs/Changelog.md) for the full history.)
+
+---
+
+## Validation
+
+- TypeScript: `npm run build` (tsc -b) — passes
+- Production build: `npm run build` (vite build) — passes
+- Known limitations are tracked in [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md)
+
+---
+
+## Known Limitations
+
+- Service coverage uses Euclidean distance, not road-network distance.
+- Building upgrades are visual/status only; capacity scaling is not yet wired.
+- Civilian vehicles reuse the emergency vehicle model.
+- No traffic lights, lane simulation, or collision avoidance.
+- No mobile touch support, sound, or multiplayer.
+
+---
+
+## Roadmap
+
+See [`docs/Roadmap.md`](./docs/Roadmap.md). Future work includes advanced citizen AI (migration, aging), deeper service simulation, public transport, banking/economy depth, disasters, and multiple save slots.
 
 ---
 
@@ -183,35 +270,21 @@ Additional simulation controls (via UI):
 
 ```
 urbania/
-├── docs/                    # Design documents, ideas, roadmap
+├── docs/                    # Design documents, roadmap, changelog
 ├── frontend/               # Main Vite + React application
-│   ├── src/
-│   │   ├── scenes/         # GameScene composition & interaction
-│   │   ├── world/          # 3D objects (Ground, Grid, House, Shop, Factory, Park, Road, Tree, Rock)
-│   │   ├── ui/             # Toolbar, InspectionPanel, SimulationClock
-│   │   ├── store/          # BuildingStore (Zustand)
-│   │   ├── stores/         # useSimulationStore (Zustand)
-│   │   ├── systems/        # PlacementSystem, RoadSystem, RoadAccessSystem
-│   │   ├── types/          # BuildTool, ZoneType
-│   │   └── hooks/          # Custom hooks (useBuildMode removed, now unused)
+│   ├── src/                # (see Architecture above)
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── tsconfig.json
 ├── package.json
-└── README.md
+├── README.md
+├── ARCHITECTURE.md
+├── CONTROLS.md
+├── DEVELOPMENT_STATUS.md
+├── DEVELOPMENT_PROGRESS.md
+├── KNOWN_ISSUES.md
+└── FIX_REPORT.md
 ```
-
----
-
-## What's Next?
-
-See [`docs/Roadmap.md`](./docs/Roadmap.md) for planned features:
-- Population simulation
-- Economy and resource management
-- AI-assisted urban planning
-- Events and Easter eggs
-- Save/load
-- And more
 
 ---
 
@@ -223,4 +296,4 @@ Email: trushendarreddy@gmail.com
 
 Hyderabad, Telangana
 
-*Built as a learning project and proof-of-concept for browser-based city simulation.*
+*Built as a learning project and evolving proof-of-concept for browser-based city simulation.*

@@ -15,7 +15,7 @@
 ## Phase 2 — Mouse Interaction System
 - Raycasting to ground plane
 - Grid-snapped tile positions
-- HoverTile preview (yellow)
+- HoverTile preview
 - Click listeners for placement
 
 ## Phase 3 — Building Prototype
@@ -25,75 +25,134 @@
 
 ## Phase 4 — State Management
 - BuildingStore with addBuilding, removeBuilding, selectedObjectId
-- Reactive rendering from store
 
 ## Phase 5 — UI Toolbar
-- Fixed-position toolbar with tools (House, Tree, Rock)
+- Fixed-position toolbar with tools
 - Glass-morphism styling
-- Tool selection drives placement
 
 ## Phase 6 — Architecture & Tooling
 - Organized into world, scene, systems, store, ui, hooks, types
 - TypeScript strict settings, Vite, Oxlint
-- Design docs (GDD, features, roadmap, art style)
 
 ## Phase 7 — Building Tools Expansion
 - Added Tree and Rock placement
-- Building rotation with R key (90° increments)
-- Bulldozer tool for removal
+- Building rotation with R key
+- Bulldozer tool
 - Placement validation (green/red ghost)
 
 ## Phase 8 — Road System
 - Road placement with drag-to-build
 - Auto-connection based on neighbors
 - Horizontal/vertical segments, corners, T-junctions, four-way
-- Atomic placement (all or nothing)
-- Deletion with Bulldozer
-- Preview during drag
+- Atomic placement
 
 ## Phase 9 — Zoning and Additional Buildings
 - Added Shop (commercial), Factory (industrial), Park (public)
-- ZoneType enum (residential, commercial, industrial, park)
-- House → residential, Shop → commercial, Factory → industrial, Park → park
+- ZoneType enum
 
 ## Phase 10 — Road Access
-- `hasRoadAccess` checks cardinal neighbors (north, south, east, west)
-- Visual indicator on buildings (torus ring) and ghost preview
+- `hasRoadAccess` checks cardinal neighbors
+- Visual indicator on buildings and ghost preview
 
 ## Phase 11 — Inspection Panel
 - Select mode (key 0) to inspect objects
-- Panel shows type, zone, road access, position
-- For roads: north/south/east/west connections
-- Escape to close
+- Panel shows type, zone, road access, position, road connections
 
 ## Phase 12 — Simulation Clock
 - `useSimulationStore` with day, timeOfDay, pause, speed
 - Speeds: 0, 1x, 2x, 4x
-- `advanceTime` updates time with day rollover
-- UI overlay with time, day, pause/resume, speed cycle
 
 ## Phase 13 — Stabilization and Cleanup
-- Removed dead code (MouseSystem.tsx, useBuildMode.ts, game.ts)
+- Removed dead code
 - Fixed camera drag accidentally placing objects (drag threshold)
-- Updated all documentation to reflect current implementation
-- Created DEVELOPMENT_STATUS.md, ROADMAP.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
+- Created DEVELOPMENT_STATUS.md, ARCHITECTURE.md, CONTROLS.md, KNOWN_ISSUES.md
 
 ## Phase 14 — Population, Households, Jobs, and Citizens
-- Created PopulationStore to manage households, citizens, jobs, and population
-- Each residential house (House) creates a household of 4 people
-- Active population depends on road access (cardinal neighbors)
-- Jobs: Shop provides 2 jobs, Factory provides 5 jobs
-- Employment/unemployment tracked: employed = min(activePopulation, totalJobs)
-- Citizens: each household generates 4 citizens with ages (32, 30, 8, 5) and stable IDs
-- Employment status assigned to adult citizens (employed/unemployed/inactive based on road access)
-- CityStats UI shows total population, households, active population, jobs, employed, unemployed, citizens, active citizens
-- Inspection panel shows household size, citizen count, and job count
-- Households and citizens are added on house placement, removed on bulldoze
-- Existing houses get households on app mount (safe initialization)
-- Reuses RoadAccessSystem for active population calculation
+- PopulationStore manages households, citizens, jobs, population
+- Each House creates a household of 4 people
+- Active population depends on road access
+- Jobs: Shop 2, Factory 5
+- Citizens: 4 per household with ages (32, 30, 8, 5)
+- CityStats UI shows population/jobs/employment
+
+## Phase 15 — Citizen Visualization
+- Low-poly citizens rendered near households
+- Color-coded by active/inactive and employment
+
+## Phase 16 — Citizen Daily Routines
+- Deterministic home/working/leisure from SimulationClock
+
+## Phase 17 — Citizen Walking & Pathfinding
+- Home↔work movement with simulation-clock timing
+- BFS road-aware pathfinding with path caching
+
+## Phase 18 — Traffic & Congestion
+- RoadUsageStore with capacity and congestion levels
+- Congestion affects movement speed
+
+## Phase 19 — Economy Foundation
+- Household money, income, spending, business revenue
+- Costs, profit, business status
+
+## Phase 20 — Citizen Needs & Happiness
+- Needs (housing, food, safety, recreation, healthcare, education)
+- Happiness derived from needs
+
+## Phase 21 — Services & Utilities
+- ServiceStore (recreation, healthcare, education, safety, emergency)
+- UtilityStore (electricity, water) with demand/coverage
+- Hospital, School, Police, Fire, Power Plant, Water Plant buildings
+
+## Phase 22 — Events & Emergency Response
+- EventStore (fire, medical, crime)
+- Emergency dispatch with pathfinding and ETA
+- Physical emergency vehicles (Fire Truck, Ambulance, Police Car)
+
+## Phase 23 — Consumer Demand & Production
+- Household/shop/factory demand
+- Business profit, status, factory production
+
+## Phase 24 — Visual & UI Overhaul
+- BuildMenu, HUD, panel styling
+- Day/night lighting, camera damping
+- World visual fidelity (ground texture, road markings, variations)
+
+## Phase 25 — Persistence
+- PersistenceService with versioned save/load
+- CityMenu (Save/Load/New City)
+
+## Phase 26 — Dynamic City Simulation
+- CityDemandStore (residential/commercial/industrial)
+- CityStatsStore (aggregated statistics)
+
+## Phase 27 — Traffic & Transportation
+- Traffic-aware pathfinding
+- Civilian vehicle spawning, TrafficPanel
+
+## Phase 28 — Services & Citizen Wellbeing
+- AlertStore/AlertSystem
+- ServiceOverview UI
+
+## Phase 29 — Land Value & Building Progression
+- LandValueStore, DevelopmentStore
+- Building levels 1–3 with visual scaling and overlays
+
+## Phase 30 — City Progression & Unlocks
+- ProgressionStore (5 stages, 10 milestones, unlock system)
+- ProgressionPanel, BuildMenu lock indicators
+
+## Phase 31 — City Activity & Living World
+- ActivityStore (activity levels, time labels)
+- Window illumination system
+- HUD activity indicator
+
+## Phase 32 — Municipal Policies & Budget
+- MunicipalStore (treasury, revenue, expenses, net)
+- Tax rate, city policies, service funding
+- MunicipalPanel UI
 
 ## Current State
-- Fully functional 3D city-building prototype with population tracking
-- All milestone features (world foundation, grid building, build mode, building visuals, roads, zoning, road access, inspection, simulation clock, population & households) are complete
-- Advanced simulation (citizens, jobs, economy, traffic) are future milestones
-- Stable, with known minor issues documented
+- Fully functional 3D city-building simulation (v2.45)
+- Core building, simulation, economy, services, emergency, progression,
+  and persistence systems complete
+- Stable, TypeScript clean, production build passing
