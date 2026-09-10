@@ -5,6 +5,7 @@ import TrafficIndicator from './TrafficIndicator';
 import useProgressionStore from '../store/ProgressionStore';
 import useActivityStore from '../store/ActivityStore';
 import useMunicipalStore from '../store/MunicipalStore';
+import useCityEventStore from '../store/CityEventStore';
 import { useState } from 'react';
 import ProgressionPanel from './ProgressionPanel';
 import MunicipalPanel from './MunicipalPanel';
@@ -23,6 +24,10 @@ export default function HUD() {
   const timeLabel = useActivityStore((state) => state.timeLabel);
   const treasury = useMunicipalStore((state) => state.treasury);
   const dailyNet = useMunicipalStore((state) => state.dailyNet);
+  const cityEvents = useCityEventStore((state) => state.events);
+  const setCityEventPanelOpen = useCityEventStore((state) => state.setPanelOpen);
+  const activeCityEvents = cityEvents.filter((e) => e.status === "active");
+  const criticalCityEvents = activeCityEvents.filter((e) => e.severity === "critical").length;
   const [showProgression, setShowProgression] = useState(false);
   const [showMunicipal, setShowMunicipal] = useState(false);
   const stageNames: Record<string, string> = {
@@ -122,6 +127,28 @@ export default function HUD() {
           <span style={{ color: dailyNet >= 0 ? '#4ADE80' : '#EF4444', fontSize: '10px' }}>
             {dailyNet >= 0 ? '+' : ''}{Math.round(dailyNet)}
           </span>
+        </button>
+        <button
+          onClick={() => setCityEventPanelOpen(true)}
+          style={{
+            background: criticalCityEvents > 0 ? 'rgba(239,68,68,0.18)' : 'rgba(255,255,255,0.06)',
+            border: `1px solid ${criticalCityEvents > 0 ? '#EF4444' : 'rgba(255,255,255,0.12)'}`,
+            borderRadius: '8px',
+            padding: '2px 10px',
+            color: '#F3F4F6',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontFamily: 'inherit',
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = criticalCityEvents > 0 ? 'rgba(239,68,68,0.18)' : 'rgba(255,255,255,0.06)'}
+        >
+          <span>{criticalCityEvents > 0 ? '🚨' : '⚠️'}</span>
+          <span>{activeCityEvents.length}</span>
         </button>
         <button
           onClick={() => setShowProgression(!showProgression)}

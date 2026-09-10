@@ -71,6 +71,16 @@ The project is an evolving **city-building simulation** — a proving ground for
 - Specialization (player intent) is shown separately from the derived character (actual reality)
 - Districts persist in save/load and are cleared on New City
 
+### City Events & Incidents
+- Condition-driven city events evaluated once per simulation day (no random popups)
+- Categories: infrastructure, services, economy, development, citizens
+- Types: Traffic Pressure, Service Pressure, Development Boom, Development Stagnation, Happiness Decline, Budget Pressure, Investment Interest, City Development Surge
+- Severity (info/warning/critical) from real thresholds; automatic resolution when conditions clear
+- Per-condition cooldowns (5 simulation days) prevent spam; pause freezes progression
+- CityEventPanel with severity grouping, district navigation, and recent history
+- HUD indicator (🚨 when critical) opens the panel; notifications via the existing alert system
+- Events persist in save/load and are cleared on New City
+
 ### Roads & Transportation
 - Drag-to-build roads with auto-connections (straight, corner, T-junction, intersection)
 - Road access detection (cardinal neighbors)

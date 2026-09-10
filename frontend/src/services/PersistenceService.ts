@@ -10,6 +10,8 @@ import useNeedsStore from '../store/NeedsStore';
 import useMunicipalStore from '../store/MunicipalStore';
 import useZoneStore from '../store/ZoneStore';
 import useDistrictStore from '../store/DistrictStore';
+import useCityEventStore from '../store/CityEventStore';
+import type { CityEvent as CityWideEvent } from '../store/CityEventStore';
 import { resetDistrictNotifications } from '../systems/DistrictSystem';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
@@ -68,6 +70,8 @@ export interface SaveData {
     };
     zones?: Zone[];
     districts?: District[];
+    cityEvents?: CityWideEvent[];
+    cityEventCooldowns?: Record<string, number>;
   };
 }
 
@@ -83,6 +87,8 @@ export function saveCity() {
     const municipal = useMunicipalStore.getState();
     const zones = useZoneStore.getState().zones;
     const districts = useDistrictStore.getState().districts;
+    const cityEvents = useCityEventStore.getState().events;
+    const cityEventCooldowns = useCityEventStore.getState().cooldowns;
 
     const saveData: SaveData = {
       version: VERSION,
@@ -129,6 +135,8 @@ export function saveCity() {
         },
         zones,
         districts,
+        cityEvents,
+        cityEventCooldowns,
       },
     };
 
@@ -215,6 +223,14 @@ export function loadCity() {
       districtMode: false,
     });
 
+    // Restore city events
+    useCityEventStore.setState({
+      events: city.cityEvents || [],
+      cooldowns: city.cityEventCooldowns || {},
+      selectedEventId: null,
+      panelOpen: false,
+    });
+
     // Restore municipal
     if (city.municipal) {
       useMunicipalStore.setState({
@@ -285,6 +301,7 @@ export function newCity() {
   useRoadUsageStore.setState({ usage: new Map() });
   useZoneStore.getState().clear();
   useDistrictStore.getState().clear();
+  useCityEventStore.getState().clear();
   resetDistrictNotifications();
   useSimulationStore.getState().reset();
   useMunicipalStore.getState().reset();

@@ -6,6 +6,8 @@
 - District specialization affects organic development pressure but does not yet apply district-level policies.
 - Neighborhood development trend is derived from current state only (no historical trend tracking).
 - District notifications are throttled by trend/traffic/health transitions but are not yet grouped into a dedicated district feed.
+- City events are evaluated once per simulation day; sub-day conditions are not tracked.
+- City event consequences are informational and delivered via existing notifications only; no separate simulation modifiers were introduced.
 - Civilian vehicles have no dedicated 3D model (rendered using emergency vehicle model).
 - Building upgrades (levels 2–3) are visual/status only; capacity/economy scaling not yet wired.
 - Progress toward next city stage is based on population ratio only (simplified).

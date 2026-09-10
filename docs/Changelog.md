@@ -248,8 +248,21 @@
 - District panel shows profile, quality breakdown, services, priority, and a compact city-wide district summary
 - Specialization (intent) kept separate from derived character (reality)
 
-## Current Version — 2.48
+## 2.49 - Dynamic City Events & Incidents
+- CityEventStore: city-wide events with category, severity, title, description, district reference, status, and navigation target
+- CityEventSystem: evaluates real city conditions on each simulation day (no per-frame loops)
+- Event types: Traffic Pressure, Service Pressure, Development Boom, Development Stagnation, Happiness Decline, Budget Pressure, Investment Interest, City Development Surge
+- Severity (info/warning/critical) derived from actual thresholds
+- Cooldowns (5 simulation days per condition/district) prevent event spam; pause freezes cooldowns
+- Automatic resolution when the triggering condition clears
+- Event history (max 20) with active/recent entries
+- CityEventPanel with severity grouping, district navigation, and recent history
+- HUD indicator button (🚨 when critical) opens the event panel
+- Notifications delivered through the existing AlertStore
+- Events persist in save/load; New City clears them
+
+## Current Version — 2.49
 - Fully functional 3D city-building simulation with population, citizens, economy,
   services, utilities, events, emergency response, land value, building progression,
   city progression, municipal budget, organic zoning, districts with neighborhood identity,
-  and persistent save/load
+  dynamic city events, and persistent save/load
