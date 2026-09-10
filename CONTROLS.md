@@ -17,6 +17,7 @@
 | Z | Zone: Residential |
 | X | Zone: Commercial |
 | V | Zone: Industrial |
+| D | District tool (paint cells into active district) |
 | Escape | Cancel tool selection / close inspection panel |
 
 Additional building shortcuts (via BuildMenu):

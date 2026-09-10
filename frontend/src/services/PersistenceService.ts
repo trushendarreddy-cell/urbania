@@ -9,12 +9,14 @@ import useRoadUsageStore from '../store/RoadUsageStore';
 import useNeedsStore from '../store/NeedsStore';
 import useMunicipalStore from '../store/MunicipalStore';
 import useZoneStore from '../store/ZoneStore';
+import useDistrictStore from '../store/DistrictStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
 import type { Household, Citizen } from '../store/PopulationStore';
 import type { CityEvent } from '../store/EventStore';
 import type { Vehicle } from '../store/VehicleStore';
 import type { Zone } from '../store/ZoneStore';
+import type { District } from '../store/DistrictStore';
 
 const SAVE_KEY = 'urbania_save';
 const VERSION = 1;
@@ -64,6 +66,7 @@ export interface SaveData {
       lastPolicyChangeDay: number;
     };
     zones?: Zone[];
+    districts?: District[];
   };
 }
 
@@ -78,6 +81,7 @@ export function saveCity() {
     const vehicles = useVehicleStore.getState().vehicles;
     const municipal = useMunicipalStore.getState();
     const zones = useZoneStore.getState().zones;
+    const districts = useDistrictStore.getState().districts;
 
     const saveData: SaveData = {
       version: VERSION,
@@ -123,6 +127,7 @@ export function saveCity() {
           lastPolicyChangeDay: municipal.lastPolicyChangeDay,
         },
         zones,
+        districts,
       },
     };
 
@@ -201,6 +206,14 @@ export function loadCity() {
     // Restore zones
     useZoneStore.setState({ zones: city.zones || [] });
 
+    // Restore districts
+    useDistrictStore.setState({
+      districts: city.districts || [],
+      selectedDistrictId: null,
+      activeDistrictId: null,
+      districtMode: false,
+    });
+
     // Restore municipal
     if (city.municipal) {
       useMunicipalStore.setState({
@@ -270,6 +283,7 @@ export function newCity() {
   useVehicleStore.setState({ vehicles: [] });
   useRoadUsageStore.setState({ usage: new Map() });
   useZoneStore.getState().clear();
+  useDistrictStore.getState().clear();
   useSimulationStore.getState().reset();
   useMunicipalStore.getState().reset();
 

@@ -37,6 +37,8 @@ import EmergencyVehicle from "../world/EmergencyVehicle";
 import useActivityStore from "../store/ActivityStore";
 import ZoneTile from "../world/ZoneTile";
 import useZoneStore from "../store/ZoneStore";
+import DistrictOverlay from "../world/DistrictOverlay";
+import useDistrictStore from "../store/DistrictStore";
 import type { ZoneType } from "../types/ZoneType";
 // import needed for getCitizenPosition
 
@@ -82,6 +84,10 @@ export default function GameScene({
   const addZone = useZoneStore((state) => state.addZone);
   const removeZoneAt = useZoneStore((state) => state.removeZoneAt);
   const setSelectedZoneId = useZoneStore((state) => state.setSelectedZoneId);
+  const districts = useDistrictStore((state) => state.districts);
+  const selectedDistrictId = useDistrictStore((state) => state.selectedDistrictId);
+  const setSelectedDistrictId = useDistrictStore((state) => state.setSelectedDistrictId);
+  const districtMode = useDistrictStore((state) => state.districtMode);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -235,6 +241,16 @@ export default function GameScene({
           } else {
             removeZoneAt([hoverPos[0], 0, hoverPos[2]]);
           }
+        } else if (selectedTool === "district") {
+          const activeId = useDistrictStore.getState().activeDistrictId;
+          if (activeId) {
+            useDistrictStore
+              .getState()
+              .toggleCell(
+                activeId,
+                `${Math.round(hoverPos[0])},${Math.round(hoverPos[2])}`
+              );
+          }
         } else if (getZoningToolType(selectedTool)) {
           const zoneType = getZoningToolType(selectedTool);
           if (zoneType) {
@@ -259,11 +275,16 @@ export default function GameScene({
           setSelectedObjectId(target ? target.id : null);
           if (target) {
             setSelectedZoneId(null);
+            setSelectedDistrictId(null);
           } else {
             const zone = useZoneStore
               .getState()
               .getZoneAt([hoverPos[0], 0, hoverPos[2]]);
             setSelectedZoneId(zone ? zone.id : null);
+            const district = useDistrictStore
+              .getState()
+              .getDistrictAt(`${Math.round(hoverPos[0])},${Math.round(hoverPos[2])}`);
+            setSelectedDistrictId(district ? district.id : null);
           }
         } else if (selectedTool !== "road") {
           const canPlace = canPlaceObject(
@@ -331,6 +352,7 @@ export default function GameScene({
     addZone,
     removeZoneAt,
     setSelectedZoneId,
+    setSelectedDistrictId,
   ]);
 
   const canPlace = canPlaceObject(
@@ -424,6 +446,16 @@ export default function GameScene({
           zoneType={zone.zoneType}
           state={zone.state}
           progress={zone.progress}
+        />
+      ))}
+
+      {/* District Overlays */}
+      {districts.map((district) => (
+        <DistrictOverlay
+          key={district.id}
+          district={district}
+          selected={district.id === selectedDistrictId}
+          showLabel={districtMode || district.id === selectedDistrictId}
         />
       ))}
 

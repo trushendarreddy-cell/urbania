@@ -6,7 +6,7 @@
 
 ## Current Development Status
 
-**Version:** 2.46 — Dynamic Zoning & Organic City Development
+**Version:** 2.47 — Districts & Neighborhoods
 
 Urbania has progressed well beyond the initial prototype. Core city-building foundations, an expanding simulation layer (population, economy, services, emergencies, traffic), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
 
@@ -60,6 +60,13 @@ The project is an evolving **city-building simulation** — a proving ground for
 - Zones persist in save/load and are cleared on New City
 - Selecting a zone shows why it is or isn't developing (ZoneInspectionPanel)
 
+### Districts & Neighborhoods
+- Create named, colored districts and paint cells into them (District tool, key D)
+- District specialization (General/Residential/Commercial/Industrial/Mixed) gives a small deterministic development preference
+- District panel shows derived statistics: population, households, jobs, building breakdown, land value, happiness, traffic, service coverage, health rating, strengths and problems
+- District overlays show boundaries with a highlight for the selected district and a name label
+- Districts persist in save/load and are cleared on New City
+
 ### Roads & Transportation
 - Drag-to-build roads with auto-connections (straight, corner, T-junction, intersection)
 - Road access detection (cardinal neighbors)
@@ -109,7 +116,7 @@ The project is an evolving **city-building simulation** — a proving ground for
 ### Persistence & UI
 - Save / Load / New City (versioned localStorage persistence with metadata)
 - HUD (day, time, population, households, money, traffic, activity, stage, municipal treasury)
-- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview, ZoneInspectionPanel
+- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview, ZoneInspectionPanel, DistrictPanel
 - Toggleable Land Value and Development Pressure overlays
 
 ---
@@ -139,6 +146,7 @@ The project is an evolving **city-building simulation** — a proving ground for
 | Z | Zone: Residential |
 | X | Zone: Commercial |
 | V | Zone: Industrial |
+| D | District tool (paint cells) |
 | Escape | Cancel selection / close inspection |
 
 ### Mouse

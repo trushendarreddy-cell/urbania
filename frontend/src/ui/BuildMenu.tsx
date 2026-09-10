@@ -84,6 +84,14 @@ const categories: Category[] = [
     ],
   },
   {
+    id: 'districts',
+    label: 'Districts',
+    icon: '📍',
+    tools: [
+      { id: 'district', label: 'Paint District', icon: '📍', key: 'd' },
+    ],
+  },
+  {
     id: 'utilities',
     label: 'Utilities',
     icon: '⚡',

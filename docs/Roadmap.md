@@ -69,6 +69,7 @@
 - City Life, Ambient Activity & Living World
 - City Policies, Taxes & Municipal Budget
 - Dynamic Zoning & Organic City Development (vacant zones, organic development, zoning tools, zone inspection)
+- Districts & Neighborhoods (district creation/painting, statistics, specialization, persistence)
 
 ## In Progress
 - Road intersection visual refinement (minor)

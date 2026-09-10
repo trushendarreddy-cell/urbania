@@ -43,6 +43,7 @@ frontend/src/
 - **MunicipalStore** (`store/MunicipalStore.ts`): treasury, tax rate, city policy, service funding, budget processing.
 - **AlertStore** (`store/AlertStore.ts`): city alerts (severity, category).
 - **ZoneStore** (`store/ZoneStore.ts`): vacant zoned tiles (`Zone` = position, zoneType, state, progress), `addZone`, `removeZoneAt`, `getZoneAt`, `setProgress`, `setState`, `selectedZoneId`; cleared on New City and persisted in saves.
+- **DistrictStore** (`store/DistrictStore.ts`): districts (`id`, `name`, `color`, `cells`, `specialization`), `createDistrict`, `renameDistrict`, `setSpecialization`, `setColor`, `toggleCell`, `deleteDistrict`, `getDistrictAt`, derived `stats`, `selectedDistrictId`/`activeDistrictId`/`districtMode`; max 20 districts; cleared on New City and persisted.
 
 ## Simulation Systems
 - **PlacementSystem**: validation for building placement.
@@ -54,7 +55,8 @@ frontend/src/
 - **TrafficSystem**: civilian vehicle spawning on road graph.
 - **RoadUsageCleanup**: periodic stale-usage cleanup.
 - **AlertSystem**: evaluates service/utility/happiness shortages.
-- **OrganicDevelopmentSystem**: `getZoneDevelopmentPressure`, `isZoneEligible`, `processOrganicDevelopment` (run on day change; gates on road access, demand, pressure, progression; creates buildings at land-value-derived level).
+- **OrganicDevelopmentSystem**: `getZoneDevelopmentPressure`, `isZoneEligible`, `processOrganicDevelopment` (run on day change; gates on road access, demand, pressure, progression; creates buildings at land-value-derived level). Pressure includes a district specialization modifier.
+- **DistrictSystem**: `cellKey`, `computeDistrictStats`, `recomputeDistrictStats`, `getDistrictSpecializationPressureModifier` — aggregates district stats from existing stores on day change and building changes.
 
 ## Interaction Architecture
 - Single pointer pipeline in `GameScene`:
@@ -82,6 +84,7 @@ frontend/src/
 4. `ProgressionStore.recompute()` — stage + milestones.
 5. `MunicipalStore.processDailyBudget()` — revenue, expenses, treasury.
 6. `processOrganicDevelopment()` — advances vacant zones toward buildings.
+7. `recomputeDistrictStats()` — aggregates per-district statistics.
 
 ## Traffic Flow (per time tick)
 - `VehicleStore.updateVehicles(deltaHours)` — move vehicles.

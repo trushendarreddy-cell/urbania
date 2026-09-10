@@ -225,7 +225,18 @@
 - LandValueStore.getLandValueAtPosition for vacant-tile evaluation
 - Persistence: zones saved/loaded; New City clears zones; zone tools always unlocked
 
-## Current Version — 2.46
+## 2.47 - Districts & Neighborhoods
+- DistrictStore: districts with id, name, color, cell list, specialization
+- District tool ("Paint District", key D) and "Districts" BuildMenu category
+- DistrictOverlay: per-cell color overlay with selected highlight, wireframe, and world label
+- DistrictPanel: create, rename, recolor, specialize, delete, and paint into districts
+- District statistics derived from existing systems: population, households, jobs, building breakdown, level counts, land value, happiness, development pressure, traffic, service coverage, health rating, strengths/problems
+- District specialization (general/residential/commercial/industrial/mixed) adds a small deterministic modifier to organic development pressure
+- Select mode selects a district when clicking a district cell
+- Persistence: districts saved/loaded; New City clears districts
+- Max 20 districts; a cell belongs to at most one district
+
+## Current Version — 2.47
 - Fully functional 3D city-building simulation with population, citizens, economy,
   services, utilities, events, emergency response, land value, building progression,
-  city progression, municipal budget, organic zoning, and persistent save/load
+  city progression, municipal budget, organic zoning, districts, and persistent save/load

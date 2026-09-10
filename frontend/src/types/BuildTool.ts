@@ -17,4 +17,5 @@ export type BuildTool =
   | "fire_station"
   | "zone_residential"
   | "zone_commercial"
-  | "zone_industrial";
+  | "zone_industrial"
+  | "district";

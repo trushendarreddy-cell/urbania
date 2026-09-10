@@ -160,8 +160,16 @@
 - Initial level from land value
 - ZoneInspectionPanel + persistence
 
+## Phase 34 — Districts & Neighborhoods
+- DistrictStore: district data model (id, name, color, cells, specialization)
+- District tools and "Districts" BuildMenu category (key D)
+- DistrictOverlay visual boundaries and labels
+- DistrictPanel management UI and derived statistics
+- District specialization modifier for organic development pressure
+- Persistence + New City reset
+
 ## Current State
-- Fully functional 3D city-building simulation (v2.46)
+- Fully functional 3D city-building simulation (v2.47)
 - Core building, simulation, economy, services, emergency, progression,
   and persistence systems complete
 - Stable, TypeScript clean, production build passing

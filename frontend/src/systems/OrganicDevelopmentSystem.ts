@@ -7,6 +7,7 @@ import useMunicipalStore from "../store/MunicipalStore";
 import useProgressionStore from "../store/ProgressionStore";
 import useAlertStore from "../store/AlertStore";
 import { hasRoadAccess } from "./RoadAccessSystem";
+import { getDistrictSpecializationPressureModifier } from "./DistrictSystem";
 import { useSimulationStore } from "../stores/useSimulationStore";
 import type { BuildTool } from "../types/BuildTool";
 import type { ZoneType } from "../types/ZoneType";
@@ -56,6 +57,11 @@ export const getZoneDevelopmentPressure = (
   const policy = useMunicipalStore.getState().cityPolicy;
   if (policy === "growth") pressure += 8;
   else if (policy === "austerity") pressure -= 5;
+
+  pressure += getDistrictSpecializationPressureModifier(
+    `${Math.round(position[0])},${Math.round(position[2])}`,
+    zoneType
+  );
 
   return Math.max(0, Math.min(100, pressure));
 };

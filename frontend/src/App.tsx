@@ -6,6 +6,7 @@ import BuildMenu from "./ui/BuildMenu";
 import HUD from "./ui/HUD";
 import InspectionPanel from "./ui/InspectionPanel";
 import ZoneInspectionPanel from "./ui/ZoneInspectionPanel";
+import DistrictPanel from "./ui/DistrictPanel";
 import CityStats from "./ui/CityStats";
 import EventPanel from "./ui/EventPanel";
 import TrafficPanel from "./ui/TrafficPanel";
@@ -20,6 +21,8 @@ import useVehicleStore from "./store/VehicleStore";
 import useDevelopmentStore from "./store/DevelopmentStore";
 import useProgressionStore from "./store/ProgressionStore";
 import { processOrganicDevelopment } from "./systems/OrganicDevelopmentSystem";
+import { recomputeDistrictStats } from "./systems/DistrictSystem";
+import useDistrictStore from "./store/DistrictStore";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import type { BuildTool } from "./types/BuildTool";
@@ -33,6 +36,11 @@ export default function App() {
   useEffect(() => {
     usePopulationStore.getState().initialize();
   }, []);
+
+  // Toggle district mode when the district tool is selected
+  useEffect(() => {
+    useDistrictStore.getState().setDistrictMode(selectedTool === "district");
+  }, [selectedTool]);
 
   // Traffic update loop synchronized with simulation clock
   useEffect(() => {
@@ -79,6 +87,8 @@ export default function App() {
           processOrganicDevelopment();
           // Update progression (milestones, stage)
           useProgressionStore.getState().recompute();
+          // Recompute district statistics
+          recomputeDistrictStats();
         }
       }
 
@@ -92,6 +102,7 @@ export default function App() {
       clearTimeout(window._alertDebounce);
       window._alertDebounce = setTimeout(() => {
         evaluateAlerts();
+        recomputeDistrictStats();
       }, 500);
     });
 
@@ -148,6 +159,8 @@ export default function App() {
         setSelectedTool("zone_commercial");
       } else if (event.key === "v" || event.key === "V") {
         setSelectedTool("zone_industrial");
+      } else if (event.key === "d" || event.key === "D") {
+        setSelectedTool("district");
       } else if (event.key === "Escape") {
         if (
           useBuildingStore.getState().selectedObjectId !== null
@@ -190,6 +203,7 @@ export default function App() {
       <BuildMenu selected={selectedTool} onSelect={setSelectedTool} />
       <InspectionPanel />
       <ZoneInspectionPanel />
+      <DistrictPanel />
       <CityStats />
       <EventPanel />
       <TrafficPanel />

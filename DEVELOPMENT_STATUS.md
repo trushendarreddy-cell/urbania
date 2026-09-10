@@ -1,7 +1,7 @@
 # Urbania Development Status
 
 ## Current Version
-2.46 — Dynamic Zoning & Organic City Development
+2.47 — Districts & Neighborhoods
 
 ## Current Phase
 Active Development
@@ -72,6 +72,15 @@ Active Development
 - Development progress per simulation day; notification on completion
 - ZoneInspectionPanel explains why a zone is or isn't developing
 - Zones persist in save/load; New City clears them
+
+### Districts (2.47)
+- DistrictStore: named, colored districts with cell lists and specialization
+- District tool (key D) paints cells into the active district
+- DistrictOverlay renders cell color, selected highlight, and name label
+- DistrictPanel: create/rename/recolor/specialize/delete/paint
+- District stats derived from existing systems (population, jobs, buildings, land value, happiness, traffic, services) with health rating and strengths/problems
+- Specialization adds a small deterministic modifier to organic development pressure
+- Districts persist in save/load; New City clears them
 
 ### City Systems
 - Simulation Clock (day, timeOfDay, pause, speed 0/1/2/4)
