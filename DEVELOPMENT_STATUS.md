@@ -1,7 +1,7 @@
 # Urbania Development Status
 
 ## Current Version
-2.45 — City Policies, Taxes & Municipal Budget
+2.46 — Dynamic Zoning & Organic City Development
 
 ## Current Phase
 Active Development
@@ -63,6 +63,15 @@ Active Development
 - Emergency dispatch (provider selection, road connectivity, pathfinding, traffic-aware ETA)
 - Emergency vehicles physically follow routes and return to station
 - Event indicators and EventPanel
+
+### Zoning (2.46)
+- Vacant zone tiles (Residential/Commercial/Industrial) placed via zoning tools
+- Zone states: zoned / developing / occupied
+- Organic development driven by demand, road access, land value, dev pressure, progression unlocks
+- Initial building level selected from land value
+- Development progress per simulation day; notification on completion
+- ZoneInspectionPanel explains why a zone is or isn't developing
+- Zones persist in save/load; New City clears them
 
 ### City Systems
 - Simulation Clock (day, timeOfDay, pause, speed 0/1/2/4)

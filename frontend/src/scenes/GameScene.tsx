@@ -35,6 +35,9 @@ import useEventStore from "../store/EventStore";
 import useVehicleStore from "../store/VehicleStore";
 import EmergencyVehicle from "../world/EmergencyVehicle";
 import useActivityStore from "../store/ActivityStore";
+import ZoneTile from "../world/ZoneTile";
+import useZoneStore from "../store/ZoneStore";
+import type { ZoneType } from "../types/ZoneType";
 // import needed for getCitizenPosition
 
 interface GameSceneProps {
@@ -75,6 +78,10 @@ export default function GameScene({
   const events = useEventStore((state) => state.events);
   const vehicles = useVehicleStore((state) => state.vehicles);
   const getWindowIntensity = useActivityStore((state) => state.getWindowIntensity);
+  const zones = useZoneStore((state) => state.zones);
+  const addZone = useZoneStore((state) => state.addZone);
+  const removeZoneAt = useZoneStore((state) => state.removeZoneAt);
+  const setSelectedZoneId = useZoneStore((state) => state.setSelectedZoneId);
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -146,22 +153,35 @@ export default function GameScene({
      const DRAG_THRESHOLD = 6;
      let dragStart: { x: number; y: number } | null = null;
 
-     function getZoneType(
-       tool: BuildTool
-     ): "residential" | "commercial" | "industrial" | "park" | undefined {
-       switch (tool) {
-         case "house":
-           return "residential";
-         case "shop":
-           return "commercial";
-         case "factory":
-           return "industrial";
-         case "park":
-           return "park";
-         default:
-           return undefined;
-       }
-     }
+    function getZoneType(
+      tool: BuildTool
+    ): "residential" | "commercial" | "industrial" | "park" | undefined {
+      switch (tool) {
+        case "house":
+          return "residential";
+        case "shop":
+          return "commercial";
+        case "factory":
+          return "industrial";
+        case "park":
+          return "park";
+        default:
+          return undefined;
+      }
+    }
+
+    function getZoningToolType(tool: BuildTool): ZoneType | null {
+      switch (tool) {
+        case "zone_residential":
+          return "residential";
+        case "zone_commercial":
+          return "commercial";
+        case "zone_industrial":
+          return "industrial";
+        default:
+          return null;
+      }
+    }
 
      function onPointerDown(event: PointerEvent) {
       if (event.button !== 0) return;
@@ -212,6 +232,20 @@ export default function GameScene({
               removeHousehold(target.id);
             }
             removeBuilding(target.id);
+          } else {
+            removeZoneAt([hoverPos[0], 0, hoverPos[2]]);
+          }
+        } else if (getZoningToolType(selectedTool)) {
+          const zoneType = getZoningToolType(selectedTool);
+          if (zoneType) {
+            const occupied = buildings.some(
+              (b) =>
+                Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
+                Math.abs(b.position[2] - hoverPos[2]) < 0.1
+            );
+            if (!occupied) {
+              addZone([hoverPos[0], 0, hoverPos[2]], zoneType);
+            }
           }
         } else if (
           selectedTool === "select" ||
@@ -223,6 +257,14 @@ export default function GameScene({
               Math.abs(b.position[2] - hoverPos[2]) < 0.1
           );
           setSelectedObjectId(target ? target.id : null);
+          if (target) {
+            setSelectedZoneId(null);
+          } else {
+            const zone = useZoneStore
+              .getState()
+              .getZoneAt([hoverPos[0], 0, hoverPos[2]]);
+            setSelectedZoneId(zone ? zone.id : null);
+          }
         } else if (selectedTool !== "road") {
           const canPlace = canPlaceObject(
             selectedTool,
@@ -241,6 +283,7 @@ export default function GameScene({
             if (selectedTool === "house") {
               addHousehold(buildingId);
             }
+            removeZoneAt([hoverPos[0], 0, hoverPos[2]]);
           }
         }
       }
@@ -285,6 +328,9 @@ export default function GameScene({
     selectedTool,
     rotation,
     roadDragStart,
+    addZone,
+    removeZoneAt,
+    setSelectedZoneId,
   ]);
 
   const canPlace = canPlaceObject(
@@ -369,6 +415,17 @@ export default function GameScene({
       {/* World */}
       <Ground />
       <WorldGrid />
+
+      {/* Zoned Tiles */}
+      {zones.map((zone) => (
+        <ZoneTile
+          key={zone.id}
+          position={zone.position}
+          zoneType={zone.zoneType}
+          state={zone.state}
+          progress={zone.progress}
+        />
+      ))}
 
       {/* Buildings */}
       {buildings.map((building) => {
@@ -733,6 +790,23 @@ export default function GameScene({
         />
       )}
 
+      {(selectedTool === "zone_residential" ||
+        selectedTool === "zone_commercial" ||
+        selectedTool === "zone_industrial") && (
+        <ZoneTile
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          zoneType={
+            selectedTool === "zone_residential"
+              ? "residential"
+              : selectedTool === "zone_commercial"
+              ? "commercial"
+              : "industrial"
+          }
+          state="zoned"
+          ghost
+        />
+      )}
+
       {selectedTool === "road" &&
         roadDragStart &&
         roadPreviewLine.map((pos, idx) => {
@@ -767,7 +841,10 @@ export default function GameScene({
       {selectedTool !== "none" &&
         selectedTool !== "road" &&
         selectedTool !== "bulldozer" &&
-        selectedTool !== "select" && (
+        selectedTool !== "select" &&
+        selectedTool !== "zone_residential" &&
+        selectedTool !== "zone_commercial" &&
+        selectedTool !== "zone_industrial" && (
           <Html position={[hoverPos[0], 1.5, hoverPos[2]]} center>
             <div
               style={{

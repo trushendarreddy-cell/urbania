@@ -5,6 +5,7 @@ import GameScene from "./scenes/GameScene";
 import BuildMenu from "./ui/BuildMenu";
 import HUD from "./ui/HUD";
 import InspectionPanel from "./ui/InspectionPanel";
+import ZoneInspectionPanel from "./ui/ZoneInspectionPanel";
 import CityStats from "./ui/CityStats";
 import EventPanel from "./ui/EventPanel";
 import TrafficPanel from "./ui/TrafficPanel";
@@ -18,7 +19,7 @@ import useNeedsStore from "./store/NeedsStore";
 import useVehicleStore from "./store/VehicleStore";
 import useDevelopmentStore from "./store/DevelopmentStore";
 import useProgressionStore from "./store/ProgressionStore";
-import useMunicipalStore from "./store/MunicipalStore";
+import { processOrganicDevelopment } from "./systems/OrganicDevelopmentSystem";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import type { BuildTool } from "./types/BuildTool";
@@ -74,10 +75,10 @@ export default function App() {
           useNeedsStore.getState().recomputeAll();
           // Process development (building upgrades)
           useDevelopmentStore.getState().processDevelopment();
+          // Process organic zoning development
+          processOrganicDevelopment();
           // Update progression (milestones, stage)
           useProgressionStore.getState().recompute();
-          // Process municipal budget
-          useMunicipalStore.getState().processDailyBudget();
         }
       }
 
@@ -141,6 +142,12 @@ export default function App() {
         setSelectedTool("factory");
       } else if (event.key === "8") {
         setSelectedTool("park");
+      } else if (event.key === "z" || event.key === "Z") {
+        setSelectedTool("zone_residential");
+      } else if (event.key === "x" || event.key === "X") {
+        setSelectedTool("zone_commercial");
+      } else if (event.key === "v" || event.key === "V") {
+        setSelectedTool("zone_industrial");
       } else if (event.key === "Escape") {
         if (
           useBuildingStore.getState().selectedObjectId !== null
@@ -159,8 +166,6 @@ export default function App() {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, []);
-
-  // Removed in favor of HUD indicator
 
   return (
     <>
@@ -184,6 +189,7 @@ export default function App() {
       <CityMenu />
       <BuildMenu selected={selectedTool} onSelect={setSelectedTool} />
       <InspectionPanel />
+      <ZoneInspectionPanel />
       <CityStats />
       <EventPanel />
       <TrafficPanel />

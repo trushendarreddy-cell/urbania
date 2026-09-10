@@ -214,7 +214,18 @@
 - Service funding controls
 - MunicipalPanel UI
 
-## Current Version — 2.45
+## 2.46 - Dynamic Zoning & Organic City Development
+- ZoneStore: vacant zoned tiles with state (zoned/developing/occupied) and progress
+- Zoning tools: Residential (Z), Commercial (X), Industrial (V) added to BuildMenu "Zoning" category
+- ZoneTile visual: colored translucent ground overlay with development progress
+- OrganicDevelopmentSystem: evaluates eligibility (road access, demand, development pressure, progression unlock) and accumulates progress per simulation day
+- Building selection by zone type; initial level from land value (1–3)
+- Demand feedback loop: organic buildings change capacity, which updates demand
+- ZoneInspectionPanel: shows state, status/reason, demand, dev pressure, land value, road access, progress
+- LandValueStore.getLandValueAtPosition for vacant-tile evaluation
+- Persistence: zones saved/loaded; New City clears zones; zone tools always unlocked
+
+## Current Version — 2.46
 - Fully functional 3D city-building simulation with population, citizens, economy,
   services, utilities, events, emergency response, land value, building progression,
-  city progression, municipal budget, and persistent save/load
+  city progression, municipal budget, organic zoning, and persistent save/load

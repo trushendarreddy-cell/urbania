@@ -151,8 +151,17 @@
 - Tax rate, city policies, service funding
 - MunicipalPanel UI
 
+## Phase 33 — Dynamic Zoning & Organic City Development
+- ZoneStore: vacant zoned tiles with state/progress
+- Zoning tools (Residential/Commercial/Industrial) with keyboard shortcuts Z/X/V
+- ZoneTile visual overlay
+- OrganicDevelopmentSystem: eligibility + progress + building creation
+- Demand/road/land-value/pressure/progression gating
+- Initial level from land value
+- ZoneInspectionPanel + persistence
+
 ## Current State
-- Fully functional 3D city-building simulation (v2.45)
+- Fully functional 3D city-building simulation (v2.46)
 - Core building, simulation, economy, services, emergency, progression,
   and persistence systems complete
 - Stable, TypeScript clean, production build passing

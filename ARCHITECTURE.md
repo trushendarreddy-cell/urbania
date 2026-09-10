@@ -42,6 +42,7 @@ frontend/src/
 - **ActivityStore** (`store/ActivityStore.ts`): city activity level, time labels, window intensity.
 - **MunicipalStore** (`store/MunicipalStore.ts`): treasury, tax rate, city policy, service funding, budget processing.
 - **AlertStore** (`store/AlertStore.ts`): city alerts (severity, category).
+- **ZoneStore** (`store/ZoneStore.ts`): vacant zoned tiles (`Zone` = position, zoneType, state, progress), `addZone`, `removeZoneAt`, `getZoneAt`, `setProgress`, `setState`, `selectedZoneId`; cleared on New City and persisted in saves.
 
 ## Simulation Systems
 - **PlacementSystem**: validation for building placement.
@@ -53,6 +54,7 @@ frontend/src/
 - **TrafficSystem**: civilian vehicle spawning on road graph.
 - **RoadUsageCleanup**: periodic stale-usage cleanup.
 - **AlertSystem**: evaluates service/utility/happiness shortages.
+- **OrganicDevelopmentSystem**: `getZoneDevelopmentPressure`, `isZoneEligible`, `processOrganicDevelopment` (run on day change; gates on road access, demand, pressure, progression; creates buildings at land-value-derived level).
 
 ## Interaction Architecture
 - Single pointer pipeline in `GameScene`:
@@ -79,6 +81,7 @@ frontend/src/
 3. `DevelopmentStore.processDevelopment()` — building level upgrades.
 4. `ProgressionStore.recompute()` — stage + milestones.
 5. `MunicipalStore.processDailyBudget()` — revenue, expenses, treasury.
+6. `processOrganicDevelopment()` — advances vacant zones toward buildings.
 
 ## Traffic Flow (per time tick)
 - `VehicleStore.updateVehicles(deltaHours)` — move vehicles.

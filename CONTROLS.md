@@ -14,6 +14,9 @@
 | 7 | Factory (industrial) |
 | 8 | Park (public) |
 | R | Rotate ghost preview by 90° |
+| Z | Zone: Residential |
+| X | Zone: Commercial |
+| V | Zone: Industrial |
 | Escape | Cancel tool selection / close inspection panel |
 
 Additional building shortcuts (via BuildMenu):

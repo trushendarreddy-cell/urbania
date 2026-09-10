@@ -68,6 +68,7 @@
 - City Progression, Milestones & Unlock System
 - City Life, Ambient Activity & Living World
 - City Policies, Taxes & Municipal Budget
+- Dynamic Zoning & Organic City Development (vacant zones, organic development, zoning tools, zone inspection)
 
 ## In Progress
 - Road intersection visual refinement (minor)

@@ -6,7 +6,7 @@
 
 ## Current Development Status
 
-**Version:** 2.45 — City Policies, Taxes & Municipal Budget
+**Version:** 2.46 — Dynamic Zoning & Organic City Development
 
 Urbania has progressed well beyond the initial prototype. Core city-building foundations, an expanding simulation layer (population, economy, services, emergencies, traffic), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
 
@@ -52,8 +52,13 @@ The project is an evolving **city-building simulation** — a proving ground for
 - Bulldozer, selection, and inspection
 - Categorized BuildMenu with keyboard shortcuts
 
-### Zoning
-- Residential (House), Commercial (Shop), Industrial (Factory), Park
+### Zoning & Organic Development
+- Place vacant Residential/Commercial/Industrial zones (tools in the "Zoning" category; keys Z/X/V)
+- Zones develop organically when road access, demand, land value, development pressure, and progression unlocks allow
+- Development progress accumulates per simulation day; a notification fires on completion
+- Initial building level is derived from land value
+- Zones persist in save/load and are cleared on New City
+- Selecting a zone shows why it is or isn't developing (ZoneInspectionPanel)
 
 ### Roads & Transportation
 - Drag-to-build roads with auto-connections (straight, corner, T-junction, intersection)
@@ -104,7 +109,7 @@ The project is an evolving **city-building simulation** — a proving ground for
 ### Persistence & UI
 - Save / Load / New City (versioned localStorage persistence with metadata)
 - HUD (day, time, population, households, money, traffic, activity, stage, municipal treasury)
-- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview
+- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview, ZoneInspectionPanel
 - Toggleable Land Value and Development Pressure overlays
 
 ---
@@ -131,6 +136,9 @@ The project is an evolving **city-building simulation** — a proving ground for
 | p | Police Station |
 | f | Fire Station |
 | R | Rotate ghost by 90° |
+| Z | Zone: Residential |
+| X | Zone: Commercial |
+| V | Zone: Industrial |
 | Escape | Cancel selection / close inspection |
 
 ### Mouse

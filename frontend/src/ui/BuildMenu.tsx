@@ -74,6 +74,16 @@ const categories: Category[] = [
     ],
   },
   {
+    id: 'zoning',
+    label: 'Zoning',
+    icon: '🗺️',
+    tools: [
+      { id: 'zone_residential', label: 'Residential', icon: '🏘️', key: 'z' },
+      { id: 'zone_commercial', label: 'Commercial', icon: '🏬', key: 'x' },
+      { id: 'zone_industrial', label: 'Industrial', icon: '🏗️', key: 'v' },
+    ],
+  },
+  {
     id: 'utilities',
     label: 'Utilities',
     icon: '⚡',

@@ -8,11 +8,13 @@ import useVehicleStore from '../store/VehicleStore';
 import useRoadUsageStore from '../store/RoadUsageStore';
 import useNeedsStore from '../store/NeedsStore';
 import useMunicipalStore from '../store/MunicipalStore';
+import useZoneStore from '../store/ZoneStore';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
 import type { Household, Citizen } from '../store/PopulationStore';
 import type { CityEvent } from '../store/EventStore';
 import type { Vehicle } from '../store/VehicleStore';
+import type { Zone } from '../store/ZoneStore';
 
 const SAVE_KEY = 'urbania_save';
 const VERSION = 1;
@@ -61,6 +63,7 @@ export interface SaveData {
       serviceFunding: Record<string, number>;
       lastPolicyChangeDay: number;
     };
+    zones?: Zone[];
   };
 }
 
@@ -74,6 +77,7 @@ export function saveCity() {
     const events = useEventStore.getState().events;
     const vehicles = useVehicleStore.getState().vehicles;
     const municipal = useMunicipalStore.getState();
+    const zones = useZoneStore.getState().zones;
 
     const saveData: SaveData = {
       version: VERSION,
@@ -118,6 +122,7 @@ export function saveCity() {
           serviceFunding: municipal.serviceFunding,
           lastPolicyChangeDay: municipal.lastPolicyChangeDay,
         },
+        zones,
       },
     };
 
@@ -193,6 +198,9 @@ export function loadCity() {
     // Restore vehicles
     useVehicleStore.setState({ vehicles: city.vehicles });
 
+    // Restore zones
+    useZoneStore.setState({ zones: city.zones || [] });
+
     // Restore municipal
     if (city.municipal) {
       useMunicipalStore.setState({
@@ -261,6 +269,7 @@ export function newCity() {
   useEventStore.setState({ events: [], providerUsage: {} });
   useVehicleStore.setState({ vehicles: [] });
   useRoadUsageStore.setState({ usage: new Map() });
+  useZoneStore.getState().clear();
   useSimulationStore.getState().reset();
   useMunicipalStore.getState().reset();
 

@@ -25,6 +25,7 @@ const LAND_VALUE_CONFIG = {
 interface LandValueStore {
   // Computed on demand; no persistent state
   getLandValue: (buildingId: number) => number;
+  getLandValueAtPosition: (position: [number, number, number]) => number;
 }
 
 const useLandValueStore = create<LandValueStore>((_, _get) => ({
@@ -121,6 +122,62 @@ const useLandValueStore = create<LandValueStore>((_, _get) => ({
     value += demandFactor * LAND_VALUE_CONFIG.demandBonus;
 
     // Clamp
+    return Math.max(0, Math.min(LAND_VALUE_CONFIG.maxValue, value));
+  },
+
+  getLandValueAtPosition: (position) => {
+    const buildings = useBuildingStore.getState().buildings;
+    const pos = position;
+    let value = LAND_VALUE_CONFIG.baseValue;
+
+    const hasRoad = hasRoadAccess(pos, buildings);
+    if (hasRoad) {
+      value += LAND_VALUE_CONFIG.roadAccessBonus;
+      const roadKey = `${Math.round(pos[0])},${Math.round(pos[2])}`;
+      const usage = useRoadUsageStore.getState().getUsage(roadKey);
+      const congestionRatio = usage / ROAD_CAPACITY;
+      const roadPenalty = Math.min(congestionRatio, 1) * 0.8;
+      value -= roadPenalty * LAND_VALUE_CONFIG.roadAccessBonus * 0.5;
+    }
+
+    const serviceStore = useServiceStore.getState();
+    const serviceTypes: Array<'recreation' | 'healthcare' | 'education' | 'safety' | 'emergency'> =
+      ['recreation', 'healthcare', 'education', 'safety', 'emergency'];
+    let serviceScore = 0;
+    let serviceCount = 0;
+    for (const type of serviceTypes) {
+      const coverage = serviceStore.getCoverage(pos, type);
+      if (coverage.covered) {
+        const dist = coverage.distance || 0;
+        const score = Math.max(0, 100 - dist * 5);
+        serviceScore += score;
+        serviceCount++;
+      }
+    }
+    if (serviceCount > 0) {
+      value += (serviceScore / serviceCount / 100) * LAND_VALUE_CONFIG.serviceBonus;
+    }
+
+    let totalCongestion = 0;
+    let roadCount = 0;
+    const offsets = [[1,0],[-1,0],[0,1],[0,-1],[2,0],[-2,0],[0,2],[0,-2]];
+    for (const [dx, dz] of offsets) {
+      const key = `${Math.round(pos[0] + dx)},${Math.round(pos[2] + dz)}`;
+      const usage = useRoadUsageStore.getState().getUsage(key);
+      if (usage > 0) {
+        totalCongestion += Math.min(usage / ROAD_CAPACITY, 1);
+        roadCount++;
+      }
+    }
+    if (roadCount > 0) {
+      value -= (totalCongestion / roadCount) * LAND_VALUE_CONFIG.congestionPenalty * 0.5;
+    }
+
+    const economyStore = useEconomyStore.getState();
+    const aggregateDemand = economyStore.aggregateDemand || 0;
+    const demandFactor = Math.min(aggregateDemand / 1000, 1);
+    value += demandFactor * LAND_VALUE_CONFIG.demandBonus;
+
     return Math.max(0, Math.min(LAND_VALUE_CONFIG.maxValue, value));
   },
 }));

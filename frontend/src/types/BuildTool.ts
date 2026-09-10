@@ -14,4 +14,7 @@ export type BuildTool =
   | "hospital"
   | "school"
   | "police_station"
-  | "fire_station";
+  | "fire_station"
+  | "zone_residential"
+  | "zone_commercial"
+  | "zone_industrial";

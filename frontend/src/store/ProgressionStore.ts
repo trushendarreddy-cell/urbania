@@ -198,8 +198,18 @@ const useProgressionStore = create<ProgressionState>((set, get) => {
     for (let i = 0; i <= stageIndex; i++) {
       unlocked.push(...STAGES[i].unlocks);
     }
-    // Also include always-available tools: tree, rock, road, bulldozer, select
-    const always = ['tree', 'rock', 'road', 'bulldozer', 'select', 'none'] as BuildTool[];
+    // Also include always-available tools: tree, rock, road, zoning, bulldozer, select
+    const always = [
+      'tree',
+      'rock',
+      'road',
+      'zone_residential',
+      'zone_commercial',
+      'zone_industrial',
+      'bulldozer',
+      'select',
+      'none',
+    ] as BuildTool[];
     unlocked.push(...always);
     // Remove duplicates
     const uniqueUnlocked = Array.from(new Set(unlocked));
@@ -214,7 +224,17 @@ const useProgressionStore = create<ProgressionState>((set, get) => {
   return {
     currentStage: STAGES[0].id,
     completedMilestones: [],
-    unlockedBuildings: ['tree', 'rock', 'road', 'bulldozer', 'select', 'none'] as BuildTool[],
+    unlockedBuildings: [
+      'tree',
+      'rock',
+      'road',
+      'zone_residential',
+      'zone_commercial',
+      'zone_industrial',
+      'bulldozer',
+      'select',
+      'none',
+    ] as BuildTool[],
 
     getStageIndex: () => {
       const stage = get().currentStage;
@@ -302,7 +322,17 @@ const useProgressionStore = create<ProgressionState>((set, get) => {
       set({
         currentStage: STAGES[0].id,
         completedMilestones: [],
-        unlockedBuildings: ['tree', 'rock', 'road', 'bulldozer', 'select', 'none'] as BuildTool[],
+        unlockedBuildings: [
+          'tree',
+          'rock',
+          'road',
+          'zone_residential',
+          'zone_commercial',
+          'zone_industrial',
+          'bulldozer',
+          'select',
+          'none',
+        ] as BuildTool[],
       });
     },
   };
