@@ -92,6 +92,14 @@ const categories: Category[] = [
     ],
   },
   {
+    id: 'transit',
+    label: 'Transit',
+    icon: '🚌',
+    tools: [
+      { id: 'bus_stop', label: 'Bus Stop', icon: '🚏', key: 'b' },
+    ],
+  },
+  {
     id: 'utilities',
     label: 'Utilities',
     icon: '⚡',

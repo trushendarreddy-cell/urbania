@@ -6,6 +6,7 @@ import useProgressionStore from '../store/ProgressionStore';
 import useActivityStore from '../store/ActivityStore';
 import useMunicipalStore from '../store/MunicipalStore';
 import useCityEventStore from '../store/CityEventStore';
+import useTransitStore from '../store/TransitStore';
 import { useState } from 'react';
 import ProgressionPanel from './ProgressionPanel';
 import MunicipalPanel from './MunicipalPanel';
@@ -30,6 +31,8 @@ export default function HUD() {
   const criticalCityEvents = activeCityEvents.filter((e) => e.severity === "critical").length;
   const [showProgression, setShowProgression] = useState(false);
   const [showMunicipal, setShowMunicipal] = useState(false);
+  const transitPanelOpen = useTransitStore((s) => s.panelOpen);
+  const setTransitPanelOpen = useTransitStore((s) => s.setPanelOpen);
   const stageNames: Record<string, string> = {
     village: 'Village',
     town: 'Town',
@@ -149,6 +152,28 @@ export default function HUD() {
         >
           <span>{criticalCityEvents > 0 ? '🚨' : '⚠️'}</span>
           <span>{activeCityEvents.length}</span>
+        </button>
+        <button
+          onClick={() => setTransitPanelOpen(!transitPanelOpen)}
+          style={{
+            background: transitPanelOpen ? 'rgba(56,189,248,0.18)' : 'rgba(255,255,255,0.06)',
+            border: `1px solid ${transitPanelOpen ? '#38BDF8' : 'rgba(255,255,255,0.12)'}`,
+            borderRadius: '8px',
+            padding: '2px 10px',
+            color: '#F3F4F6',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontFamily: 'inherit',
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = transitPanelOpen ? 'rgba(56,189,248,0.18)' : 'rgba(255,255,255,0.06)'}
+        >
+          <span>🚌</span>
+          <span>Transit</span>
         </button>
         <button
           onClick={() => setShowProgression(!showProgression)}

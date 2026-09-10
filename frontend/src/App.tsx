@@ -24,9 +24,11 @@ import { processOrganicDevelopment } from "./systems/OrganicDevelopmentSystem";
 import { recomputeDistrictStats } from "./systems/DistrictSystem";
 import { evaluateCityEvents } from "./systems/CityEventSystem";
 import CityEventPanel from "./ui/CityEventPanel";
+import TransitPanel from "./ui/TransitPanel";
 import useDistrictStore from "./store/DistrictStore";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
+import { processTransit } from "./systems/TransitSystem";
 import type { BuildTool } from "./types/BuildTool";
 import CityMenu from "./ui/CityMenu";
 
@@ -91,6 +93,8 @@ export default function App() {
           useProgressionStore.getState().recompute();
           // Recompute district statistics
           recomputeDistrictStats();
+          // Process transit (bus movement, route updates)
+          processTransit(deltaHours);
           // Evaluate city-wide events
           evaluateCityEvents();
         }
@@ -208,8 +212,9 @@ export default function App() {
       <InspectionPanel />
       <ZoneInspectionPanel />
       <DistrictPanel />
-      <CityEventPanel />
-      <CityStats />
+        <CityEventPanel />
+        <TransitPanel />
+        <CityStats />
       <EventPanel />
       <TrafficPanel />
       <AlertPanel />

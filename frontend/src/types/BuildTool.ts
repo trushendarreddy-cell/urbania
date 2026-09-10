@@ -18,4 +18,5 @@ export type BuildTool =
   | "zone_residential"
   | "zone_commercial"
   | "zone_industrial"
-  | "district";
+  | "district"
+  | "bus_stop";
