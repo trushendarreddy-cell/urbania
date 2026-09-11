@@ -39,8 +39,17 @@ import ZoneTile from "../world/ZoneTile";
 import useZoneStore from "../store/ZoneStore";
 import DistrictOverlay from "../world/DistrictOverlay";
 import useDistrictStore from "../store/DistrictStore";
+import BusStop from "../world/BusStop";
+import TransitBus from "../world/TransitBus";
+import TransitRouteLine from "../world/TransitRouteLine";
+import useTransitStore from "../store/TransitStore";
+import {
+  canPlaceStop,
+  getLineRoute,
+  busWorldPosition,
+  busWorldRotation,
+} from "../systems/TransitSystem";
 import type { ZoneType } from "../types/ZoneType";
-// import needed for getCitizenPosition
 
 interface GameSceneProps {
   selectedTool: BuildTool;
@@ -89,6 +98,14 @@ export default function GameScene({
   const setSelectedDistrictId = useDistrictStore((state) => state.setSelectedDistrictId);
   const districtMode = useDistrictStore((state) => state.districtMode);
   const districtStats = useDistrictStore((state) => state.stats);
+
+  const stops = useTransitStore((state) => state.stops);
+  const lines = useTransitStore((state) => state.lines);
+  const buses = useTransitStore((state) => state.buses);
+  const selectedStopId = useTransitStore((state) => state.selectedStopId);
+  const addStop = useTransitStore((state) => state.addStop);
+  const lineDraft = useTransitStore((state) => state.lineDraft);
+
   const [hoverPos, setHoverPos] = useState<
     [number, number, number]
   >([0, 0.02, 0]);
@@ -228,19 +245,37 @@ export default function GameScene({
       dragStart = null;
 
       if (distance <= DRAG_THRESHOLD && event.target === gl.domElement) {
+        const transitStore = useTransitStore.getState();
+        const stopUnder = transitStore.stops.find(
+          (s) =>
+            Math.abs(s.position[0] - hoverPos[0]) < 0.5 &&
+            Math.abs(s.position[2] - hoverPos[2]) < 0.5
+        );
+
+        if (transitStore.lineDraft) {
+          if (stopUnder) {
+            transitStore.addStopToDraft(stopUnder.id);
+          }
+          return;
+        }
+
         if (selectedTool === "bulldozer") {
-          const target = buildings.find(
-            (b) =>
-              Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
-              Math.abs(b.position[2] - hoverPos[2]) < 0.1
-          );
-          if (target) {
-            if (target.type === "house") {
-              removeHousehold(target.id);
-            }
-            removeBuilding(target.id);
+          if (stopUnder) {
+            transitStore.removeStop(stopUnder.id);
           } else {
-            removeZoneAt([hoverPos[0], 0, hoverPos[2]]);
+            const target = buildings.find(
+              (b) =>
+                Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
+                Math.abs(b.position[2] - hoverPos[2]) < 0.1
+            );
+            if (target) {
+              if (target.type === "house") {
+                removeHousehold(target.id);
+              }
+              removeBuilding(target.id);
+            } else {
+              removeZoneAt([hoverPos[0], 0, hoverPos[2]]);
+            }
           }
         } else if (selectedTool === "district") {
           const activeId = useDistrictStore.getState().activeDistrictId;
@@ -264,28 +299,44 @@ export default function GameScene({
               addZone([hoverPos[0], 0, hoverPos[2]], zoneType);
             }
           }
+        } else if (selectedTool === "bus_stop") {
+          const cellKey = `${Math.round(hoverPos[0])},${Math.round(hoverPos[2])}`;
+          if (!transitStore.getStopAt(cellKey)) {
+            const { valid, roadKey } = canPlaceStop(hoverPos, buildings);
+            if (valid && roadKey) {
+              addStop([hoverPos[0], 0, hoverPos[2]], roadKey);
+            }
+          }
         } else if (
           selectedTool === "select" ||
           selectedTool === "none"
         ) {
-          const target = buildings.find(
-            (b) =>
-              Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
-              Math.abs(b.position[2] - hoverPos[2]) < 0.1
-          );
-          setSelectedObjectId(target ? target.id : null);
-          if (target) {
+          if (stopUnder) {
+            transitStore.setSelectedStopId(stopUnder.id);
+            setSelectedObjectId(null);
             setSelectedZoneId(null);
             setSelectedDistrictId(null);
           } else {
-            const zone = useZoneStore
-              .getState()
-              .getZoneAt([hoverPos[0], 0, hoverPos[2]]);
-            setSelectedZoneId(zone ? zone.id : null);
-            const district = useDistrictStore
-              .getState()
-              .getDistrictAt(`${Math.round(hoverPos[0])},${Math.round(hoverPos[2])}`);
-            setSelectedDistrictId(district ? district.id : null);
+            transitStore.setSelectedStopId(null);
+            const target = buildings.find(
+              (b) =>
+                Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
+                Math.abs(b.position[2] - hoverPos[2]) < 0.1
+            );
+            setSelectedObjectId(target ? target.id : null);
+            if (target) {
+              setSelectedZoneId(null);
+              setSelectedDistrictId(null);
+            } else {
+              const zone = useZoneStore
+                .getState()
+                .getZoneAt([hoverPos[0], 0, hoverPos[2]]);
+              setSelectedZoneId(zone ? zone.id : null);
+              const district = useDistrictStore
+                .getState()
+                .getDistrictAt(`${Math.round(hoverPos[0])},${Math.round(hoverPos[2])}`);
+              setSelectedDistrictId(district ? district.id : null);
+            }
           }
         } else if (selectedTool !== "road") {
           const canPlace = canPlaceObject(
@@ -354,6 +405,7 @@ export default function GameScene({
     removeZoneAt,
     setSelectedZoneId,
     setSelectedDistrictId,
+    addStop,
   ]);
 
   const canPlace = canPlaceObject(
@@ -363,12 +415,26 @@ export default function GameScene({
     buildings
   );
 
+  const stopPlacement =
+    selectedTool === "bus_stop"
+      ? canPlaceStop(hoverPos, buildings)
+      : { valid: false, roadKey: null };
+
   const hoveredBuilding =
     selectedTool === "bulldozer"
       ? buildings.find(
           (b) =>
             Math.abs(b.position[0] - hoverPos[0]) < 0.1 &&
             Math.abs(b.position[2] - hoverPos[2]) < 0.1
+        )
+      : null;
+
+  const hoveredStop =
+    selectedTool === "bulldozer"
+      ? stops.find(
+          (s) =>
+            Math.abs(s.position[0] - hoverPos[0]) < 0.5 &&
+            Math.abs(s.position[2] - hoverPos[2]) < 0.5
         )
       : null;
 
@@ -390,17 +456,12 @@ export default function GameScene({
     })),
   ];
 
-  // function BuildingComponent removed - unused
-
   return (
     <>
-      {/* Sky */}
       <color attach="background" args={["#90C8E0"]} />
- 
-      {/* Lighting - Day/Night Cycle based on timeOfDay */}
+
       {(() => {
         const hour = timeOfDay;
-        // Normalize hour to 0-24
         const sunAngle = (hour / 24) * Math.PI * 2;
         const sunHeight = Math.sin(sunAngle);
         const isDay = sunHeight > 0.1;
@@ -435,11 +496,9 @@ export default function GameScene({
         );
       })()}
 
-      {/* World */}
       <Ground />
       <WorldGrid />
 
-      {/* Zoned Tiles */}
       {zones.map((zone) => (
         <ZoneTile
           key={zone.id}
@@ -450,7 +509,6 @@ export default function GameScene({
         />
       ))}
 
-      {/* District Overlays */}
       {districts.map((district) => (
         <DistrictOverlay
           key={district.id}
@@ -461,7 +519,6 @@ export default function GameScene({
         />
       ))}
 
-      {/* Buildings */}
       {buildings.map((building) => {
         if (building.type === "road") {
           const connections = getRoadNeighbors(
@@ -502,7 +559,6 @@ export default function GameScene({
           building.type === "park" ||
           !building.type
         ) {
-          // For house/shop/factory, pass level and window intensity
           const level = (building as any).level || 1;
           const windowIntensity = (building.type === 'house' || building.type === 'shop' || building.type === 'factory')
             ? getWindowIntensity(building.type, level)
@@ -583,7 +639,38 @@ export default function GameScene({
         return null;
       })}
 
-      {/* Selection Highlight */}
+      {lines.map((line) => {
+        const route = getLineRoute(line.id);
+        if (!route || route.roadPath.length < 2) return null;
+        return (
+          <TransitRouteLine
+            key={line.id}
+            roadPath={route.roadPath}
+            color={line.color}
+          />
+        );
+      })}
+
+      {stops.map((stop) => (
+        <BusStop
+          key={stop.id}
+          position={stop.position}
+          selected={stop.id === selectedStopId}
+        />
+      ))}
+
+      {buses.map((bus) => {
+        const line = lines.find((l) => l.id === bus.lineId);
+        return (
+          <TransitBus
+            key={bus.id}
+            position={busWorldPosition(bus)}
+            rotation={busWorldRotation(bus)}
+            color={line?.color ?? "#F97316"}
+          />
+        );
+      })}
+
       {selectedBuilding && (
         <>
           <mesh
@@ -634,7 +721,6 @@ export default function GameScene({
         </>
       )}
 
-      {/* Citizens */}
       {citizens.map((citizen) => {
         const household = households.find((h) => h.id === citizen.householdId);
         if (!household) return null;
@@ -656,7 +742,6 @@ export default function GameScene({
         );
       })}
 
-      {/* Event Indicators */}
       {events.map((event) => {
         if (event.status === "resolved") return null;
         return (
@@ -669,10 +754,8 @@ export default function GameScene({
         );
       })}
 
-      {/* Emergency Vehicles */}
       {vehicles.map((vehicle) => {
         if (vehicle.status === "idle") return null;
-        // Determine rotation based on movement direction
         let rotation = 0;
         const route = vehicle.route;
         if (vehicle.routeIndex < route.length - 1) {
@@ -682,10 +765,8 @@ export default function GameScene({
           const [bx, bz] = keyB.split(',').map(Number);
           rotation = Math.atan2(bx - ax, bz - az);
         } else {
-          // At destination, face forward (towards last node)
           const key = route[route.length - 1];
           const [x, z] = key.split(',').map(Number);
-          // Get previous node if possible
           if (route.length > 1) {
             const prevKey = route[route.length - 2];
             const [px, pz] = prevKey.split(',').map(Number);
@@ -702,7 +783,6 @@ export default function GameScene({
         );
       })}
 
-      {/* Ghost Previews */}
       {selectedTool === "house" && (
         <House
           position={[hoverPos[0], 0, hoverPos[2]]}
@@ -824,6 +904,14 @@ export default function GameScene({
         />
       )}
 
+      {selectedTool === "bus_stop" && (
+        <BusStop
+          position={[hoverPos[0], 0, hoverPos[2]]}
+          ghost
+          valid={stopPlacement.valid}
+        />
+      )}
+
       {(selectedTool === "zone_residential" ||
         selectedTool === "zone_commercial" ||
         selectedTool === "zone_industrial") && (
@@ -864,18 +952,63 @@ export default function GameScene({
         <mesh position={[hoverPos[0], 0.02, hoverPos[2]]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.4, 0.6, 16]} />
           <meshBasicMaterial
-            color={hoveredBuilding ? "#EF4444" : "#FACC15"}
+            color={hoveredBuilding || hoveredStop ? "#EF4444" : "#FACC15"}
             transparent
             opacity={0.5}
           />
         </mesh>
       )}
 
-      {/* Build Mode Road Access Feedback */}
+      {selectedTool === "bus_stop" && (
+        <Html position={[hoverPos[0], 1.5, hoverPos[2]]} center>
+          <div
+            style={{
+              fontSize: "11px",
+              fontFamily: "Inter, system-ui, sans-serif",
+              padding: "4px 10px",
+              borderRadius: "8px",
+              backgroundColor: "rgba(12,12,16,0.85)",
+              backdropFilter: "blur(4px)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: stopPlacement.valid ? "#4ADE80" : "#FACC15",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+              userSelect: "none",
+              fontWeight: "500",
+            }}
+          >
+            {stopPlacement.valid ? "✓ Road Adjacent" : "✗ Needs Adjacent Road"}
+          </div>
+        </Html>
+      )}
+
+      {lineDraft && (
+        <Html position={[hoverPos[0], 2.0, hoverPos[2]]} center>
+          <div
+            style={{
+              fontSize: "11px",
+              fontFamily: "Inter, system-ui, sans-serif",
+              padding: "4px 10px",
+              borderRadius: "8px",
+              backgroundColor: "rgba(12,12,16,0.9)",
+              border: "1px solid #38BDF8",
+              color: "#38BDF8",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+              userSelect: "none",
+              fontWeight: "600",
+            }}
+          >
+            Line draft — click stops ({lineDraft.length} selected)
+          </div>
+        </Html>
+      )}
+
       {selectedTool !== "none" &&
         selectedTool !== "road" &&
         selectedTool !== "bulldozer" &&
         selectedTool !== "select" &&
+        selectedTool !== "bus_stop" &&
         selectedTool !== "zone_residential" &&
         selectedTool !== "zone_commercial" &&
         selectedTool !== "zone_industrial" && (
@@ -905,7 +1038,6 @@ export default function GameScene({
           </Html>
         )}
 
-      {/* Camera Controls */}
       <OrbitControls
         enableDamping
         dampingFactor={0.08}

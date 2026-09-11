@@ -45,6 +45,7 @@ frontend/src/
 - **ZoneStore** (`store/ZoneStore.ts`): vacant zoned tiles (`Zone` = position, zoneType, state, progress), `addZone`, `removeZoneAt`, `getZoneAt`, `setProgress`, `setState`, `selectedZoneId`; cleared on New City and persisted in saves.
 - **DistrictStore** (`store/DistrictStore.ts`): districts (`id`, `name`, `color`, `cells`, `specialization`), `createDistrict`, `renameDistrict`, `setSpecialization`, `setColor`, `toggleCell`, `deleteDistrict`, `getDistrictAt`, derived `stats`, `selectedDistrictId`/`activeDistrictId`/`districtMode`; max 20 districts; cleared on New City and persisted.
 - **CityEventStore** (`store/CityEventStore.ts`): city-wide events (`type`, `category`, `severity`, `title`, `description`, `districtId`, `status`, `createdAtDay`, `navigation`), `createEvent`, `resolveEvent`, `isOnCooldown`, `setCooldown`, `panelOpen`, `selectedEventId`; max 12 active, 20 history; cleared on New City and persisted.
+- **TransitStore** (`store/TransitStore.ts`): `stops` (id, name, cellKey, position, roadKey), `lines` (id, name, color, stopIds, enabled, disrupted), `buses` (lineId, segmentIndex, progress, direction, status, dwell), `selectedStopId`/`selectedLineId`/`panelOpen`/`lineDraft`; max 60 stops, 12 lines; cleared on New City and persisted.
 
 ## Simulation Systems
 - **PlacementSystem**: validation for building placement.
@@ -57,6 +58,7 @@ frontend/src/
 - **RoadUsageCleanup**: periodic stale-usage cleanup.
 - **AlertSystem**: evaluates service/utility/happiness shortages.
 - **OrganicDevelopmentSystem**: `getZoneDevelopmentPressure`, `isZoneEligible`, `processOrganicDevelopment` (run on day change; gates on road access, demand, pressure, progression; creates buildings at land-value-derived level). Pressure includes a district specialization modifier.
+- **TransitSystem**: `canPlaceStop` (road-adjacency validation), `recomputeTransitRoutes` (road-graph BFS segments, cached), `updateBuses` (interpolated movement + dwell), `busWorldPosition`/`busWorldRotation`, `syncTransitRoadUsage` (buses count as traffic), `computeStopStats`/`computeLineStats`/`computeTransitStats` (deterministic ridership), `processTransit`, `resetTransit`.
 ## Phase 36 — Dynamic City Events & Incidents
 - CityEventStore and CityEventSystem
 - Condition-driven events across infrastructure, services, economy, development, citizens

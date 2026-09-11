@@ -63,6 +63,11 @@ export interface DistrictStats {
   priority: string | null;
   trafficLevel: "Low" | "Moderate" | "Heavy" | "None";
   developmentActivity: "High" | "Moderate" | "Low" | "None";
+  transitCoverage: number;
+  transitStops: number;
+  transitLines: number;
+  transitRiders: number;
+  transitNeed: "Low" | "Moderate" | "High" | "None";
 }
 
 export const MAX_DISTRICTS = 20;

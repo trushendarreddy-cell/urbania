@@ -286,6 +286,8 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full detail.
 - Building upgrades are visual/status only; capacity scaling is not yet wired.
 - Civilian vehicles reuse the emergency vehicle model.
 - No traffic lights, lane simulation, or collision avoidance.
+- Transit ridership is an aggregate estimate; citizens do not individually path onto buses.
+- No transit fares or dedicated transit policy yet.
 - No mobile touch support, sound, or multiplayer.
 
 ---

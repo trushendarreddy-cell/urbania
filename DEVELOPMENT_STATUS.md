@@ -1,7 +1,7 @@
 # Urbania Development Status
 
 ## Current Version
-2.48 — Neighborhood Identity & Local Development
+2.50 — Public Transportation & Commuter Network
 
 ## Current Phase
 Active Development
@@ -85,6 +85,19 @@ Active Development
 - Throttled district notifications via AlertStore
 - Specialization (player intent) shown separately from derived character (reality)
 - Districts persist in save/load; New City clears them and resets notifications
+
+### Public Transportation (2.50)
+- TransitStop placement (road-adjacent, validated, persistent), low-poly shelter visual
+- TransitLine creation (draft → click stops → finish), rename, enable/disable, delete
+- Route validation via the existing road graph; disrupted lines flagged and notified
+- Lightweight buses interpolated along cached routes (docks, loops); fleet per line by route length
+- Deterministic aggregate ridership from nearby population/jobs and line count
+- Buses count as road traffic via RoadUsageStore; transit coverage/reliability
+- District transit metrics (coverage, stops, lines, ridership, transit need)
+- TransitPanel network summary with line/stop inspection and demand level
+- Municipal costs: stop upkeep, line operating cost, one-time line cost (blocked if insufficient funds)
+- City events: Transit Coverage Gap, Bus Line Disrupted, Public Transport Growth
+- Persists in save/load; New City clears all transit state
 
 ### City Systems
 - Simulation Clock (day, timeOfDay, pause, speed 0/1/2/4)

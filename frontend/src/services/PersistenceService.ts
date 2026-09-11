@@ -11,8 +11,10 @@ import useMunicipalStore from '../store/MunicipalStore';
 import useZoneStore from '../store/ZoneStore';
 import useDistrictStore from '../store/DistrictStore';
 import useCityEventStore from '../store/CityEventStore';
+import useTransitStore from '../store/TransitStore';
 import type { CityEvent as CityWideEvent } from '../store/CityEventStore';
 import { resetDistrictNotifications } from '../systems/DistrictSystem';
+import { resetTransit } from '../systems/TransitSystem';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
 import type { Household, Citizen } from '../store/PopulationStore';
@@ -20,6 +22,7 @@ import type { CityEvent } from '../store/EventStore';
 import type { Vehicle } from '../store/VehicleStore';
 import type { Zone } from '../store/ZoneStore';
 import type { District } from '../store/DistrictStore';
+import type { TransitStop, TransitLine } from '../store/TransitStore';
 
 const SAVE_KEY = 'urbania_save';
 const VERSION = 1;
@@ -72,6 +75,8 @@ export interface SaveData {
     districts?: District[];
     cityEvents?: CityWideEvent[];
     cityEventCooldowns?: Record<string, number>;
+    transitStops?: TransitStop[];
+    transitLines?: TransitLine[];
   };
 }
 
@@ -89,6 +94,8 @@ export function saveCity() {
     const districts = useDistrictStore.getState().districts;
     const cityEvents = useCityEventStore.getState().events;
     const cityEventCooldowns = useCityEventStore.getState().cooldowns;
+    const transitStops = useTransitStore.getState().stops;
+    const transitLines = useTransitStore.getState().lines;
 
     const saveData: SaveData = {
       version: VERSION,
@@ -137,6 +144,8 @@ export function saveCity() {
         districts,
         cityEvents,
         cityEventCooldowns,
+        transitStops,
+        transitLines,
       },
     };
 
@@ -231,6 +240,18 @@ export function loadCity() {
       panelOpen: false,
     });
 
+    // Restore transit (buses rebuilt from line state on first tick)
+    useTransitStore.setState({
+      stops: city.transitStops || [],
+      lines: city.transitLines || [],
+      buses: [],
+      selectedStopId: null,
+      selectedLineId: null,
+      panelOpen: false,
+      lineDraft: null,
+    });
+    resetTransit();
+
     // Restore municipal
     if (city.municipal) {
       useMunicipalStore.setState({
@@ -302,6 +323,8 @@ export function newCity() {
   useZoneStore.getState().clear();
   useDistrictStore.getState().clear();
   useCityEventStore.getState().clear();
+  useTransitStore.getState().clear();
+  resetTransit();
   resetDistrictNotifications();
   useSimulationStore.getState().reset();
   useMunicipalStore.getState().reset();

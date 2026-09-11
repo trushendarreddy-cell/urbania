@@ -1,10 +1,16 @@
 import { useState } from "react";
 import useTransitStore from "../store/TransitStore";
+import useMunicipalStore from "../store/MunicipalStore";
 import {
   computeTransitStats,
   computeStopStats,
+  computeLineStats,
   getTransitDemandLevel,
 } from "../systems/TransitSystem";
+
+const STOP_COST = 25;
+const LINE_COST = 100;
+const BUS_COST = 40;
 
 export default function TransitPanel() {
   const panelOpen = useTransitStore((s) => s.panelOpen);
@@ -22,6 +28,7 @@ export default function TransitPanel() {
   const renameLine = useTransitStore((s) => s.renameLine);
   const toggleLine = useTransitStore((s) => s.toggleLine);
   const deleteLine = useTransitStore((s) => s.deleteLine);
+  const treasury = useMunicipalStore((s) => s.treasury);
 
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
@@ -81,6 +88,7 @@ export default function TransitPanel() {
       <Row label="Active Buses" value={stats.busCount} />
       <Row label="Daily Riders" value={stats.dailyRiders} />
       <Row label="Coverage" value={`${Math.round(stats.coverage)}%`} />
+      <Row label="Treasury" value={`₹${Math.round(treasury)}`} />
       <Row
         label="Demand"
         value={
@@ -118,17 +126,28 @@ export default function TransitPanel() {
         </button>
         {lineDraft && lineDraft.length >= 2 && (
           <button
-            onClick={() => commitLineDraft()}
+            onClick={() => {
+              if (treasury < LINE_COST) return;
+              const id = commitLineDraft();
+              if (id) useMunicipalStore.getState().spend(LINE_COST);
+            }}
+            disabled={treasury < LINE_COST}
             style={{
               ...smallBtn,
               background: "rgba(74,222,128,0.18)",
               border: "1px solid #4ADE80",
+              opacity: treasury < LINE_COST ? 0.5 : 1,
             }}
           >
-            ✓ Finish ({lineDraft.length})
+            ✓ Finish ({lineDraft.length}) ₹{LINE_COST}
           </button>
         )}
       </div>
+      {lineDraft && lineDraft.length >= 2 && treasury < LINE_COST && (
+        <div style={{ fontSize: "11px", color: "#F87171", marginTop: "4px" }}>
+          Insufficient municipal funds.
+        </div>
+      )}
       {lineDraft && (
         <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px" }}>
           Click transit stops on the map to add them to the line.
@@ -182,8 +201,42 @@ export default function TransitPanel() {
       {selectedLine && (
         <>
           <Section title="Line" />
-          <Row label="Status" value={selectedLine.disrupted ? "Disrupted" : selectedLine.enabled ? "Active" : "Disabled"} />
-          <Row label="Stops" value={selectedLine.stopIds.length} />
+          {(() => {
+            const ls = computeLineStats(selectedLine);
+            const level =
+              ls.riders >= 80 ? "Good" : ls.riders >= 30 ? "Fair" : "Poor";
+            return (
+              <>
+                <Row
+                  label="Status"
+                  value={
+                    selectedLine.disrupted
+                      ? "Disrupted"
+                      : selectedLine.enabled
+                      ? "Active"
+                      : "Disabled"
+                  }
+                />
+                <Row label="Stops" value={selectedLine.stopIds.length} />
+                <Row label="Buses" value={ls.busCount} />
+                <Row label="Daily Riders" value={ls.riders} />
+                <Row
+                  label="Coverage"
+                  value={
+                    <span style={{ color: serviceColor(level) }}>{level}</span>
+                  }
+                />
+                {selectedLine.stopIds.length > 0 && (
+                  <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px" }}>
+                    Route:{" "}
+                    {selectedLine.stopIds
+                      .map((id) => stops.find((s) => s.id === id)?.name ?? "?")
+                      .join(" → ")}
+                  </div>
+                )}
+              </>
+            );
+          })()}
           {selectedLine.disrupted && selectedLine.disruptedReason && (
             <div style={{ fontSize: "11px", color: "#F87171" }}>
               {selectedLine.disruptedReason}
@@ -248,58 +301,83 @@ export default function TransitPanel() {
           No bus lines yet.
         </div>
       )}
-      {lines.map((l) => (
-        <button
-          key={l.id}
-          onClick={() => setSelectedLineId(l.id)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            width: "100%",
-            padding: "4px 6px",
-            background: l.id === selectedLineId ? "rgba(255,255,255,0.08)" : "transparent",
-            border: "none",
-            borderRadius: "6px",
-            color: "#D1D5DB",
-            cursor: "pointer",
-            fontSize: "12px",
-            fontFamily: "inherit",
-            textAlign: "left",
-          }}
-        >
-          <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: l.color, flexShrink: 0 }} />
-          <span style={{ flex: 1 }}>{l.name}</span>
-          <span style={{ color: l.disrupted ? "#F87171" : l.enabled ? "#4ADE80" : "#6B7280", fontSize: "11px" }}>
-            {l.disrupted ? "disrupted" : l.enabled ? "active" : "off"}
-          </span>
-        </button>
-      ))}
+      {lines.map((l) => {
+        const ls = computeLineStats(l);
+        return (
+          <div
+            key={l.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              width: "100%",
+              padding: "4px 6px",
+              background: l.id === selectedLineId ? "rgba(255,255,255,0.08)" : "transparent",
+              borderRadius: "6px",
+            }}
+          >
+            <span style={{ width: "10px", height: "10px", borderRadius: "3px", background: l.color, flexShrink: 0 }} />
+            <button
+              onClick={() => setSelectedLineId(l.id)}
+              style={{
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                borderRadius: "6px",
+                color: "#D1D5DB",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontFamily: "inherit",
+                textAlign: "left",
+                padding: 0,
+              }}
+            >
+              {l.name} · {ls.riders}/day · {ls.busCount} bus{ls.busCount === 1 ? "" : "es"}
+            </button>
+            <span style={{ color: l.disrupted ? "#F87171" : l.enabled ? "#4ADE80" : "#6B7280", fontSize: "11px" }}>
+              {l.disrupted ? "disrupted" : l.enabled ? "active" : "off"}
+            </span>
+          </div>
+        );
+      })}
 
       <Section title="Stops" />
-      {stops.map((s) => (
-        <button
-          key={s.id}
-          onClick={() => setSelectedStopId(s.id)}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            width: "100%",
-            padding: "3px 6px",
-            background: s.id === selectedStopId ? "rgba(255,255,255,0.08)" : "transparent",
-            border: "none",
-            borderRadius: "6px",
-            color: "#D1D5DB",
-            cursor: "pointer",
-            fontSize: "12px",
-            fontFamily: "inherit",
-            textAlign: "left",
-          }}
-        >
-          <span>{s.name}</span>
-          <span style={{ color: "#6B7280" }}>{s.cellKey}</span>
-        </button>
-      ))}
+      {stops.map((s) => {
+        const ss = computeStopStats(s);
+        return (
+          <button
+            key={s.id}
+            onClick={() => setSelectedStopId(s.id)}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+              padding: "3px 6px",
+              background: s.id === selectedStopId ? "rgba(255,255,255,0.08)" : "transparent",
+              border: "none",
+              borderRadius: "6px",
+              color: "#D1D5DB",
+              cursor: "pointer",
+              fontSize: "12px",
+              fontFamily: "inherit",
+              textAlign: "left",
+            }}
+          >
+            <span>{s.name}</span>
+            <span style={{ color: "#6B7280" }}>
+              {ss.lines} line{ss.lines === 1 ? "" : "s"} · {s.cellKey}
+            </span>
+          </button>
+        );
+      })}
+      {stops.length === 0 && (
+        <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+          Place Bus Stops (BuildMenu → Transit) to start.
+        </div>
+      )}
+      <div style={{ fontSize: "10px", color: "#6B7280", marginTop: "6px" }}>
+        Costs: Stop ₹{STOP_COST} · Line ₹{LINE_COST} · Bus ₹{BUS_COST}
+      </div>
     </div>
   );
 }

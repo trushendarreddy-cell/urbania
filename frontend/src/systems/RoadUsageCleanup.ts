@@ -1,5 +1,6 @@
 import useVehicleStore from "../store/VehicleStore";
 import useRoadUsageStore from "../store/RoadUsageStore";
+import { syncTransitRoadUsage } from "./TransitSystem";
 
 // Periodically clean up stale road usage by comparing with active vehicles
 // This is a safety net; vehicles should already clean up their own usage.
@@ -33,4 +34,6 @@ export function cleanRoadUsage() {
       usageStore.decrement(key); // will delete if usage goes to 0
     }
   }
+  // Transit routes are not vehicles; re-apply their road usage
+  syncTransitRoadUsage();
 }

@@ -8,6 +8,8 @@ import useDistrictStore, {
 import useMunicipalStore from "../store/MunicipalStore";
 import useCityDemandStore from "../store/CityDemandStore";
 import useAlertStore from "../store/AlertStore";
+import useTransitStore from "../store/TransitStore";
+import { computeTransitStats } from "./TransitSystem";
 import { useSimulationStore } from "../stores/useSimulationStore";
 
 const COOLDOWN_DAYS = 5;
@@ -72,6 +74,17 @@ export const evaluateCityEvents = () => {
       case "budget_pressure":
         stillActive = treasury < 200;
         break;
+      case "transit_coverage_gap":
+        stillActive = computeTransitStats().lowCoverage.length > 0;
+        break;
+      case "transit_disruption":
+        stillActive = useTransitStore
+          .getState()
+          .lines.some((l) => l.disrupted);
+        break;
+      case "transit_growth":
+        stillActive = computeTransitStats().network !== "Poor";
+        break;
       default:
         stillActive = true;
     }
@@ -133,6 +146,80 @@ export const evaluateCityEvents = () => {
           districtId: null,
           districtName: null,
           navigation: "budget",
+        },
+        day
+      );
+    }
+  }
+
+  const transitStats = computeTransitStats();
+  const transitLines = useTransitStore.getState().lines;
+
+  if (transitStats.lowCoverage.length > 0 && transitStats.stopCount > 0) {
+    const key = "transit_coverage_gap:city";
+    if (!eventStore.isOnCooldown(key, day, COOLDOWN_DAYS)) {
+      eventStore.setCooldown(key, day);
+      eventStore.createEvent(
+        {
+          type: "transit_coverage_gap",
+          category: "infrastructure",
+          severity: "info",
+          title: "Transit Coverage Gap",
+          description: `Low bus coverage in ${transitStats.lowCoverage.join(", ")}.`,
+          districtId: null,
+          districtName: transitStats.lowCoverage[0] ?? null,
+          navigation: "traffic",
+        },
+        day
+      );
+    }
+  }
+
+  const disruptedLine = transitLines.find((l) => l.disrupted);
+  if (disruptedLine) {
+    const key = `transit_disruption:${disruptedLine.id}`;
+    if (!eventStore.isOnCooldown(key, day, COOLDOWN_DAYS)) {
+      eventStore.setCooldown(key, day);
+      eventStore.createEvent(
+        {
+          type: "transit_disruption",
+          category: "infrastructure",
+          severity: "warning",
+          title: "Bus Line Disrupted",
+          description: `${disruptedLine.name}: ${
+            disruptedLine.disruptedReason ?? "route unavailable"
+          }.`,
+          districtId: null,
+          districtName: null,
+          navigation: "traffic",
+        },
+        day
+      );
+      notify(
+        "warning",
+        "infrastructure",
+        `Bus Line Disrupted: ${disruptedLine.name}.`
+      );
+    }
+  }
+
+  if (
+    transitStats.network === "Good" &&
+    transitStats.dailyRiders >= 200
+  ) {
+    const key = "transit_growth:city";
+    if (!eventStore.isOnCooldown(key, day, COOLDOWN_DAYS * 2)) {
+      eventStore.setCooldown(key, day);
+      eventStore.createEvent(
+        {
+          type: "transit_growth",
+          category: "development",
+          severity: "info",
+          title: "Public Transport Growth",
+          description: `Ridership has reached ${transitStats.dailyRiders}/day across ${transitStats.lineCount} lines.`,
+          districtId: null,
+          districtName: null,
+          navigation: "traffic",
         },
         day
       );

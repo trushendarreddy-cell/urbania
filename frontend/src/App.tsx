@@ -28,7 +28,7 @@ import TransitPanel from "./ui/TransitPanel";
 import useDistrictStore from "./store/DistrictStore";
 import { updateTrafficSystem, resetTrafficSystem } from "./systems/TrafficSystem";
 import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
-import { processTransit } from "./systems/TransitSystem";
+import { processTransit, resetTransit } from "./systems/TransitSystem";
 import type { BuildTool } from "./types/BuildTool";
 import CityMenu from "./ui/CityMenu";
 
@@ -54,6 +54,7 @@ export default function App() {
 
     // Reset traffic system on mount (and when simulation resets)
     resetTrafficSystem();
+    resetTransit();
     // Clean up any orphaned road usage periodically
     const cleanupInterval = setInterval(() => {
       cleanRoadUsage();
@@ -80,6 +81,8 @@ export default function App() {
         useVehicleStore.getState().updateVehicles(deltaHours);
         // Spawn civilian traffic
         updateTrafficSystem(deltaHours, timeOfDay);
+        // Process transit (bus movement, route updates, road usage)
+        processTransit(deltaHours);
         // Evaluate alerts on day change (when day > prevDay)
         if (day > prevDay) {
           evaluateAlerts();
@@ -93,8 +96,6 @@ export default function App() {
           useProgressionStore.getState().recompute();
           // Recompute district statistics
           recomputeDistrictStats();
-          // Process transit (bus movement, route updates)
-          processTransit(deltaHours);
           // Evaluate city-wide events
           evaluateCityEvents();
         }

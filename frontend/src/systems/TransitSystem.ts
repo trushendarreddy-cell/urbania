@@ -3,11 +3,12 @@ import useTransitStore, {
   type TransitStop,
   type BusState,
 } from "../store/TransitStore";
-import useBuildingStore from "../store/BuildingStore";
+import useBuildingStore, { type Building } from "../store/BuildingStore";
 import usePopulationStore from "../store/PopulationStore";
 import useDistrictStore from "../store/DistrictStore";
 import useAlertStore from "../store/AlertStore";
-import { getRoadGraph, findPath } from "./PathfindingSystem";
+import useRoadUsageStore from "../store/RoadUsageStore";
+import { getRoadGraph, findPath, findNearestRoadCell } from "./PathfindingSystem";
 import { useSimulationStore } from "../stores/useSimulationStore";
 
 export interface LineRoute {
@@ -200,6 +201,38 @@ export const busWorldPosition = (bus: BusState): [number, number, number] => {
   ];
 };
 
+export const busWorldRotation = (bus: BusState): number => {
+  const route = routeCache.get(bus.lineId);
+  if (!route || route.roadPath.length < 2) return 0;
+  const a = route.roadPath[Math.min(bus.segmentIndex, route.roadPath.length - 1)];
+  const b = route.roadPath[Math.min(bus.segmentIndex + 1, route.roadPath.length - 1)];
+  const [ax, az] = a.split(",").map(Number);
+  const [bx, bz] = b.split(",").map(Number);
+  return Math.atan2(bx - ax, bz - az);
+};
+
+let registeredTransitKeys: string[] = [];
+
+export const syncTransitRoadUsage = () => {
+  const usageStore = useRoadUsageStore.getState();
+  for (const key of registeredTransitKeys) {
+    usageStore.decrement(key);
+  }
+  registeredTransitKeys = [];
+  const { lines } = useTransitStore.getState();
+  const keys = new Set<string>();
+  for (const line of lines) {
+    if (!line.enabled || line.disrupted) continue;
+    const route = routeCache.get(line.id);
+    if (!route) continue;
+    for (const key of route.roadPath) keys.add(key);
+  }
+  for (const key of keys) {
+    usageStore.increment(key);
+    registeredTransitKeys.push(key);
+  }
+};
+
 const populationNear = (
   position: [number, number, number],
   radius: number
@@ -230,6 +263,21 @@ const populationNear = (
 
 export const STOP_RADIUS = 6;
 
+export const canPlaceStop = (
+  position: [number, number, number],
+  buildings: Building[]
+): { valid: boolean; roadKey: string | null } => {
+  const occupied = buildings.some(
+    (b) =>
+      Math.abs(b.position[0] - position[0]) < 0.5 &&
+      Math.abs(b.position[2] - position[2]) < 0.5
+  );
+  if (occupied) return { valid: false, roadKey: null };
+  const road = findNearestRoadCell(position, buildings);
+  if (!road) return { valid: false, roadKey: null };
+  return { valid: true, roadKey: `${road[0]},${road[1]}` };
+};
+
 export const computeStopStats = (stop: TransitStop) => {
   const lines = useTransitStore
     .getState()
@@ -259,6 +307,28 @@ const coverageLevel = (
   if (ratio >= 0.8) return "Good";
   if (ratio >= 0.4) return "Fair";
   return "Poor";
+};
+
+export const computeLineStats = (line: TransitLine) => {
+  const stops = useTransitStore.getState().stops;
+  const lineStops = line.stopIds
+    .map((id) => stops.find((s) => s.id === id))
+    .filter((s): s is TransitStop => !!s);
+  let riders = 0;
+  for (const s of lineStops) {
+    const { population, jobs } = populationNear(s.position, STOP_RADIUS);
+    riders += estimateRiders(population, jobs, 1);
+  }
+  const busCount = useTransitStore
+    .getState()
+    .buses.filter((b) => b.lineId === line.id).length;
+  const route = routeCache.get(line.id);
+  return {
+    stops: lineStops,
+    riders,
+    busCount,
+    routeLength: route?.roadPath.length ?? 0,
+  };
 };
 
 export const computeTransitStats = () => {
@@ -328,13 +398,18 @@ export const computeTransitStats = () => {
 export const processTransit = (deltaHours: number) => {
   recomputeTransitRoutes();
   updateBuses(deltaHours);
+  syncTransitRoadUsage();
 };
 
 export const resetTransit = () => {
+  const usageStore = useRoadUsageStore.getState();
+  for (const key of registeredTransitKeys) {
+    usageStore.decrement(key);
+  }
+  registeredTransitKeys = [];
   clearTransitRouteCache();
 };
 
-// Day/night activity multiplier for ridership (0.2 night … 1.0 peak)
 export const transitActivityMultiplier = (timeOfDay: number): number => {
   if (timeOfDay >= 7 && timeOfDay < 9) return 1.0;
   if (timeOfDay >= 9 && timeOfDay < 16) return 0.6;

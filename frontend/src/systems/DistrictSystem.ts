@@ -15,6 +15,8 @@ import useRoadUsageStore, { ROAD_CAPACITY } from "../store/RoadUsageStore";
 import useServiceStore from "../store/ServiceStore";
 import useZoneStore from "../store/ZoneStore";
 import useAlertStore from "../store/AlertStore";
+import useTransitStore from "../store/TransitStore";
+import { computeStopStats, STOP_RADIUS } from "./TransitSystem";
 import { hasRoadAccess } from "./RoadAccessSystem";
 
 export const cellKey = (x: number, z: number) =>
@@ -219,6 +221,43 @@ export const computeDistrictStats = (district: District): DistrictStats => {
   const traffic = trafficCount ? trafficSum / trafficCount : 0;
   const accessibility = accessChecks ? roadAccessCount / accessChecks : 0;
 
+  const transitStopsAll = useTransitStore.getState().stops;
+  const districtStops = transitStopsAll.filter((s) =>
+    cellSet.has(s.cellKey)
+  );
+  let transitRiders = 0;
+  const transitLinesSet = new Set<string>();
+  for (const s of districtStops) {
+    transitRiders += computeStopStats(s).riders;
+    for (const l of useTransitStore.getState().lines) {
+      if (l.stopIds.includes(s.id)) transitLinesSet.add(l.id);
+    }
+  }
+  let coveredHouseholds = 0;
+  for (const h of districtHouseholds) {
+    const b = buildings.find((bb) => bb.id === h.buildingId);
+    if (!b) continue;
+    const near = districtStops.some((s) => {
+      const dx = s.position[0] - b.position[0];
+      const dz = s.position[2] - b.position[2];
+      return Math.hypot(dx, dz) <= STOP_RADIUS;
+    });
+    if (near) coveredHouseholds++;
+  }
+  const transitCoverage =
+    districtHouseholds.length > 0
+      ? (coveredHouseholds / districtHouseholds.length) * 100
+      : 0;
+  let transitNeed: DistrictStats["transitNeed"] = "None";
+  if (districtHouseholds.length === 0) transitNeed = "None";
+  else {
+    const needScore =
+      population / 80 + jobs / 60 + traffic * 2 - transitCoverage / 100;
+    if (needScore >= 1.8) transitNeed = "High";
+    else if (needScore >= 0.9) transitNeed = "Moderate";
+    else transitNeed = "Low";
+  }
+
   let serviceScore = 0;
   let serviceChecks = 0;
   for (const type of SERVICE_TYPES) {
@@ -336,6 +375,11 @@ export const computeDistrictStats = (district: District): DistrictStats => {
     priority,
     trafficLevel,
     developmentActivity,
+    transitCoverage,
+    transitStops: districtStops.length,
+    transitLines: transitLinesSet.size,
+    transitRiders,
+    transitNeed,
   };
 };
 

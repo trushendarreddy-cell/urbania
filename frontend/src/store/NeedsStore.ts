@@ -7,6 +7,8 @@ import useUtilityStore from "./UtilityStore";
 import useEventStore from "./EventStore";
 import useMunicipalStore from "./MunicipalStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
+import useTransitStore from "./TransitStore";
+import { STOP_RADIUS } from "../systems/TransitSystem";
 import { TAX_EFFECTS } from "./MunicipalStore";
 
 export interface CitizenNeeds {
@@ -36,6 +38,7 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
     const buildings = useBuildingStore.getState().buildings;
     const householdMoney = useEconomyStore.getState().householdMoney;
     const serviceStore = useServiceStore.getState();
+    const transitStops = useTransitStore.getState().stops;
 
     const newNeeds: Record<string, CitizenHappiness> = {};
     // Helper: get service coverage for a position
@@ -136,6 +139,16 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       const taxRate = useMunicipalStore.getState().taxRate;
       const taxEffect = TAX_EFFECTS[taxRate]?.happinessMod || 0;
       happiness = clamp(happiness + taxEffect);
+
+      // Transit accessibility: good coverage gives a modest happiness bonus
+      if (isActive && transitStops.length > 0) {
+        const nearStop = transitStops.some((s) => {
+          const dx = s.position[0] - homeBuilding.position[0];
+          const dz = s.position[2] - homeBuilding.position[2];
+          return Math.hypot(dx, dz) <= STOP_RADIUS;
+        });
+        if (nearStop) happiness = clamp(happiness + 4);
+      }
 
       let category: CitizenHappiness['category'];
       if (happiness >= 80) category = 'Very Happy';

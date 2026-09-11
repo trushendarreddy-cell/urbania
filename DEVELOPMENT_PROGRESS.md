@@ -176,8 +176,23 @@
 - Identity overlay labels and throttled district notifications
 - Specialization (intent) kept separate from character (reality)
 
+## Phase 36 — Public Transportation & Commuter Network
+- TransitStore: bus stops (road-adjacent) and bus lines with names, colors, ordering, enabled state
+- Bus stop tool (key B), road-adjacency validation, low-poly shelter visual, selection & inspection
+- Line creation flow: create draft, click stops, finish (min 2 stops); rename/toggle/delete
+- Route validation via existing road graph + BFS pathfinding; disrupted lines flagged with alerts
+- Bus vehicles interpolate along cached road routes with boarding dwell; loop/reverse at ends
+- Ridership estimated deterministically from nearby population/jobs and line count
+- Transit road usage registered so buses count as traffic; congestion affects speeds
+- District transit metrics: coverage, stops, lines, ridership, transit need
+- Transit panel: network summary, demand, line/stop inspection, treasury-aware line cost
+- Economy: per-stop upkeep, per-line operating cost, one-time line cost; blocked if insufficient funds
+- City events: Transit Coverage Gap, Bus Line Disrupted, Public Transport Growth (reuses 2.49 events)
+- Happiness: small bonus for households near a stop
+- Persistence: stops + lines saved; buses reconstructed from line state; New City clears transit
+
 ## Current State
-- Fully functional 3D city-building simulation (v2.48)
+- Fully functional 3D city-building simulation (v2.50)
 - Core building, simulation, economy, services, emergency, progression,
-  and persistence systems complete
+  persistence, and public transportation systems complete
 - Stable, TypeScript clean, production build passing

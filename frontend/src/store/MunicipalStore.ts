@@ -2,6 +2,7 @@ import { create } from "zustand";
 import useBuildingStore from "./BuildingStore";
 import usePopulationStore from "./PopulationStore";
 import useEconomyStore from "./EconomyStore";
+import useTransitStore from "./TransitStore";
 
 import { useSimulationStore } from "../stores/useSimulationStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
@@ -56,6 +57,8 @@ interface MunicipalState {
   setCityPolicy: (policy: CityPolicy) => void;
   setServiceFunding: (type: ServiceType, value: number) => void;
   processDailyBudget: () => void;
+  canAfford: (amount: number) => boolean;
+  spend: (amount: number) => boolean;
   reset: () => void;
 }
 
@@ -153,13 +156,23 @@ const useMunicipalStore = create<MunicipalState>((set, get) => ({
     const roadCount = buildings.filter(b => b.type === 'road').length;
     const infrastructureCost = roadCount * 0.2;
 
+    // Public transport: stop upkeep + per-line operating cost
+    const transit = useTransitStore.getState();
+    const transitStopCost = transit.stops.length * 0.5;
+    const activeTransitLines = transit.lines.filter(
+      (l) => l.enabled && !l.disrupted
+    ).length;
+    const transitLineCost = activeTransitLines * 3;
+    const transitCost = transitStopCost + transitLineCost;
+
     // Policy extra costs: growth increases expenses
     let policyExtra = 0;
     if (policy === 'growth') {
       policyExtra = serviceExpenses * 0.1; // 10% extra
     }
 
-    const totalExpenses = (serviceExpenses + infrastructureCost) * expenseMod + policyExtra;
+    const totalExpenses =
+      (serviceExpenses + infrastructureCost + transitCost) * expenseMod + policyExtra;
 
     // Update treasury
     const net = totalRevenue - totalExpenses;
@@ -171,6 +184,15 @@ const useMunicipalStore = create<MunicipalState>((set, get) => ({
       dailyExpenses: totalExpenses,
       dailyNet: net,
     });
+  },
+
+  canAfford: (amount) => get().treasury >= amount,
+
+  spend: (amount) => {
+    if (amount <= 0) return true;
+    if (get().treasury < amount) return false;
+    set({ treasury: get().treasury - amount });
+    return true;
   },
 
   reset: () => {

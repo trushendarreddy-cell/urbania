@@ -189,6 +189,31 @@ export default function DistrictPanel() {
                 />
               ))}
 
+              <Section title="Public Transport" />
+              <Row label="Coverage" value={`${Math.round(stat.transitCoverage)}%`} />
+              <Row label="Stops" value={stat.transitStops} />
+              <Row label="Lines" value={stat.transitLines} />
+              <Row label="Ridership" value={`${stat.transitRiders}/day`} />
+              <Row
+                label="Transit Need"
+                value={
+                  <span
+                    style={{
+                      color:
+                        stat.transitNeed === "High"
+                          ? "#EF4444"
+                          : stat.transitNeed === "Moderate"
+                          ? "#FBBF24"
+                          : stat.transitNeed === "Low"
+                          ? "#4ADE80"
+                          : "#6B7280",
+                    }}
+                  >
+                    {stat.transitNeed}
+                  </span>
+                }
+              />
+
               <Section title="Buildings" />
               {Object.entries(stat.byType).map(([type, n]) => (
                 <Row key={type} label={capitalize(type)} value={n} />
