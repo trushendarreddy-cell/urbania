@@ -12,6 +12,8 @@ import useZoneStore from '../store/ZoneStore';
 import useDistrictStore from '../store/DistrictStore';
 import useCityEventStore from '../store/CityEventStore';
 import useTransitStore from '../store/TransitStore';
+import useAlertStore from '../store/AlertStore';
+import useProgressionStore from '../store/ProgressionStore';
 import type { CityEvent as CityWideEvent } from '../store/CityEventStore';
 import { resetDistrictNotifications } from '../systems/DistrictSystem';
 import { resetTransit } from '../systems/TransitSystem';
@@ -277,6 +279,9 @@ export function loadCity() {
     // Clear road usage (will be rebuilt by citizen movement)
     useRoadUsageStore.getState().clear();
 
+    // Clear transient alerts so stale messages do not survive a load
+    useAlertStore.getState().clear();
+
     return true;
   } catch (e) {
     console.error('Load failed:', e);
@@ -324,6 +329,8 @@ export function newCity() {
   useDistrictStore.getState().clear();
   useCityEventStore.getState().clear();
   useTransitStore.getState().clear();
+  useAlertStore.getState().clear();
+  useProgressionStore.getState().reset();
   resetTransit();
   resetDistrictNotifications();
   useSimulationStore.getState().reset();

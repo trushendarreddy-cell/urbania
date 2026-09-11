@@ -125,6 +125,7 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
       let remaining = speed * deltaHours;
       let newIndex = v.routeIndex;
       let progress = 0;
+      let pushed = false;
       while (remaining > 0 && newIndex < route.length - 1) {
         const keyA = route[newIndex];
         const keyB = route[newIndex + 1];
@@ -143,6 +144,7 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
             az + (bz - az) * progress,
           ];
           updated = true;
+          pushed = true;
           updatedVehicles.push({
             ...v,
             routeIndex: newIndex,
@@ -194,9 +196,7 @@ const useVehicleStore = create<VehicleStore>((set, get) => {
           });
         }
       } else {
-        // Still on route, but we might have already pushed in the loop
-        // If we broke out early, we already pushed; otherwise we need to push
-        if (remaining >= 0 && newIndex < route.length - 1) {
+        if (!pushed && remaining >= 0 && newIndex < route.length - 1) {
           // need to compute position for remaining
           const keyA = route[newIndex];
           const keyB = route[newIndex + 1];

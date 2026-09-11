@@ -41,6 +41,26 @@ export default function App() {
     usePopulationStore.getState().initialize();
   }, []);
 
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    let accumulator = 0;
+    const STEP_MS = 50;
+    const tick = (now: number) => {
+      let delta = now - last;
+      last = now;
+      if (delta > 250) delta = 250;
+      accumulator += delta;
+      while (accumulator >= STEP_MS) {
+        useSimulationStore.getState().advanceTime(STEP_MS / 1000);
+        accumulator -= STEP_MS;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   // Toggle district mode when the district tool is selected
   useEffect(() => {
     useDistrictStore.getState().setDistrictMode(selectedTool === "district");
@@ -170,6 +190,8 @@ export default function App() {
         setSelectedTool("zone_industrial");
       } else if (event.key === "d" || event.key === "D") {
         setSelectedTool("district");
+      } else if (event.key === "b" || event.key === "B") {
+        setSelectedTool("bus_stop");
       } else if (event.key === "Escape") {
         if (
           useBuildingStore.getState().selectedObjectId !== null

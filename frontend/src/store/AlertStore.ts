@@ -20,6 +20,7 @@ interface AlertStore {
   resolveAlert: (id: string) => void;
   dismissAlert: (id: string) => void;
   clearResolved: () => void;
+  clear: () => void;
   getActiveAlerts: () => Alert[];
   getAlertsByCategory: (category: AlertCategory) => Alert[];
 }
@@ -54,6 +55,10 @@ const useAlertStore = create<AlertStore>((set, get) => ({
     set((state) => ({
       alerts: state.alerts.filter(a => !a.resolved)
     }));
+  },
+
+  clear: () => {
+    set({ alerts: [] });
   },
 
   getActiveAlerts: () => {
