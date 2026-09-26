@@ -1,7 +1,7 @@
 # Urbania Development Status
 
 ## Current Version
-2.50 — Public Transportation & Commuter Network
+2.54 — Transit Accessibility & Ridership
 
 ## Current Phase
 Active Development
@@ -86,10 +86,34 @@ Active Development
 - Specialization (player intent) shown separately from derived character (reality)
 - Districts persist in save/load; New City clears them and resets notifications
 
-### Public Transportation (2.50)
+### Public Transportation (2.50, validated in 2.52)
 - TransitStop placement (road-adjacent, validated, persistent), low-poly shelter visual
-- TransitLine creation (draft → click stops → finish), rename, enable/disable, delete
-- Route validation via the existing road graph; disrupted lines flagged and notified
+- TransitLine creation (draft → click stops in order → name → finish), rename, enable/disable, delete
+- Route validation at creation AND on draft selection: ≥2 stops, existing stops only, no duplicates, stops road-connected via the existing road graph; invalid routes rejected with a clear reason
+- Draft feedback: ordered stop sequence shown in the panel; per-selection errors ("Stop already selected.", "Stop does not exist.")
+- Route visualization follows actual road paths in the line's color, shown only while a line is selected, removed on deselect
+- Disrupted lines flagged and notified when the road network changes
+
+### Bus Simulation (2.53)
+- Buses spawn deterministically per enabled line (fleet scales with route length, max 3) and are reconstructed after load without needing an advancing clock
+- Buses follow the cached road-connected route, dwell briefly at EVERY stop (not just endpoints), reverse at route endpoints, and repeat indefinitely while the line is enabled
+- Movement driven solely by the simulation clock (pause freezes buses completely; 1x/2x/4x scale proportionally) — no per-bus timers or intervals
+- Deleting a line removes its buses immediately; disabling a line withdraws them (they respawn on re-enable); vehicles can never reference a deleted line
+- Bus visual: low-poly body with window band, white roof, and a small line-identifier badge; renderers skip buses whose line no longer exists
+- Buses contribute to road usage via the existing RoadUsageStore sync
+
+### Transit Accessibility & Ridership (2.54)
+- TransitAccessibilitySystem: cached, event-invalidated accessibility snapshot derived from real city state — no per-frame work, nothing persisted
+- A stop provides EFFECTIVE access only when it belongs to an enabled, non-disrupted line; locations are accessible when an effective stop is road-walkable (STOP_RADIUS = 6) from the building's nearest road cell
+- Accessibility metrics: accessible citizens/households, employed with access, commute pool (home AND workplace both accessible), city accessibility percent
+- Cache invalidates on transit stop/line changes (incl. enable/disable/disruption), building changes, and population changes
+- Derived ridership estimates per line: commuters × 2 round trips + other nearby residents × 0.4 leisure trips, scaled by service quality (buses running) and time-of-day activity multiplier; labeled (est.) in UI
+- Utilization (0–1) against a simple fleet-capacity model with Low/Moderate/High bands
+- NeedsStore happiness bonus now uses effective accessibility (enabled intact line) instead of raw stop proximity
+- DistrictSystem transit section uses effective accessibility for coverage; DistrictPanel shows Accessibility / Stops / Lines / Est. users
+- TransitPanel: city Accessibility % + Est. Daily Riders; per-line Est. Riders/day, Utilization band, Commute Pool
+- Transit Accessibility overlay (🚏 Transit Access in CityMenu): green = effective access, gray = none, following the existing overlay pattern
+- New City / save / load verified: derived statistics reconstruct from underlying state; no stale values persisted
 - Lightweight buses interpolated along cached routes (docks, loops); fleet per line by route length
 - Deterministic aggregate ridership from nearby population/jobs and line count
 - Buses count as road traffic via RoadUsageStore; transit coverage/reliability
@@ -112,6 +136,7 @@ Active Development
 
 ### Persistence & UI
 - Save/Load/New City (localStorage, versioned, metadata)
+- Transit lines sanitized on load: references to missing stops dropped, lines below 2 stops disabled and marked disrupted; old saves load safely
 - BuildMenu (categorized, lock indicators)
 - HUD (day, time, population, households, money, traffic, activity, stage, municipal)
 - ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview
@@ -128,7 +153,9 @@ Active Development
 ## Not Yet Implemented (Future)
 - Advanced citizen AI, migration, aging, births, deaths
 - Education progression, healthcare simulation, crime AI
-- Public transport, traffic lights, lane simulation
+- Traffic lights, lane simulation
+- **Passenger entities, boarding animations, and individual citizen transit trips are NOT implemented.** Ridership is a deterministic derived estimate from real city state (accessibility pools × commute patterns × service level); citizens do not board specific buses. No fares, schedules, or transit policies.
+- Buses do not overtake, queue, or collide; stop dwell times are fixed constants; no timetables
 - Banking, loans, debt, inflation, supply chains
 - Natural disasters, building damage
 - Multiplayer, mobile touch controls, sound design

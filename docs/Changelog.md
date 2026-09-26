@@ -261,8 +261,40 @@
 - Notifications delivered through the existing AlertStore
 - Events persist in save/load; New City clears them
 
-## Current Version — 2.49
+## 2.50 - Public Transportation & Transit Lines
+- TransitStop placement (road-adjacent, validated, persistent) with low-poly shelter visual
+- TransitLine creation: draft mode → click stops in order → name → finish; rename, enable/disable, delete
+- Route validation via the existing road graph: at least 2 stops, existing stops only, no duplicates, stops must be road-connected — invalid routes rejected with a clear reason ("Select at least 2 stops.", "Stop does not exist.", "Stop already selected.", "Stops are not road-connected.")
+- Cached road-path routes per line; disrupted lines flagged with a reason and an alert when the road network changes
+- Route visualization for the selected line only, following actual road-connected paths in the line's color
+- Lightweight buses interpolated along cached routes; buses count as road traffic via RoadUsageStore
+- Deterministic aggregate ridership, stop/line/network stats, transit coverage and demand level (estimates only)
+- TransitPanel: network summary, draft sequence display, validation errors, line management, stop inspection
+- Persistence: stops and lines saved/loaded; line stopIds sanitized against missing stops on load; New City clears all transit state
+
+## Current Version — 2.50
 - Fully functional 3D city-building simulation with population, citizens, economy,
   services, utilities, events, emergency response, land value, building progression,
   city progression, municipal budget, organic zoning, districts with neighborhood identity,
-  dynamic city events, and persistent save/load
+  dynamic city events, public transit lines with validated road-connected routes, and persistent save/load
+
+## 2.53 - Transit Vehicles & Bus Simulation
+- Buses spawn deterministically per enabled line and are reconstructed on load without waiting for an advancing clock
+- Buses follow the cached road route, dwell at every stop, reverse at route endpoints, and repeat while the line is enabled
+- Movement driven exclusively by the simulation clock (pause/1x/2x/4x respected); no per-bus timers
+- Deleting a line drops its buses immediately; disabling withdraws them (respawn on re-enable)
+- Bus visual: roof detail plus small line-identifier badge; rendering skips buses with no valid line
+- Road-usage integration via existing RoadUsageStore sync
+
+## 2.54 - Transit Accessibility & Ridership
+- TransitAccessibilitySystem: cached accessibility snapshot (effective stops, accessible buildings/citizens, commute pools) derived from real state; invalidated only on transit/building/population changes
+- Effective access requires a stop on an enabled, non-disrupted line; road-walkable distance from the building's nearest road cell
+- Derived per-line ridership estimates (commute + leisure trips, service-scaled, time-of-day weighted) with utilization bands; all estimates labeled in UI
+- Happiness transit bonus now requires effective access; district transit coverage uses effective accessibility
+- TransitPanel: Accessibility %, Est. Daily Riders, per-line Est. Riders/day + Utilization; DistrictPanel: Accessibility + Est. users
+- Transit Accessibility overlay (green = access, gray = none) via the existing overlay architecture
+- No passenger entities, boarding animations, or individual citizen transit trips
+
+## Fixed alongside 2.50
+- LandValueOverlay / DevelopmentOverlay mounted outside the R3F Canvas crashed the app on startup (black screen); overlay state moved to App and overlays render inside the Canvas
+- TrafficPanel / AlertPanel caused a React infinite render loop (store selector returning a fresh array each render); selectors now select stable state and derive in the component
