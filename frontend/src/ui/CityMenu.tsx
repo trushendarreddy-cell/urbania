@@ -1,13 +1,25 @@
 import { saveCity, loadCity, hasSave, newCity } from '../services/PersistenceService';
 import { useState } from 'react';
-import LandValueOverlay from './LandValueOverlay';
-import DevelopmentOverlay from './DevelopmentOverlay';
 
-export default function CityMenu() {
+interface CityMenuProps {
+  showLandValue: boolean;
+  onToggleLandValue: () => void;
+  showDevelopment: boolean;
+  onToggleDevelopment: () => void;
+  showTransitAccess: boolean;
+  onToggleTransitAccess: () => void;
+}
+
+export default function CityMenu({
+  showLandValue,
+  onToggleLandValue,
+  showDevelopment,
+  onToggleDevelopment,
+  showTransitAccess,
+  onToggleTransitAccess,
+}: CityMenuProps) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [hasSavedGame, setHasSavedGame] = useState(hasSave());
-  const [showLandValue, setShowLandValue] = useState(false);
-  const [showDevelopment, setShowDevelopment] = useState(false);
 
   const handleSave = () => {
     setSaveStatus('saving');
@@ -101,7 +113,7 @@ export default function CityMenu() {
         🗑️ New
       </button>
       <button
-        onClick={() => setShowLandValue(!showLandValue)}
+        onClick={onToggleLandValue}
         style={{
           ...buttonStyle,
           background: showLandValue ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.04)',
@@ -111,7 +123,7 @@ export default function CityMenu() {
         📊 Land Value
       </button>
       <button
-        onClick={() => setShowDevelopment(!showDevelopment)}
+        onClick={onToggleDevelopment}
         style={{
           ...buttonStyle,
           background: showDevelopment ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.04)',
@@ -119,6 +131,16 @@ export default function CityMenu() {
         }}
       >
         📈 Dev Pressure
+      </button>
+      <button
+        onClick={onToggleTransitAccess}
+        style={{
+          ...buttonStyle,
+          background: showTransitAccess ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.04)',
+          borderColor: showTransitAccess ? '#4ADE80' : 'rgba(255,255,255,0.08)',
+        }}
+      >
+        🚏 Transit Access
       </button>
       {saveStatus !== 'idle' && (
         <span
@@ -131,8 +153,6 @@ export default function CityMenu() {
           {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Failed'}
         </span>
       )}
-      <LandValueOverlay visible={showLandValue} />
-      <DevelopmentOverlay visible={showDevelopment} />
     </div>
   );
 }

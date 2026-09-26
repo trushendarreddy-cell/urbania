@@ -48,6 +48,7 @@ import {
   getLineRoute,
   busWorldPosition,
   busWorldRotation,
+  validateLineDraft,
 } from "../systems/TransitSystem";
 import type { ZoneType } from "../types/ZoneType";
 
@@ -103,6 +104,7 @@ export default function GameScene({
   const lines = useTransitStore((state) => state.lines);
   const buses = useTransitStore((state) => state.buses);
   const selectedStopId = useTransitStore((state) => state.selectedStopId);
+  const selectedLineId = useTransitStore((state) => state.selectedLineId);
   const addStop = useTransitStore((state) => state.addStop);
   const lineDraft = useTransitStore((state) => state.lineDraft);
 
@@ -254,7 +256,12 @@ export default function GameScene({
 
         if (transitStore.lineDraft) {
           if (stopUnder) {
+            const reason = validateLineDraft([
+              ...transitStore.lineDraft,
+              stopUnder.id,
+            ]);
             transitStore.addStopToDraft(stopUnder.id);
+            transitStore.setDraftError(reason);
           }
           return;
         }
@@ -639,17 +646,19 @@ export default function GameScene({
         return null;
       })}
 
-      {lines.map((line) => {
-        const route = getLineRoute(line.id);
-        if (!route || route.roadPath.length < 2) return null;
-        return (
-          <TransitRouteLine
-            key={line.id}
-            roadPath={route.roadPath}
-            color={line.color}
-          />
-        );
-      })}
+      {lines
+        .filter((line) => line.id === selectedLineId)
+        .map((line) => {
+          const route = getLineRoute(line.id);
+          if (!route || route.roadPath.length < 2) return null;
+          return (
+            <TransitRouteLine
+              key={line.id}
+              roadPath={route.roadPath}
+              color={line.color}
+            />
+          );
+        })}
 
       {stops.map((stop) => (
         <BusStop
@@ -661,12 +670,16 @@ export default function GameScene({
 
       {buses.map((bus) => {
         const line = lines.find((l) => l.id === bus.lineId);
+        if (!line) return null;
+        const busNumber = parseInt(bus.id.slice(bus.id.lastIndexOf("-") + 1), 10);
+        const lineIndex = lines.findIndex((l) => l.id === line.id) + 1;
         return (
           <TransitBus
             key={bus.id}
             position={busWorldPosition(bus)}
             rotation={busWorldRotation(bus)}
-            color={line?.color ?? "#F97316"}
+            color={line.color}
+            label={`${lineIndex}${busNumber >= 0 && !isNaN(busNumber) ? String.fromCharCode(65 + (busNumber % 26)) : ""}`}
           />
         );
       })}

@@ -10,7 +10,8 @@ export default function TrafficPanel() {
   const civilianVehicles = vehicles.filter(v => !v.isEmergency).length;
 
   const usageMap = useRoadUsageStore((state) => state.usage);
-  const roadCount = useBuildingStore((state) => state.buildings.filter(b => b.type === "road")).length;
+  const buildings = useBuildingStore((state) => state.buildings);
+  const roadCount = buildings.filter((b) => b.type === "road").length;
 
   let totalUsage = 0;
   let congestedRoads = 0;

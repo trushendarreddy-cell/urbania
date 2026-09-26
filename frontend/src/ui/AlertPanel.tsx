@@ -1,7 +1,8 @@
 import useAlertStore from "../store/AlertStore";
 
 export default function AlertPanel() {
-  const alerts = useAlertStore((state) => state.alerts.filter(a => !a.resolved));
+  const allAlerts = useAlertStore((state) => state.alerts);
+  const alerts = allAlerts.filter((a) => !a.resolved);
   const resolveAlert = useAlertStore((state) => state.resolveAlert);
   const dismissAlert = useAlertStore((state) => state.dismissAlert);
 

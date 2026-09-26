@@ -10,6 +10,10 @@ import useAlertStore from "../store/AlertStore";
 import useRoadUsageStore from "../store/RoadUsageStore";
 import { getRoadGraph, findPath, findNearestRoadCell } from "./PathfindingSystem";
 import { useSimulationStore } from "../stores/useSimulationStore";
+import {
+  getAccessibility,
+  type LineAccessibility,
+} from "./TransitAccessibilitySystem";
 
 export interface LineRoute {
   lineId: string;
@@ -96,9 +100,46 @@ export const recomputeTransitRoutes = () => {
 export const getLineRoute = (lineId: string): LineRoute | undefined =>
   routeCache.get(lineId);
 
+export const validateLineDraft = (stopIds: string[]): string | null => {
+  if (stopIds.length < 2) return "Select at least 2 stops.";
+  const stops = useTransitStore.getState().stops;
+  for (const id of stopIds) {
+    if (!stops.some((s) => s.id === id)) return "Stop does not exist.";
+  }
+  if (new Set(stopIds).size !== stopIds.length)
+    return "Stop already selected.";
+  const buildings = useBuildingStore.getState().buildings;
+  const graph = getRoadGraph(buildings);
+  const roadKeys = stopIds.map((id) => {
+    const stop = stops.find((s) => s.id === id);
+    return stop ? stop.roadKey : null;
+  });
+  for (let i = 0; i < roadKeys.length - 1; i++) {
+    const a = roadKeys[i];
+    const b = roadKeys[i + 1];
+    if (!a || !b || !findPath(a, b, graph))
+      return "Stops are not road-connected.";
+  };
+  return null;
+};
+
 const BUS_SPEED = 3;
 const DWELL_HOURS = 0.03;
 const MAX_BUSES_PER_LINE = 3;
+
+/**
+ * Road-cell keys of the line's stops along the cached route. A bus dwells
+ * whenever the end of its current segment coincides with one of these cells.
+ */
+const stopCellsForLine = (line: TransitLine): Set<string> => {
+  const stops = useTransitStore.getState().stops;
+  const roadKeys = new Set<string>();
+  for (const id of line.stopIds) {
+    const stop = stops.find((s) => s.id === id);
+    if (stop) roadKeys.add(stop.roadKey);
+  }
+  return roadKeys;
+};
 
 const busesForLine = (routeLength: number): number => {
   const base = Math.max(1, Math.floor(routeLength / 10));
@@ -134,14 +175,22 @@ export const updateBuses = (deltaHours: number) => {
       });
     }
 
+    const stopCells = stopCellsForLine(line);
+
     for (const bus of initialized.slice(0, target)) {
       if (bus.status === "boarding") {
         const dwell = bus.dwell - deltaHours;
         if (dwell <= 0) {
+          // Departure: reverse direction at a route endpoint
+          let direction = bus.direction;
+          if (bus.segmentIndex === 0) direction = 1;
+          else if (bus.segmentIndex >= route.roadPath.length - 1)
+            direction = -1;
           nextBuses.push({
             ...bus,
             status: "traveling",
             dwell: 0,
+            direction,
           });
         } else {
           nextBuses.push({ ...bus, dwell });
@@ -152,22 +201,35 @@ export const updateBuses = (deltaHours: number) => {
       const remaining = BUS_SPEED * deltaHours;
       let progress = bus.progress + remaining;
       let segmentIndex = bus.segmentIndex;
+      let direction = bus.direction;
       let status: BusState["status"] = "traveling";
 
-      if (progress >= 1) {
-        progress = 0;
-        if (bus.direction === 1) {
-          segmentIndex++;
-          if (segmentIndex >= route.roadPath.length - 1) {
-            segmentIndex = route.roadPath.length - 1;
-            status = "boarding";
-          }
-        } else {
-          segmentIndex--;
-          if (segmentIndex < 0) {
-            segmentIndex = 0;
-            status = "boarding";
-          }
+      while (progress >= 1) {
+        progress -= 1;
+        segmentIndex += direction;
+
+        // Reached an endpoint: bounce rather than leave the route
+        if (segmentIndex >= route.roadPath.length - 1) {
+          segmentIndex = route.roadPath.length - 1;
+          direction = -1;
+          progress = 0;
+          status = "boarding";
+          break;
+        }
+        if (segmentIndex <= 0 && direction === -1) {
+          segmentIndex = 0;
+          direction = 1;
+          progress = 0;
+          status = "boarding";
+          break;
+        }
+
+        // Arrived at a stop cell: dwell here
+        const cell = route.roadPath[segmentIndex];
+        if (stopCells.has(cell)) {
+          progress = 0;
+          status = "boarding";
+          break;
         }
       }
 
@@ -175,6 +237,7 @@ export const updateBuses = (deltaHours: number) => {
         ...bus,
         segmentIndex,
         progress,
+        direction,
         status,
         dwell: status === "boarding" ? DWELL_HOURS : 0,
       });
@@ -331,30 +394,78 @@ export const computeLineStats = (line: TransitLine) => {
   };
 };
 
+/**
+ * Derived, deterministic ridership estimate for a line (2.54).
+ *
+ * The pool comes from actual city state: citizens whose home and workplace
+ * are both walkable to the line's stops (accessibility snapshot). Commuters
+ * contribute 2 trips/day (round trip), other nearby residents 0.4 leisure
+ * trips/day, scaled by the line's service quality (buses + enabled) and the
+ * time-of-day activity multiplier. No passenger entities are created.
+ */
+export const estimateLineRidership = (line: TransitLine) => {
+  const access: LineAccessibility | undefined =
+    getAccessibility().lineAccessibility[line.id];
+  const commuters = access?.commuteEligible ?? 0;
+  const homeAccessible = access?.homeAccessible ?? 0;
+
+  const route = routeCache.get(line.id);
+  const busCount = useTransitStore
+    .getState()
+    .buses.filter((b) => b.lineId === line.id).length;
+
+  // Service quality: an enabled line with buses actually running carries more
+  const serviceFactor =
+    !line.enabled || line.disrupted
+      ? 0
+      : Math.min(1, 0.5 + busCount * 0.25);
+
+  const commuteTrips = commuters * 2;
+  const leisureTrips = Math.max(0, homeAccessible - commuters) * 0.4;
+  const dailyTrips =
+    (commuteTrips + leisureTrips) * serviceFactor;
+
+  const { timeOfDay } = useSimulationStore.getState();
+  const instantaneous = dailyTrips * transitActivityMultiplier(timeOfDay);
+
+  // Utilization: estimated daily trips relative to fleet capacity.
+  // Capacity model: each bus makes ~24 round trips/day over the route.
+  const roundTripsPerBusPerDay = 24;
+  const routeLength = route?.roadPath.length ?? 0;
+  const capacity =
+    routeLength > 0 ? busCount * roundTripsPerBusPerDay * 4 : 0; // ~4 riders per bus trip
+  const utilization = capacity > 0 ? Math.min(1, dailyTrips / capacity) : 0;
+
+  return {
+    /** Instantaneous demand estimate at the current simulation time. */
+    currentRiders: Math.round(instantaneous),
+    /** Estimated full-day trips (commute + leisure, service-scaled). */
+    estimatedDailyRidership: Math.round(dailyTrips),
+    /** 0–1 against a simple fleet-capacity model. */
+    utilization,
+    /** Coarse usage band for UI display. */
+    usageLevel: utilizationLevel(utilization),
+    commuteEligible: commuters,
+    homeAccessible,
+    busCount,
+  };
+};
+
+export const utilizationLevel = (
+  utilization: number
+): "Low" | "Moderate" | "High" => {
+  if (utilization >= 0.6) return "High";
+  if (utilization >= 0.25) return "Moderate";
+  return "Low";
+};
+
 export const computeTransitStats = () => {
   const { stops, lines, buses } = useTransitStore.getState();
-  const households = usePopulationStore.getState().households;
-
-  let coveredHouseholds = 0;
-  const buildings = useBuildingStore.getState().buildings;
-  for (const h of households) {
-    const building = buildings.find((b) => b.id === h.buildingId);
-    if (!building) continue;
-    const near = stops.some((s) => {
-      const dx = s.position[0] - building.position[0];
-      const dz = s.position[2] - building.position[2];
-      return Math.hypot(dx, dz) <= STOP_RADIUS;
-    });
-    if (near) coveredHouseholds++;
-  }
-
-  const totalHouseholds = households.length;
-  const coverage =
-    totalHouseholds > 0 ? (coveredHouseholds / totalHouseholds) * 100 : 0;
+  const accessibility = getAccessibility();
 
   let dailyRiders = 0;
-  for (const stop of stops) {
-    dailyRiders += computeStopStats(stop).riders;
+  for (const line of lines) {
+    dailyRiders += estimateLineRidership(line).estimatedDailyRidership;
   }
 
   const districts = useDistrictStore.getState().districts;
@@ -379,6 +490,8 @@ export const computeTransitStats = () => {
       lowCoverage.push(d.name);
   }
 
+  const coverage = accessibility.accessibilityPercent;
+
   let network: "Good" | "Fair" | "Poor" = "Poor";
   if (coverage >= 60 && lines.length >= 2) network = "Good";
   else if (coverage >= 30 || lines.length >= 1) network = "Fair";
@@ -392,6 +505,10 @@ export const computeTransitStats = () => {
     network,
     highDemand,
     lowCoverage,
+    /** Share of citizens with effective transit access at home (0–100). */
+    accessibilityPercent: Math.round(accessibility.accessibilityPercent),
+    accessibleCitizens: accessibility.accessibleCitizens,
+    totalCitizens: accessibility.totalCitizens,
   };
 };
 
@@ -401,6 +518,20 @@ export const processTransit = (deltaHours: number) => {
   syncTransitRoadUsage();
 };
 
+/**
+ * Deterministically reconstruct the vehicle fleet from line state
+ * (used after load / route recompute); safe while the simulation is paused
+ * because it spawns buses without advancing them.
+ */
+export const rebuildBuses = () => {
+  recomputeTransitRoutes();
+  updateBuses(0);
+};
+
+export const invalidateTransitRoute = (lineId: string) => {
+  routeCache.delete(lineId);
+};
+
 export const resetTransit = () => {
   const usageStore = useRoadUsageStore.getState();
   for (const key of registeredTransitKeys) {
@@ -408,6 +539,28 @@ export const resetTransit = () => {
   }
   registeredTransitKeys = [];
   clearTransitRouteCache();
+};
+
+export const sanitizeLinesForStops = (
+  lines: TransitLine[],
+  stops: TransitStop[]
+): TransitLine[] => {
+  const validStopIds = new Set(stops.map((s) => s.id));
+  return lines
+    .map((line) => ({
+      ...line,
+      stopIds: line.stopIds.filter((id) => validStopIds.has(id)),
+    }))
+    .map((line) =>
+      line.stopIds.length < 2
+        ? {
+            ...line,
+            enabled: false,
+            disrupted: true,
+            disruptedReason: "Line needs at least two stops",
+          }
+        : line
+    );
 };
 
 export const transitActivityMultiplier = (timeOfDay: number): number => {

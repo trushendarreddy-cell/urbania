@@ -31,10 +31,16 @@ import { cleanRoadUsage } from "./systems/RoadUsageCleanup";
 import { processTransit, resetTransit } from "./systems/TransitSystem";
 import type { BuildTool } from "./types/BuildTool";
 import CityMenu from "./ui/CityMenu";
+import LandValueOverlay from "./ui/LandValueOverlay";
+import DevelopmentOverlay from "./ui/DevelopmentOverlay";
+import TransitAccessibilityOverlay from "./ui/TransitAccessibilityOverlay";
 
 export default function App() {
   const [selectedTool, setSelectedTool] =
     useState<BuildTool>("house");
+  const [showLandValue, setShowLandValue] = useState(false);
+  const [showDevelopment, setShowDevelopment] = useState(false);
+  const [showTransitAccess, setShowTransitAccess] = useState(false);
 
   // Initialize population for existing houses on mount
   useEffect(() => {
@@ -227,10 +233,20 @@ export default function App() {
         }}
       >
         <GameScene selectedTool={selectedTool} />
+        <LandValueOverlay visible={showLandValue} />
+        <DevelopmentOverlay visible={showDevelopment} />
+        <TransitAccessibilityOverlay visible={showTransitAccess} />
       </Canvas>
 
       <HUD />
-      <CityMenu />
+      <CityMenu
+        showLandValue={showLandValue}
+        onToggleLandValue={() => setShowLandValue((v) => !v)}
+        showDevelopment={showDevelopment}
+        onToggleDevelopment={() => setShowDevelopment((v) => !v)}
+        showTransitAccess={showTransitAccess}
+        onToggleTransitAccess={() => setShowTransitAccess((v) => !v)}
+      />
       <BuildMenu selected={selectedTool} onSelect={setSelectedTool} />
       <InspectionPanel />
       <ZoneInspectionPanel />

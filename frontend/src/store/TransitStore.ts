@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { invalidateAccessibility } from "../systems/TransitAccessibilitySystem";
 
 export interface TransitStop {
   id: string;
@@ -48,6 +49,7 @@ interface TransitStore {
   selectedLineId: string | null;
   panelOpen: boolean;
   lineDraft: string[] | null;
+  draftError: string | null;
   setSelectedStopId: (id: string | null) => void;
   setSelectedLineId: (id: string | null) => void;
   setPanelOpen: (open: boolean) => void;
@@ -60,7 +62,8 @@ interface TransitStore {
   startLineDraft: () => void;
   addStopToDraft: (stopId: string) => void;
   cancelLineDraft: () => void;
-  commitLineDraft: () => string | null;
+  commitLineDraft: (name: string) => string | null;
+  setDraftError: (message: string | null) => void;
   renameLine: (id: string, name: string) => void;
   toggleLine: (id: string) => void;
   deleteLine: (id: string) => void;
@@ -69,6 +72,12 @@ interface TransitStore {
   clear: () => void;
 }
 
+// Accessibility is derived from stops/lines; any transit mutation drops the cache.
+// setBuses is excluded: bus movement does not change accessibility.
+const withAccessibilityReset = <T,>(result: T): T => {
+  invalidateAccessibility();
+  return result;
+};
 const useTransitStore = create<TransitStore>((set, get) => ({
   stops: [],
   lines: [],
@@ -77,6 +86,7 @@ const useTransitStore = create<TransitStore>((set, get) => ({
   selectedLineId: null,
   panelOpen: false,
   lineDraft: null,
+  draftError: null,
 
   setSelectedStopId: (id) =>
     set({ selectedStopId: id, selectedLineId: null }),
@@ -98,10 +108,10 @@ const useTransitStore = create<TransitStore>((set, get) => ({
       roadKey,
     };
     set({ stops: [...state.stops, stop] });
-    return id;
+    return withAccessibilityReset(id);
   },
 
-  removeStop: (id) =>
+  removeStop: (id) => {
     set((state) => ({
       stops: state.stops.filter((s) => s.id !== id),
       lines: state.lines.map((l) => ({
@@ -112,31 +122,44 @@ const useTransitStore = create<TransitStore>((set, get) => ({
       lineDraft: state.lineDraft
         ? state.lineDraft.filter((sid) => sid !== id)
         : null,
-    })),
+    }));
+    withAccessibilityReset(null);
+  },
 
   getStopAt: (cellKey) => get().stops.find((s) => s.cellKey === cellKey),
 
-  startLineDraft: () => set({ lineDraft: [] }),
+  startLineDraft: () => set({ lineDraft: [], draftError: null }),
 
   addStopToDraft: (stopId) =>
     set((state) => {
       if (!state.lineDraft) return {};
-      if (state.lineDraft.includes(stopId)) return {};
-      return { lineDraft: [...state.lineDraft, stopId] };
+      if (!state.stops.some((s) => s.id === stopId))
+        return { draftError: "Stop does not exist." };
+      if (state.lineDraft.includes(stopId))
+        return { draftError: "Stop already selected." };
+      return { lineDraft: [...state.lineDraft, stopId], draftError: null };
     }),
 
-  cancelLineDraft: () => set({ lineDraft: null }),
+  cancelLineDraft: () => set({ lineDraft: null, draftError: null }),
 
-  commitLineDraft: () => {
+  setDraftError: (message) => set({ draftError: message }),
+
+  commitLineDraft: (name) => {
     const draft = get().lineDraft;
-    if (!draft || draft.length < 2) return null;
+    if (!draft || draft.length < 2) {
+      set({ draftError: "Select at least 2 stops." });
+      return null;
+    }
     const state = get();
-    if (state.lines.length >= MAX_LINES) return null;
+    if (state.lines.length >= MAX_LINES) {
+      set({ draftError: "Maximum number of lines reached." });
+      return null;
+    }
     const index = state.lines.length + 1;
     const id = `line-${Date.now()}-${index}`;
     const line: TransitLine = {
       id,
-      name: `Bus Line ${index}`,
+      name: name.trim() || `Bus Line ${index}`,
       color: LINE_COLORS[state.lines.length % LINE_COLORS.length],
       stopIds: draft,
       enabled: true,
@@ -149,7 +172,7 @@ const useTransitStore = create<TransitStore>((set, get) => ({
       selectedLineId: id,
       selectedStopId: null,
     });
-    return id;
+    return withAccessibilityReset(id);
   },
 
   renameLine: (id, name) =>
@@ -159,29 +182,43 @@ const useTransitStore = create<TransitStore>((set, get) => ({
       ),
     })),
 
-  toggleLine: (id) =>
+  toggleLine: (id) => {
     set((state) => ({
       lines: state.lines.map((l) =>
         l.id === id ? { ...l, enabled: !l.enabled } : l
       ),
-    })),
+      // vehicles of a disabled line are withdrawn; they respawn
+      // deterministically when the line is re-enabled
+      buses:
+        state.lines.find((l) => l.id === id && l.enabled) != null
+          ? state.buses.filter((b) => b.lineId !== id)
+          : state.buses,
+    }));
+    withAccessibilityReset(null);
+  },
 
-  deleteLine: (id) =>
+  deleteLine: (id) => {
     set((state) => ({
       lines: state.lines.filter((l) => l.id !== id),
+      // vehicles must never reference a deleted line
+      buses: state.buses.filter((b) => b.lineId !== id),
       selectedLineId: state.selectedLineId === id ? null : state.selectedLineId,
-    })),
+    }));
+    withAccessibilityReset(null);
+  },
 
-  setDisrupted: (id, disrupted, reason) =>
+  setDisrupted: (id, disrupted, reason) => {
     set((state) => ({
       lines: state.lines.map((l) =>
         l.id === id ? { ...l, disrupted, disruptedReason: reason } : l
       ),
-    })),
+    }));
+    if (disrupted) withAccessibilityReset(null);
+  },
 
   setBuses: (buses) => set({ buses }),
 
-  clear: () =>
+  clear: () => {
     set({
       stops: [],
       lines: [],
@@ -190,7 +227,10 @@ const useTransitStore = create<TransitStore>((set, get) => ({
       selectedLineId: null,
       panelOpen: false,
       lineDraft: null,
-    }),
+      draftError: null,
+    });
+    withAccessibilityReset(null);
+  },
 }));
 
 export default useTransitStore;

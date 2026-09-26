@@ -5,7 +5,9 @@ import {
   computeTransitStats,
   computeStopStats,
   computeLineStats,
+  estimateLineRidership,
   getTransitDemandLevel,
+  validateLineDraft,
 } from "../systems/TransitSystem";
 
 const STOP_COST = 25;
@@ -22,6 +24,7 @@ export default function TransitPanel() {
   const setSelectedStopId = useTransitStore((s) => s.setSelectedStopId);
   const setSelectedLineId = useTransitStore((s) => s.setSelectedLineId);
   const lineDraft = useTransitStore((s) => s.lineDraft);
+  const draftError = useTransitStore((s) => s.draftError);
   const startLineDraft = useTransitStore((s) => s.startLineDraft);
   const cancelLineDraft = useTransitStore((s) => s.cancelLineDraft);
   const commitLineDraft = useTransitStore((s) => s.commitLineDraft);
@@ -32,6 +35,27 @@ export default function TransitPanel() {
 
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
+  const [newLineName, setNewLineName] = useState("");
+  const [draftInvalid, setDraftInvalid] = useState<string | null>(null);
+
+  const finishLine = () => {
+    if (!lineDraft) return;
+    const reason = validateLineDraft(lineDraft);
+    if (reason) {
+      setDraftInvalid(reason);
+      return;
+    }
+    if (treasury < LINE_COST) {
+      setDraftInvalid("Insufficient municipal funds.");
+      return;
+    }
+    const id = commitLineDraft(newLineName);
+    if (id) {
+      useMunicipalStore.getState().spend(LINE_COST);
+      setNewLineName("");
+      setDraftInvalid(null);
+    }
+  };
 
   if (!panelOpen) return null;
 
@@ -86,8 +110,23 @@ export default function TransitPanel() {
       <Row label="Stops" value={stats.stopCount} />
       <Row label="Bus Lines" value={stats.lineCount} />
       <Row label="Active Buses" value={stats.busCount} />
-      <Row label="Daily Riders" value={stats.dailyRiders} />
-      <Row label="Coverage" value={`${Math.round(stats.coverage)}%`} />
+      <Row
+        label="Accessibility"
+        value={
+          <span style={{ color: serviceColor(
+            stats.accessibilityPercent >= 60
+              ? "Good"
+              : stats.accessibilityPercent >= 30
+              ? "Fair"
+              : stats.accessibilityPercent > 0
+              ? "Poor"
+              : "None"
+          ) }}>
+            {stats.accessibilityPercent}%
+          </span>
+        }
+      />
+      <Row label="Est. Daily Riders" value={`${stats.dailyRiders} (est.)`} />
       <Row label="Treasury" value={`₹${Math.round(treasury)}`} />
       <Row
         label="Demand"
@@ -115,7 +154,11 @@ export default function TransitPanel() {
 
       <div style={{ display: "flex", gap: "6px", marginTop: "8px" }}>
         <button
-          onClick={() => (lineDraft ? cancelLineDraft() : startLineDraft())}
+          onClick={() => {
+            setNewLineName("");
+            setDraftInvalid(null);
+            lineDraft ? cancelLineDraft() : startLineDraft();
+          }}
           style={{
             ...smallBtn,
             background: lineDraft ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.04)",
@@ -126,11 +169,7 @@ export default function TransitPanel() {
         </button>
         {lineDraft && lineDraft.length >= 2 && (
           <button
-            onClick={() => {
-              if (treasury < LINE_COST) return;
-              const id = commitLineDraft();
-              if (id) useMunicipalStore.getState().spend(LINE_COST);
-            }}
+            onClick={finishLine}
             disabled={treasury < LINE_COST}
             style={{
               ...smallBtn,
@@ -143,14 +182,33 @@ export default function TransitPanel() {
           </button>
         )}
       </div>
-      {lineDraft && lineDraft.length >= 2 && treasury < LINE_COST && (
-        <div style={{ fontSize: "11px", color: "#F87171", marginTop: "4px" }}>
-          Insufficient municipal funds.
-        </div>
+      {lineDraft && (
+        <input
+          value={newLineName}
+          onChange={(e) => setNewLineName(e.target.value)}
+          placeholder="Line name (optional)"
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            marginTop: "6px",
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "6px",
+            color: "#F3F4F6",
+            padding: "4px 8px",
+            fontSize: "12px",
+            fontFamily: "inherit",
+          }}
+        />
       )}
       {lineDraft && (
         <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px" }}>
-          Click transit stops on the map to add them to the line.
+          Selected: {lineDraft.map((id) => stops.find((s) => s.id === id)?.name ?? "?").join(" → ") || "none"}
+        </div>
+      )}
+      {lineDraft && (draftInvalid || draftError) && (
+        <div style={{ fontSize: "11px", color: "#F87171", marginTop: "4px" }}>
+          {draftInvalid ?? draftError}
         </div>
       )}
 
@@ -203,8 +261,7 @@ export default function TransitPanel() {
           <Section title="Line" />
           {(() => {
             const ls = computeLineStats(selectedLine);
-            const level =
-              ls.riders >= 80 ? "Good" : ls.riders >= 30 ? "Fair" : "Poor";
+            const rs = estimateLineRidership(selectedLine);
             return (
               <>
                 <Row
@@ -219,13 +276,23 @@ export default function TransitPanel() {
                 />
                 <Row label="Stops" value={selectedLine.stopIds.length} />
                 <Row label="Buses" value={ls.busCount} />
-                <Row label="Daily Riders" value={ls.riders} />
                 <Row
-                  label="Coverage"
+                  label="Est. Riders/day"
                   value={
-                    <span style={{ color: serviceColor(level) }}>{level}</span>
+                    <span title="Derived estimate from citizens with access to this line — no passenger simulation">
+                      {rs.estimatedDailyRidership} (est.)
+                    </span>
                   }
                 />
+                <Row
+                  label="Utilization"
+                  value={
+                    <span style={{ color: usageColor(rs.usageLevel) }}>
+                      {rs.usageLevel} ({Math.round(rs.utilization * 100)}%)
+                    </span>
+                  }
+                />
+                <Row label="Commute Pool" value={rs.commuteEligible} />
                 {selectedLine.stopIds.length > 0 && (
                   <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px" }}>
                     Route:{" "}
@@ -303,6 +370,7 @@ export default function TransitPanel() {
       )}
       {lines.map((l) => {
         const ls = computeLineStats(l);
+        const rs = estimateLineRidership(l);
         return (
           <div
             key={l.id}
@@ -332,10 +400,10 @@ export default function TransitPanel() {
                 padding: 0,
               }}
             >
-              {l.name} · {ls.riders}/day · {ls.busCount} bus{ls.busCount === 1 ? "" : "es"}
+              {l.name} · {rs.estimatedDailyRidership} est./day · {ls.busCount} bus{ls.busCount === 1 ? "" : "es"}
             </button>
-            <span style={{ color: l.disrupted ? "#F87171" : l.enabled ? "#4ADE80" : "#6B7280", fontSize: "11px" }}>
-              {l.disrupted ? "disrupted" : l.enabled ? "active" : "off"}
+            <span style={{ color: usageColor(rs.usageLevel), fontSize: "11px" }}>
+              {rs.usageLevel}
             </span>
           </div>
         );
@@ -387,6 +455,12 @@ function demandColor(d: string) {
   if (d === "High") return "#F97316";
   if (d === "Moderate") return "#FBBF24";
   return "#4ADE80";
+}
+
+function usageColor(level: string) {
+  if (level === "High") return "#4ADE80";
+  if (level === "Moderate") return "#FBBF24";
+  return "#9CA3AF";
 }
 
 function serviceColor(level: string) {

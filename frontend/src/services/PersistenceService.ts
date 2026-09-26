@@ -16,7 +16,11 @@ import useAlertStore from '../store/AlertStore';
 import useProgressionStore from '../store/ProgressionStore';
 import type { CityEvent as CityWideEvent } from '../store/CityEventStore';
 import { resetDistrictNotifications } from '../systems/DistrictSystem';
-import { resetTransit } from '../systems/TransitSystem';
+import {
+  resetTransit,
+  sanitizeLinesForStops,
+  rebuildBuses,
+} from '../systems/TransitSystem';
 import { useSimulationStore } from '../stores/useSimulationStore';
 import type { Building } from '../store/BuildingStore';
 import type { Household, Citizen } from '../store/PopulationStore';
@@ -242,17 +246,21 @@ export function loadCity() {
       panelOpen: false,
     });
 
-    // Restore transit (buses rebuilt from line state on first tick)
+    // Restore transit (buses rebuilt from line state on first tick);
+    // drop references to stops that no longer exist in the save
+    const restoredStops = city.transitStops || [];
     useTransitStore.setState({
-      stops: city.transitStops || [],
-      lines: city.transitLines || [],
+      stops: restoredStops,
+      lines: sanitizeLinesForStops(city.transitLines || [], restoredStops),
       buses: [],
       selectedStopId: null,
       selectedLineId: null,
       panelOpen: false,
       lineDraft: null,
+      draftError: null,
     });
     resetTransit();
+    rebuildBuses();
 
     // Restore municipal
     if (city.municipal) {
