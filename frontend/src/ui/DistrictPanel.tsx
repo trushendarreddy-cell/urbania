@@ -190,10 +190,26 @@ export default function DistrictPanel() {
               ))}
 
               <Section title="Public Transport" />
-              <Row label="Coverage" value={`${Math.round(stat.transitCoverage)}%`} />
+              <Row
+                label="Accessibility"
+                value={
+                  <span
+                    title="Share of district citizens whose home is walkable to a stop served by an enabled line"
+                  >
+                    {Math.round(stat.transitCoverage)}%
+                  </span>
+                }
+              />
               <Row label="Stops" value={stat.transitStops} />
               <Row label="Lines" value={stat.transitLines} />
-              <Row label="Ridership" value={`${stat.transitRiders}/day`} />
+              <Row
+                label="Est. users"
+                value={
+                  <span title="Derived estimate — no passenger simulation">
+                    {stat.transitRiders}/day (est.)
+                  </span>
+                }
+              />
               <Row
                 label="Transit Need"
                 value={

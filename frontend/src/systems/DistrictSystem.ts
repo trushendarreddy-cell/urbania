@@ -16,7 +16,8 @@ import useServiceStore from "../store/ServiceStore";
 import useZoneStore from "../store/ZoneStore";
 import useAlertStore from "../store/AlertStore";
 import useTransitStore from "../store/TransitStore";
-import { computeStopStats, STOP_RADIUS } from "./TransitSystem";
+import { computeStopStats } from "./TransitSystem";
+import { getAccessibility } from "./TransitAccessibilitySystem";
 import { hasRoadAccess } from "./RoadAccessSystem";
 
 export const cellKey = (x: number, z: number) =>
@@ -233,16 +234,12 @@ export const computeDistrictStats = (district: District): DistrictStats => {
       if (l.stopIds.includes(s.id)) transitLinesSet.add(l.id);
     }
   }
+  // Effective accessibility: households in buildings reachable on foot from
+  // a stop that is actually served (enabled line, intact route).
+  const transitAccess = getAccessibility();
   let coveredHouseholds = 0;
   for (const h of districtHouseholds) {
-    const b = buildings.find((bb) => bb.id === h.buildingId);
-    if (!b) continue;
-    const near = districtStops.some((s) => {
-      const dx = s.position[0] - b.position[0];
-      const dz = s.position[2] - b.position[2];
-      return Math.hypot(dx, dz) <= STOP_RADIUS;
-    });
-    if (near) coveredHouseholds++;
+    if (transitAccess.accessibleBuildingIds.has(h.buildingId)) coveredHouseholds++;
   }
   const transitCoverage =
     districtHouseholds.length > 0

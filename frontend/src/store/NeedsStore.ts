@@ -8,7 +8,7 @@ import useEventStore from "./EventStore";
 import useMunicipalStore from "./MunicipalStore";
 import { hasRoadAccess } from "../systems/RoadAccessSystem";
 import useTransitStore from "./TransitStore";
-import { STOP_RADIUS } from "../systems/TransitSystem";
+import { getAccessibility } from "../systems/TransitAccessibilitySystem";
 import { TAX_EFFECTS } from "./MunicipalStore";
 
 export interface CitizenNeeds {
@@ -140,14 +140,13 @@ const useNeedsStore = create<NeedsStore>((set, get) => {
       const taxEffect = TAX_EFFECTS[taxRate]?.happinessMod || 0;
       happiness = clamp(happiness + taxEffect);
 
-      // Transit accessibility: good coverage gives a modest happiness bonus
+      // Transit accessibility: a modest mobility bonus when the home has
+      // EFFECTIVE access (nearby stop on an enabled, intact line).
       if (isActive && transitStops.length > 0) {
-        const nearStop = transitStops.some((s) => {
-          const dx = s.position[0] - homeBuilding.position[0];
-          const dz = s.position[2] - homeBuilding.position[2];
-          return Math.hypot(dx, dz) <= STOP_RADIUS;
-        });
-        if (nearStop) happiness = clamp(happiness + 4);
+        const hasEffectiveAccess = getAccessibility().accessibleBuildingIds.has(
+          homeBuilding.id
+        );
+        if (hasEffectiveAccess) happiness = clamp(happiness + 4);
       }
 
       let category: CitizenHappiness['category'];
