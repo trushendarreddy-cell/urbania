@@ -32,6 +32,7 @@ A browser-based city-building game where players design and grow a city on a gri
 
 ## Future Expansions
 
+- Individual citizen transit trips (visible boarding/riding) and transit fares.
 - Additional biomes and terrain types.
 - Multiplayer city collaboration or competition.
 - Scenario-based challenges (build a harbor, manage a disaster).

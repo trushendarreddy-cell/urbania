@@ -72,16 +72,24 @@
 - Districts & Neighborhoods (district creation/painting, statistics, specialization, persistence)
 - Neighborhood Identity & Local Development (character, trend, quality score, service analysis, notifications)
 
+### City Events & Public Transport (2.49 – 2.54)
+- Dynamic City Events & Incidents (condition-driven, severity, cooldowns, CityEventPanel)
+- Public Transportation (2.50): transit stops, bus lines with validated road-connected routes, lightweight bus fleet, aggregate ridership, transit district metrics, municipal costs, transit city events
+- Transit Line Validation (2.52): road-connectivity checks at creation and per draft pick, named lines, selection-only route visuals, save sanitization; fixed startup crash and render-loop regressions
+- Bus Simulation (2.53): dwell at every stop, reversal at endpoints, sim-clock-driven movement (pause/1x/2x/4x), safe line deletion/disable lifecycle, deterministic post-load reconstruction
+- Transit Accessibility & Ridership (2.54): cached effective-access snapshot, derived per-line ridership estimates with utilization bands, happiness mobility bonus, district accessibility, Transit Accessibility overlay
+
 ## In Progress
 - Road intersection visual refinement (minor)
 - Building variant randomization (planned)
 - Terrain variation (water, elevation) (planned)
 
 ## Future
+- Individual citizen transit trips (boarding, riding, alighting) and transit fares/policies
 - Advanced citizen AI and migration
 - Aging, births, deaths
 - Education progression, healthcare simulation, crime AI
-- Public transport, traffic lights, lane simulation
+- Traffic lights, lane simulation, inter-bus spacing
 - Banking, loans, debt, inflation, supply chains
 - Natural disasters, building damage
 - Save/load multiple slots, export/import

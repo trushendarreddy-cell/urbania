@@ -191,8 +191,31 @@
 - Happiness: small bonus for households near a stop
 - Persistence: stops + lines saved; buses reconstructed from line state; New City clears transit
 
+## Phase 37 — Transit Line Validation & Stabilization (2.52)
+- Route validation at creation and per draft selection via the existing road graph (≥2 stops, existing stops, no duplicates, road-connected) with clear rejection reasons
+- Named line creation (optional name at commit) and draft error reporting in the store
+- Route visualization only for the selected line, removed on deselect
+- Load-time sanitizing of line stopIds against missing stops; under-populated lines disabled + marked disrupted
+- Fixed 2.51 regressions: overlays outside the R3F Canvas (startup black screen) and store selectors causing infinite render loops
+
+## Phase 38 — Transit Vehicles & Bus Simulation (2.53)
+- Buses dwell at every stop along the route (not just endpoints) and reverse at route endpoints
+- Deleting a line drops its buses immediately; disabling withdraws them (deterministic respawn on re-enable)
+- rebuildBuses reconstructs the fleet after load without needing an advancing clock
+- Movement driven solely by the simulation clock (pause/1x/2x/4x respected); no per-bus timers
+- Bus visual: roof detail plus a small line-identifier badge
+
+## Phase 39 — Transit Accessibility & Ridership (2.54)
+- TransitAccessibilitySystem: cached accessibility snapshot (effective stops on enabled intact lines, road-walkable accessible buildings, accessible citizens, per-line commute pools), invalidated on transit/building/population changes
+- Effective access requires a stop served by an enabled, non-disrupted line within road-walkable distance
+- Derived per-line ridership estimates (commute + leisure trips, service- and time-of-day scaled) with utilization bands, labeled as estimates in the UI
+- Happiness mobility bonus and district transit coverage now use effective accessibility
+- Transit Accessibility overlay (green = access, gray = none) and accessibility/ridership rows in TransitPanel and DistrictPanel
+
 ## Current State
-- Fully functional 3D city-building simulation (v2.50)
+- Fully functional 3D city-building simulation (v2.54)
 - Core building, simulation, economy, services, emergency, progression,
   persistence, and public transportation systems complete
+- Transit stack complete through stops → lines → buses → city accessibility
+  and derived ridership (no passenger entities or individual transit trips)
 - Stable, TypeScript clean, production build passing

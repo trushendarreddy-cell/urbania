@@ -6,9 +6,9 @@
 
 ## Current Development Status
 
-**Version:** 2.48 — Neighborhood Identity & Local Development
+**Version:** 2.54 — Transit Accessibility & Ridership
 
-Urbania has progressed well beyond the initial prototype. Core city-building foundations, an expanding simulation layer (population, economy, services, emergencies, traffic), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
+Urbania has progressed well beyond the initial prototype. Core city-building foundations, a deep simulation layer (population, economy, services, emergencies, traffic, districts, events), public transportation (stops → validated lines → buses → accessibility & derived ridership), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
 
 - **TypeScript:** clean
 - **Production build:** passing (chunk-size warning only)
@@ -127,11 +127,24 @@ The project is an evolving **city-building simulation** — a proving ground for
 - City Activity level (QUIET/NORMAL/BUSY/PEAK) and day/night labels
 - Window illumination (emissive, varying by type, level, time, activity)
 
+### Public Transportation
+- TransitStop placement (road-adjacent, validated, persistent) and TransitLine creation with road-connectivity validation and clear rejection reasons
+- Line management: rename, enable/disable, delete; deleting a line removes its buses; disabled lines withdraw them
+- Route visualization for the selected line, following actual road-connected paths in the line's color
+- Lightweight buses that dwell at every stop and reverse at endpoints, driven solely by the simulation clock (pause/1x/2x/4x)
+- Buses count as road traffic via the existing RoadUsageStore
+- Transit accessibility: a cached snapshot of which buildings/citizens have effective access (stop on an enabled intact line, road-walkable) — drives a small happiness bonus and district coverage
+- Derived per-line ridership estimates with utilization bands, clearly labeled as estimates (no passenger entities)
+- Transit Accessibility overlay (🚏): green = effective access, gray = none
+- District transit metrics (accessibility, stops, lines, estimated users) in the DistrictPanel
+- TransitPanel network summary with line/stop inspection and municipal costs (stop upkeep, line operating cost, one-time line cost)
+- City events: Transit Coverage Gap, Bus Line Disrupted, Public Transport Growth
+
 ### Persistence & UI
 - Save / Load / New City (versioned localStorage persistence with metadata)
 - HUD (day, time, population, households, money, traffic, activity, stage, municipal treasury)
-- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview, ZoneInspectionPanel, DistrictPanel
-- Toggleable Land Value and Development Pressure overlays
+- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview, ZoneInspectionPanel, DistrictPanel, TransitPanel, CityEventPanel
+- Toggleable Land Value, Development Pressure, and Transit Accessibility overlays
 
 ---
 
@@ -161,6 +174,7 @@ The project is an evolving **city-building simulation** — a proving ground for
 | X | Zone: Commercial |
 | V | Zone: Industrial |
 | D | District tool (paint cells) |
+| B | Bus Stop (transit) |
 | Escape | Cancel selection / close inspection |
 
 ### Mouse
@@ -223,11 +237,11 @@ State is managed with Zustand stores, rendered declaratively with React Three Fi
 ```
 frontend/src/
 ├── scenes/       # GameScene composition & interaction
-├── world/        # 3D objects (Ground, Grid, buildings, Road, Citizen, vehicles)
+├── world/        # 3D objects (Ground, Grid, buildings, Road, Citizen, vehicles, transit)
 ├── ui/           # HUD, BuildMenu, panels, overlays
-├── store/        # Zustand stores (buildings, population, economy, services, etc.)
+├── store/        # Zustand stores (buildings, population, economy, services, transit, etc.)
 ├── stores/       # useSimulationStore (clock)
-├── systems/      # Placement, Road, RoadAccess, Pathfinding, CitizenMovement, Traffic, Alert
+├── systems/      # Placement, Road, RoadAccess, Pathfinding, CitizenMovement, Traffic, Alert, Transit, TransitAccessibility, District, CityEvent
 ├── services/     # PersistenceService
 ├── types/        # BuildTool, ZoneType
 ├── App.tsx       # Root component
@@ -268,7 +282,9 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full detail.
 
 **Phase 13 – Stabilization** — Dead code removal, camera drag threshold fix.
 
-**Phase 14+ – Simulation Expansion** — Population, jobs, citizens, visualization, routines, walking, pathfinding, traffic, economy, needs, services, utilities, healthcare, education, safety, events, emergency dispatch, emergency vehicles, demand, production, persistence, dynamic simulation, land value, development, progression, unlocks, activity, and municipal policies. (See [`docs/Changelog.md`](./docs/Changelog.md) for the full history.)
+**Phase 14+ – Simulation Expansion** — Population, jobs, citizens, visualization, routines, walking, pathfinding, traffic, economy, needs, services, utilities, healthcare, education, safety, events, emergency dispatch, emergency vehicles, demand, production, persistence, dynamic simulation, land value, development, progression, unlocks, activity, and municipal policies.
+
+**Phase 15+ – City Life & Public Transport** — Organic zoning, districts with neighborhood identity, condition-driven city events, transit stops and validated bus lines, bus simulation, and transit accessibility with derived ridership. (See [`docs/Changelog.md`](./docs/Changelog.md) for the full history.)
 
 ---
 
@@ -286,15 +302,16 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full detail.
 - Building upgrades are visual/status only; capacity scaling is not yet wired.
 - Civilian vehicles reuse the emergency vehicle model.
 - No traffic lights, lane simulation, or collision avoidance.
-- Transit ridership is an aggregate estimate; citizens do not individually path onto buses.
-- No transit fares or dedicated transit policy yet.
+- **Passenger entities, boarding animations, and individual citizen transit trips are NOT implemented.** Ridership is a deterministic derived estimate from real city state (accessibility pools × commute patterns × service level); citizens do not board specific buses.
+- No transit fares, schedules, or dedicated transit policy yet.
+- Buses do not overtake or queue; stop dwell times are fixed constants.
 - No mobile touch support, sound, or multiplayer.
 
 ---
 
 ## Roadmap
 
-See [`docs/Roadmap.md`](./docs/Roadmap.md). Future work includes advanced citizen AI (migration, aging), deeper service simulation, public transport, banking/economy depth, disasters, and multiple save slots.
+See [`docs/Roadmap.md`](./docs/Roadmap.md). Future work includes individual citizen transit trips (boarding/riding/alighting), transit fares and policies, advanced citizen AI (migration, aging), deeper service simulation, traffic lights and lanes, banking/economy depth, disasters, and multiple save slots.
 
 ---
 

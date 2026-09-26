@@ -18,6 +18,7 @@
 | X | Zone: Commercial |
 | V | Zone: Industrial |
 | D | District tool (paint cells into active district) |
+| B | Bus Stop (place transit stops) |
 | Escape | Cancel tool selection / close inspection panel |
 
 Additional building shortcuts (via BuildMenu):
@@ -48,6 +49,7 @@ Additional building shortcuts (via BuildMenu):
 
 - **🏛️ Municipal** — opens MunicipalPanel (budget / policies).
 - **🏙️ Stage** — opens ProgressionPanel (stages / milestones).
+- **🚌 Transit** — opens TransitPanel (network summary, line/stop management).
 - **🚦 Traffic** indicator — shows congestion level.
 - **Activity indicator** — shows QUIET/NORMAL/BUSY/PEAK and time label.
 
@@ -58,11 +60,21 @@ Additional building shortcuts (via BuildMenu):
 - **New** — resets to a new city (with confirmation).
 - **📊 Land Value** — toggles land value overlay.
 - **📈 Dev Pressure** — toggles development pressure overlay.
+- **🚏 Transit Access** — toggles the transit accessibility overlay (green = effective access, gray = none).
 
 ## BuildMenu (UI)
 
-- Bottom-centered categorized menu (Residential, Commercial, Industrial, Services, Decoration, Roads, Utilities).
+- Bottom-centered categorized menu (Residential, Commercial, Industrial, Services, Decoration, Roads, Zoning, Districts, Transit, Utilities).
 - Locked buildings show a 🔒 and are disabled until unlocked by city progression.
+
+## TransitPanel (UI)
+
+- **＋ Create Line / ✕ Cancel Line** — start or abort a line draft.
+- Click transit stops on the map (in draft mode) to add them to the line in order; invalid picks show a reason.
+- **Line name (optional)** text field while drafting; **✓ Finish** commits the line (costs ₹100, requires ≥2 road-connected stops).
+- Line rows: select a line to show its route on the map, plus Rename / Enable-Disable / Delete actions.
+- Stop rows: click to inspect a stop (nearby population/jobs, estimated riders).
+- Network section: stops, lines, active buses, Accessibility %, Est. Daily Riders.
 
 ## Interaction Behavior
 

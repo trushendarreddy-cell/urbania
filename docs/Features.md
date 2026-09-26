@@ -35,16 +35,23 @@
 - **Road Access Feedback:** Ghost preview shows "ROAD ACCESS ✓" or "NO ROAD ACCESS" label.
 - **Jobs & Employment:** Shop provides 2 jobs, Factory provides 5 jobs; employment/unemployment tracked.
 - **Citizens:** Each household has 4 citizens with deterministic ages and employment status (employed/unemployed/inactive).
+- **City Events:** Condition-driven city events with severity, cooldowns, and a dedicated panel.
+- **Districts:** Named, colored districts with painted cells, specialization, and derived statistics (population, jobs, quality, services, traffic, transit).
+- **Public Transport:** Bus stops (road-adjacent), bus lines with validated road-connected routes, and a lightweight bus fleet that dwells at every stop and reverses at endpoints.
+- **Line Management:** Create/rename/enable/disable/delete lines via the TransitPanel; invalid routes rejected with clear reasons; route visualization for the selected line.
+- **Transit Accessibility:** Cached snapshot of which buildings/citizens have effective access (stop on an enabled intact line within road-walkable distance), with a map overlay (green/gray).
+- **Derived Ridership:** Per-line ridership estimates from commute/leisure pools with utilization bands (Low/Moderate/High), clearly labeled as estimates — no passenger entities are simulated.
+- **Transit Happiness Bonus:** Citizens with effective transit access receive a small, capped happiness benefit.
+- **Persistence:** Versioned save/load including zones, districts, city events, transit stops, and lines; New City clears everything.
 
 ## Planned
 
-- **Population Simulation:** Households, active population, road-access relationship.
-- **City Statistics:** Population, happiness, traffic, economy overview.
+- **Citizen Transit Trips:** Individual boarding/riding/alighting (passenger entities) and fares.
+- **Traffic Lights & Lanes:** Intersection control and multi-lane roads.
 - **Building Variants:** Randomized color and dimension variations.
 - **Camera Bookmarks:** Save and return to specific city views.
 - **Minimap:** Top-down overview of the city layout.
-- **Day/Night Lighting:** Dynamic sky and lighting transitions.
 - **Weather Effects:** Rain, snow, fog.
-- **Save/Load:** Persist city state to localStorage or backend.
+- **Save Slots & Export:** Multiple save slots and import/export.
 - **Undo/Redo:** Revert accidental placements.
 - **Sound Effects:** Ambient audio and placement feedback.

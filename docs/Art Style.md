@@ -17,6 +17,10 @@ Urbania uses a low-poly, colorful art style designed to be performant in the bro
 - **Door:** Dark brown (`#5D4037`) for contrast.
 - **Windows:** Light blue (`#87CEFA`) with high opacity for glass effect.
 - **Chimney:** Dark gray (`#666666`) for subtle detail.
+- **Transit Line Colors:** Bold, high-contrast palette (`#F97316`, `#38BDF8`, `#4ADE80`, `#F472B6`, `#A78BFA`, `#FBBF24`) used for line swatches, bus bodies, and route lines so lines are distinguishable at a glance.
+- **Bus:** Low-poly body in the line's color with a light-blue window band (`#93C5FD`), white roof (`#F3F4F6`), and a small line-identifier badge; a compact vehicle silhouette that reads clearly against roads.
+- **Route Line:** Semi-transparent (0.6 opacity) line at low height above the road, colored by line; shown only for the selected line.
+- **Accessibility Overlay:** Green (`#4ade80`) = effective transit access, gray (`#6b7280`) = none, as translucent planes above buildings.
 
 ## Geometry Style
 
