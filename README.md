@@ -1,348 +1,150 @@
 # Urbania
 
-**Urbania** is an interactive 3D city-building simulation built with React, TypeScript, and Three.js. It renders a low-poly 3D world where you place residential, commercial, industrial, and service buildings, roads, utilities, and decoration on a grid — then watch a living simulation unfold: citizens commute, businesses trade, services respond to emergencies, land value shifts, buildings upgrade, and city policies shape the budget.
+Urbania is a browser-based city simulation built around a simple idea: **a city should behave like a system, not just look like one.**
 
----
+Instead of stopping at placing buildings on a 3D map, Urbania connects population, jobs, roads, traffic, services, utilities, land value, economy, development, emergencies, districts, and public transport. Changes in one part of the city can affect another.
 
-## Current Development Status
+## What you can do
 
-**Version:** 2.54 — Transit Accessibility & Ridership
+Build a city from an empty map, then watch it develop over simulation time.
 
-Urbania has progressed well beyond the initial prototype. Core city-building foundations, a deep simulation layer (population, economy, services, emergencies, traffic, districts, events), public transportation (stops → validated lines → buses → accessibility & derived ridership), a professional UI, and persistent save/load are all implemented. Development continues in controlled milestone batches.
+You can:
 
-- **TypeScript:** clean
-- **Production build:** passing (chunk-size warning only)
-- **Save/Load/New City:** functional
+- place residential, commercial and industrial buildings;
+- build roads and services such as hospitals, schools, police and fire stations;
+- create districts and zones;
+- manage electricity, water and municipal finances;
+- watch households, jobs, businesses and traffic respond to the city;
+- handle fires, medical incidents and crime through emergency dispatch;
+- build public transport lines and inspect derived accessibility and ridership;
+- save and load a city and continue the simulation later.
 
----
+The goal is not to reproduce a commercial city-builder. It is to build a coherent simulation where the systems have understandable rules and can be inspected while they run.
 
-## What is Urbania?
+## How the simulation fits together
 
-Urbania is a browser-based city builder running entirely in the browser using **React Three Fiber**. It renders a low-poly 3D world with:
-
-- A large terrain plane with procedural ground texture
-- A translucent grid for placement guidance
-- Mouse-driven raycasting to detect tile positions
-- A ghost/preview building system that follows the cursor
-- Click-to-place mechanics for buildings, trees, rocks, and roads
-- A floating categorized build menu
-- Orbit controls for camera navigation (with damping)
-- Road placement with drag-to-build and auto-connection
-- Building rotation with keyboard shortcuts
-- Bulldozer tool for removing placed objects
-- Placement validation with green/red ghost feedback
-- A day/night lighting cycle driven by the simulation clock
-
-The project is an evolving **city-building simulation** — a proving ground for 3D rendering, state management, and interactive simulation mechanics in the browser.
-
----
-
-## Features
-
-### World
-- R3F scene with ground, grid, sky, and dynamic lighting
-- Day/night cycle (dawn/day/dusk/night) from the simulation clock
-- Procedural ground texture with subtle variation
-
-### City Building
-- Grid snapping, placement validation, ghost previews
-- Buildings: House, Shop, Factory, Park, Tree, Rock, Road
-- Services: Hospital, School, Police Station, Fire Station
-- Utilities: Power Plant, Water Plant
-- Bulldozer, selection, and inspection
-- Categorized BuildMenu with keyboard shortcuts
-
-### Zoning & Organic Development
-- Place vacant Residential/Commercial/Industrial zones (tools in the "Zoning" category; keys Z/X/V)
-- Zones develop organically when road access, demand, land value, development pressure, and progression unlocks allow
-- Development progress accumulates per simulation day; a notification fires on completion
-- Initial building level is derived from land value
-- Zones persist in save/load and are cleared on New City
-- Selecting a zone shows why it is or isn't developing (ZoneInspectionPanel)
-
-### Districts & Neighborhoods
-- Create named, colored districts and paint cells into them (District tool, key D)
-- District specialization (General/Residential/Commercial/Industrial/Mixed) gives a small deterministic development preference
-- District panel shows derived statistics: population, households, jobs, building breakdown, land value, happiness, traffic, service coverage, health rating, strengths and problems
-- District overlays show boundaries with a highlight for the selected district and an identity label (name, character, trend, quality)
-- Neighborhood profile: derived character (from actual building mix), development trend and activity, and a 0–100 quality score with a transparent breakdown
-- Local service analysis (Parks, Healthcare, Education, Police, Fire) with a priority recommendation, plus local traffic condition
-- Throttled district notifications (rapid growth, decline, heavy traffic, needs attention)
-- Specialization (player intent) is shown separately from the derived character (actual reality)
-- Districts persist in save/load and are cleared on New City
-
-### City Events & Incidents
-- Condition-driven city events evaluated once per simulation day (no random popups)
-- Categories: infrastructure, services, economy, development, citizens
-- Types: Traffic Pressure, Service Pressure, Development Boom, Development Stagnation, Happiness Decline, Budget Pressure, Investment Interest, City Development Surge
-- Severity (info/warning/critical) from real thresholds; automatic resolution when conditions clear
-- Per-condition cooldowns (5 simulation days) prevent spam; pause freezes progression
-- CityEventPanel with severity grouping, district navigation, and recent history
-- HUD indicator (🚨 when critical) opens the panel; notifications via the existing alert system
-- Events persist in save/load and are cleared on New City
-
-### Roads & Transportation
-- Drag-to-build roads with auto-connections (straight, corner, T-junction, intersection)
-- Road access detection (cardinal neighbors)
-- Road usage and congestion (capacity per road cell)
-- Traffic-aware pathfinding (BFS with congestion penalty)
-- Civilian vehicle traffic and emergency vehicles (Fire Truck, Ambulance, Police Car)
-
-### Population & Citizens
-- Households of 4; active population based on road access
-- Jobs & employment (Shop: 2 jobs, Factory: 5 jobs)
-- Citizens with ages, employment, activity, and stable IDs
-- Daily routines (home / working / leisure) from the simulation clock
-- Road-aware walking between home and work with congestion-aware speed
-- Low-poly citizen visualization with state-based color and scale variation
-
-### Economy
-- Household money, income, spending
-- Business revenue, costs, profit, and status (HEALTHY/WEAK/STRUGGLING)
-- Factory production (workers × utility factor × demand)
-- Consumer demand (household/shop/factory) and unmet demand
-- Economic health and household financial state
-- Municipal budget: treasury, revenue, expenses, net balance
-- Tax rate (low/normal/high) with happiness and demand trade-offs
-- City policies (growth / balanced / austerity) and service funding
-
-### Services & Utilities
-- Service providers with coverage: Recreation (Park), Healthcare (Hospital), Education (School), Safety (Police), Emergency (Fire)
-- Utilities: Electricity (Power Plant) and Water (Water Plant) with demand, capacity, and coverage
-- Citizen needs (housing, food, safety, recreation, healthcare, education) and derived happiness
-- Service shortage alerts and a compact service overview panel
-
-### Events & Emergencies
-- City events: fire, medical, crime with a full lifecycle (active → responding → resolved)
-- Emergency dispatch: road-aware provider selection, pathfinding, traffic-aware ETA
-- Emergency vehicles physically follow routes and return to their stations
-
-### City Systems
-- Simulation clock (day, time, pause, speed 0/1/2/4)
-- Land Value derived from access, services, utilities, happiness, congestion, demand
-- Development Pressure driving building upgrades
-- Building progression (levels 1–3) with visual scaling and cooldowns
-- City progression stages: Village → Town → City → Large City → Metropolis
-- Milestones and an unlock system (buildings unlock by stage)
-- City Activity level (QUIET/NORMAL/BUSY/PEAK) and day/night labels
-- Window illumination (emissive, varying by type, level, time, activity)
-
-### Public Transportation
-- TransitStop placement (road-adjacent, validated, persistent) and TransitLine creation with road-connectivity validation and clear rejection reasons
-- Line management: rename, enable/disable, delete; deleting a line removes its buses; disabled lines withdraw them
-- Route visualization for the selected line, following actual road-connected paths in the line's color
-- Lightweight buses that dwell at every stop and reverse at endpoints, driven solely by the simulation clock (pause/1x/2x/4x)
-- Buses count as road traffic via the existing RoadUsageStore
-- Transit accessibility: a cached snapshot of which buildings/citizens have effective access (stop on an enabled intact line, road-walkable) — drives a small happiness bonus and district coverage
-- Derived per-line ridership estimates with utilization bands, clearly labeled as estimates (no passenger entities)
-- Transit Accessibility overlay (🚏): green = effective access, gray = none
-- District transit metrics (accessibility, stops, lines, estimated users) in the DistrictPanel
-- TransitPanel network summary with line/stop inspection and municipal costs (stop upkeep, line operating cost, one-time line cost)
-- City events: Transit Coverage Gap, Bus Line Disrupted, Public Transport Growth
-
-### Persistence & UI
-- Save / Load / New City (versioned localStorage persistence with metadata)
-- HUD (day, time, population, households, money, traffic, activity, stage, municipal treasury)
-- Panels: ProgressionPanel, MunicipalPanel, CityStats, TrafficPanel, AlertPanel, ServiceOverview, ZoneInspectionPanel, DistrictPanel, TransitPanel, CityEventPanel
-- Toggleable Land Value, Development Pressure, and Transit Accessibility overlays
-
----
-
-## Controls
-
-### Keyboard
-
-| Key | Action |
-|-----|--------|
-| 0 | Select mode (inspect) |
-| 1 | House (residential) |
-| 2 | Tree |
-| 3 | Rock |
-| 4 | Bulldozer (delete) |
-| 5 | Road |
-| 6 | Shop (commercial) |
-| 7 | Factory (industrial) |
-| 8 | Park (public) |
-| 9 | Power Plant |
-| 0 | Water Plant |
-| h | Hospital |
-| s | School |
-| p | Police Station |
-| f | Fire Station |
-| R | Rotate ghost by 90° |
-| Z | Zone: Residential |
-| X | Zone: Commercial |
-| V | Zone: Industrial |
-| D | District tool (paint cells) |
-| B | Bus Stop (transit) |
-| Escape | Cancel selection / close inspection |
-
-### Mouse
-
-| Action | Effect |
-|--------|--------|
-| Left Click (no drag) | Place / select / delete (tool-dependent) |
-| Left Click + Drag | Orbit camera (drag > 6px threshold) |
-| Scroll | Zoom in/out |
-
-### Simulation (UI)
-- Pause/Resume (⏸/▶)
-- Speed cycle (0x, 1x, 2x, 4x)
-
-### City Menu (UI)
-- Save, Load, New (with confirmation)
-- Land Value overlay toggle, Development Pressure overlay toggle
-
----
-
-## Tech Stack
-
-| Category | Technology |
-|----------|-----------|
-| Runtime | Node.js |
-| Frontend Framework | React 19 |
-| Language | TypeScript |
-| Build Tool | Vite |
-| 3D Engine | Three.js |
-| React 3D Renderer | React Three Fiber |
-| 3D Utilities | React Three Drei |
-| State Management | Zustand |
-| Linting | Oxlint |
-| Package Manager | npm |
-
----
-
-## Getting Started
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Lint code
-npm run lint
+```text
+              City state
+                  │
+       ┌──────────┼──────────┐
+       ▼          ▼          ▼
+   Population   Economy    Services
+       │          │          │
+       └──────┬───┴──────┬───┘
+              ▼          ▼
+            Demand    Land value
+                \       /
+                 ▼     ▼
+                Development
+                     │
+                     ▼
+              Roads + Traffic
+                     │
+             ┌───────┴────────┐
+             ▼                ▼
+        Emergencies        Transit
 ```
 
----
+Most of these systems are deterministic and state-driven. The simulation clock is the main driver rather than a collection of unrelated random events.
+
+## Systems currently implemented
+
+### City building
+
+Grid-based placement, ghost previews, validation, rotation, roads, zoning and bulldozing form the basic building loop.
+
+### Population and economy
+
+Households have jobs, income, spending and daily routines. Businesses have revenue, costs and production. Municipal finances track revenue, expenses and treasury state.
+
+### Services and utilities
+
+Hospitals, schools, police, fire, parks, power and water affect coverage and the needs of citizens. Service shortages can feed into city conditions and development.
+
+### Roads and traffic
+
+Road connections are validated on the grid. Traffic uses pathfinding with congestion effects, and emergency vehicles choose reachable providers and follow routes through the road network.
+
+### Development
+
+Land value and development pressure are derived from city conditions. Zones can develop into buildings when their requirements are met, and the city progresses through larger stages as it grows.
+
+### Districts and events
+
+Districts provide a way to inspect parts of the city rather than only looking at global statistics. City events are triggered by actual conditions such as traffic pressure, service shortages, development stagnation and budget pressure.
+
+### Public transport
+
+Transit stops and road-connected bus lines can be created and managed. Buses move according to the simulation clock, contribute to road usage, and provide an accessibility layer. Ridership is currently a derived estimate rather than individual passenger entities.
 
 ## Architecture
 
-State is managed with Zustand stores, rendered declaratively with React Three Fiber, and driven by systems under `frontend/src/systems/`.
+The project uses React Three Fiber for the 3D world and Zustand for simulation state.
 
-```
+```text
 frontend/src/
-├── scenes/       # GameScene composition & interaction
-├── world/        # 3D objects (Ground, Grid, buildings, Road, Citizen, vehicles, transit)
-├── ui/           # HUD, BuildMenu, panels, overlays
-├── store/        # Zustand stores (buildings, population, economy, services, transit, etc.)
-├── stores/       # useSimulationStore (clock)
-├── systems/      # Placement, Road, RoadAccess, Pathfinding, CitizenMovement, Traffic, Alert, Transit, TransitAccessibility, District, CityEvent
-├── services/     # PersistenceService
-├── types/        # BuildTool, ZoneType
-├── App.tsx       # Root component
-└── main.tsx      # Entry point
+├── scenes/       # Main 3D scene composition
+├── world/        # Buildings, roads, citizens, vehicles and terrain
+├── ui/            # HUD, menus, panels and overlays
+├── store/        # Domain state
+├── stores/       # Simulation clock state
+├── systems/      # Simulation and interaction systems
+├── services/     # Persistence
+└── types/        # Shared domain types
 ```
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for full detail.
+The important architectural boundary is between **state**, **systems that update state**, and **React components that present it**. More detail is available in `ARCHITECTURE.md`.
 
----
+## Tech stack
 
-## Development
+- React 19
+- TypeScript
+- Vite
+- Three.js
+- React Three Fiber / Drei
+- Zustand
+- Oxlint
+- npm
 
-### How it was built
+## Run locally
 
-**Phase 1 – Project Setup** — Vite + React + TypeScript; installed Three.js, R3F, Drei, Zustand.
-
-**Phase 2 – 3D Scene Foundation** — R3F Canvas with shadows, camera, sky, lighting, ground, grid, OrbitControls.
-
-**Phase 3 – Mouse Interaction** — Raycasting to ground, grid-aligned tiles, hover preview, click placement.
-
-**Phase 4 – Building System** — Low-poly House, BuildingStore, ghost preview.
-
-**Phase 5 – UI Toolbar** — Tool selection driving placement.
-
-**Phase 6 – Architecture** — Organized into world/scenes/systems/store/ui/hooks/types.
-
-**Phase 7 – Building Tools** — Tree, Rock, rotation, bulldozer, placement validation.
-
-**Phase 8 – Road System** — Drag-to-build, auto-connection, intersections.
-
-**Phase 9 – Zoning** — Shop, Factory, Park with zone types.
-
-**Phase 10 – Road Access** — Cardinal neighbor detection with visual indicators.
-
-**Phase 11 – Inspection** — Select mode, object info, road connections.
-
-**Phase 12 – Simulation Clock** — Day/time, pause, speed control.
-
-**Phase 13 – Stabilization** — Dead code removal, camera drag threshold fix.
-
-**Phase 14+ – Simulation Expansion** — Population, jobs, citizens, visualization, routines, walking, pathfinding, traffic, economy, needs, services, utilities, healthcare, education, safety, events, emergency dispatch, emergency vehicles, demand, production, persistence, dynamic simulation, land value, development, progression, unlocks, activity, and municipal policies.
-
-**Phase 15+ – City Life & Public Transport** — Organic zoning, districts with neighborhood identity, condition-driven city events, transit stops and validated bus lines, bus simulation, and transit accessibility with derived ridership. (See [`docs/Changelog.md`](./docs/Changelog.md) for the full history.)
-
----
-
-## Validation
-
-- TypeScript: `npm run build` (tsc -b) — passes
-- Production build: `npm run build` (vite build) — passes
-- Known limitations are tracked in [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md)
-
----
-
-## Known Limitations
-
-- Service coverage uses Euclidean distance, not road-network distance.
-- Building upgrades are visual/status only; capacity scaling is not yet wired.
-- Civilian vehicles reuse the emergency vehicle model.
-- No traffic lights, lane simulation, or collision avoidance.
-- **Passenger entities, boarding animations, and individual citizen transit trips are NOT implemented.** Ridership is a deterministic derived estimate from real city state (accessibility pools × commute patterns × service level); citizens do not board specific buses.
-- No transit fares, schedules, or dedicated transit policy yet.
-- Buses do not overtake or queue; stop dwell times are fixed constants.
-- No mobile touch support, sound, or multiplayer.
-
----
-
-## Roadmap
-
-See [`docs/Roadmap.md`](./docs/Roadmap.md). Future work includes individual citizen transit trips (boarding/riding/alighting), transit fares and policies, advanced citizen AI (migration, aging), deeper service simulation, traffic lights and lanes, banking/economy depth, disasters, and multiple save slots.
-
----
-
-## Project Structure
-
-```
-urbania/
-├── docs/                    # Design documents, roadmap, changelog
-├── frontend/               # Main Vite + React application
-│   ├── src/                # (see Architecture above)
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── tsconfig.json
-├── package.json
-├── README.md
-├── ARCHITECTURE.md
-├── CONTROLS.md
-├── DEVELOPMENT_STATUS.md
-├── DEVELOPMENT_PROGRESS.md
-├── KNOWN_ISSUES.md
-└── FIX_REPORT.md
+```bash
+npm install
+npm run dev
 ```
 
----
+For a production build:
+
+```bash
+npm run build
+```
+
+Lint the project with:
+
+```bash
+npm run lint
+```
+
+## Current boundaries
+
+Urbania is deliberately explicit about what it does not simulate yet.
+
+- Citizens do not have individual transit boarding/riding/alighting entities.
+- Ridership is a deterministic estimate derived from city state.
+- Traffic does not model lanes, traffic lights or overtaking.
+- Service coverage is not yet based on full road-network travel distance.
+- There is no multiplayer or mobile-touch control layer.
+
+These are simulation boundaries, not hidden features.
+
+## Why I built it
+
+Urbania started as a 3D browser experiment and became a way to learn how several interacting systems behave when they share the same state. The interesting engineering work is in the relationships between systems: road access affects movement, movement affects traffic, traffic affects land value, and city conditions influence development and services.
+
+It is still evolving, but the project is intended to be a real simulation rather than a 3D scene with UI placed around it.
 
 ## Author
 
-**T. Rushendar Reddy**
-
-Email: trushendarreddy@gmail.com
-
-Hyderabad, Telangana
-
-*Built as a learning project and evolving proof-of-concept for browser-based city simulation.*
+**T. Rushendar Reddy**  
+Artificial Intelligence and Machine Learning  
+Vignan University, Hyderabad
