@@ -1,5 +1,7 @@
 # Urbania
 
+![A small city built in the editor: residential housing, a factory, a commercial unit and trees, with the live services, budget and traffic panels reading from the simulation](docs/images/city.jpg)
+
 Urbania is a browser-based city simulation built around a simple idea: **a city should behave like a system, not just look like one.**
 
 Instead of stopping at placing buildings on a 3D map, Urbania connects population, jobs, roads, traffic, services, utilities, land value, economy, development, emergencies, districts, and public transport. Changes in one part of the city can affect another.
