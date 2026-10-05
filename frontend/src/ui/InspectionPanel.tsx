@@ -111,6 +111,10 @@ export default function InspectionPanel() {
   const setSelectedObjectId = useBuildingStore(
     (state) => state.setSelectedObjectId
   );
+  // Must sit above the early return below. This hook used to be called after
+  // `if (!building) return null`, so selecting an object and then clearing the
+  // selection changed the number of hooks between renders, which React rejects.
+  const timeOfDay = useSimulationStore((state) => state.timeOfDay);
 
   const building =
     selectedObjectId !== null
@@ -131,7 +135,6 @@ export default function InspectionPanel() {
     : null;
   const householdPop = household ? household.population : null;
   const jobCount = info.jobCount || 0;
-  const timeOfDay = useSimulationStore((state) => state.timeOfDay);
   const citizensForHousehold = household
     ? usePopulationStore.getState().citizens.filter(c => c.householdId === household.id)
     : [];
