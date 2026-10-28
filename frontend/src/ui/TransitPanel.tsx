@@ -107,8 +107,8 @@ export default function TransitPanel() {
       </div>
 
       <Section title="Network" />
-      <Row label="Stops" value={stats.stopCount} />
-      <Row label="Bus Lines" value={stats.lineCount} />
+      <Row label="Transit Stops" value={stats.stopCount} />
+      <Row label="Active Lines" value={stats.activeLineCount} />
       <Row label="Active Buses" value={stats.busCount} />
       <Row
         label="Accessibility"
@@ -126,7 +126,7 @@ export default function TransitPanel() {
           </span>
         }
       />
-      <Row label="Est. Daily Riders" value={`${stats.dailyRiders} (est.)`} />
+      <Row label="Est. Daily Ridership" value={`${stats.dailyRiders} riders/day (est.)`} />
       <Row label="Treasury" value={`₹${Math.round(treasury)}`} />
       <Row
         label="Demand"
@@ -236,14 +236,9 @@ export default function TransitPanel() {
             const s = computeStopStats(selectedStop);
             return (
               <>
-                <Row label="Lines" value={s.lines} />
+                <Row label="Active Lines" value={s.lines} />
                 <Row label="Nearby Population" value={s.population} />
                 <Row label="Nearby Jobs" value={s.jobs} />
-                <Row label="Daily Riders" value={s.riders} />
-                <Row
-                  label="Coverage"
-                  value={<span style={{ color: serviceColor(s.level) }}>{s.level}</span>}
-                />
               </>
             );
           })()}
@@ -277,10 +272,10 @@ export default function TransitPanel() {
                 <Row label="Stops" value={selectedLine.stopIds.length} />
                 <Row label="Buses" value={ls.busCount} />
                 <Row
-                  label="Est. Riders/day"
+                  label="Est. Ridership/day"
                   value={
                     <span title="Derived estimate from citizens with access to this line — no passenger simulation">
-                      {rs.estimatedDailyRidership} (est.)
+                      {rs.estimatedDailyRidership} riders/day (est.)
                     </span>
                   }
                 />
@@ -293,6 +288,7 @@ export default function TransitPanel() {
                   }
                 />
                 <Row label="Commute Pool" value={rs.commuteEligible} />
+                <Row label="Usage" value={rs.usageLevel} />
                 {selectedLine.stopIds.length > 0 && (
                   <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "4px" }}>
                     Route:{" "}

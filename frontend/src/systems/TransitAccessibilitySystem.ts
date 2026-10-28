@@ -1,18 +1,28 @@
-import useTransitStore, { type TransitStop } from "../store/TransitStore";
+import useTransitStore from "../store/TransitStore";
 import useBuildingStore from "../store/BuildingStore";
 import usePopulationStore from "../store/PopulationStore";
-import { getRoadGraph, findPath, findNearestRoadCell } from "./PathfindingSystem";
-import { STOP_RADIUS } from "./TransitSystem";
+import { getCitizenActivity } from "./CitizenActivitySystem";
+import { getRoadGraph } from "./PathfindingSystem";
 
-// Road network and population changes also change accessibility.
-// (TransitStore mutations invalidate from inside the store itself.)
-useBuildingStore.subscribe(() => {
-  cache = null;
-});
-usePopulationStore.subscribe(() => {
-  cache = null;
-});
+export const STOP_RADIUS = 6;
 
+let cache: AccessibilitySnapshot | null = null;
+
+// Road, population, and transit changes invalidate this derived snapshot.
+useBuildingStore.subscribe((state, previous) => {
+  if (state.buildings !== previous.buildings) cache = null;
+});
+usePopulationStore.subscribe((state, previous) => {
+  if (
+    state.households !== previous.households ||
+    state.citizens !== previous.citizens
+  ) {
+    cache = null;
+  }
+});
+useTransitStore.subscribe((state, previous) => {
+  if (state.stops !== previous.stops || state.lines !== previous.lines) cache = null;
+});
 /**
  * Transit accessibility (2.54).
  *
@@ -22,17 +32,25 @@ usePopulationStore.subscribe(() => {
  * distance (STOP_RADIUS) of the location's road cell.
  *
  * Everything here is derived and cached; nothing is persisted. The cache is
- * invalidated only when the underlying state actually changes (transit store,
- * buildings, population). Consumers call `getAccessibility()` which returns
- * the cached snapshot, recomputing at most once per invalidation.
+ * invalidated when transit, road/building, or population state changes.
+ * Consumers call `getAccessibility()` which recomputes at most once per change.
  */
 
 export interface LineAccessibility {
   lineId: string;
-  /** Citizens whose home is walkable to one of this line's stops. */
+  /** Residents whose home is walkable to this line. */
   homeAccessible: number;
-  /** Employed citizens whose home AND workplace are walkable to this line's stops. */
+  /** Employed residents whose home and workplace are both accessible to this line. */
   commuteEligible: number;
+  /** Non-commuting adult residents with a scheduled leisure period. */
+  leisureEligible: number;
+  /** Residents with an accessible home, used for district aggregation. */
+  homeAccessibleCitizenIds: Set<string>;
+  /** Commuters with accessible home and workplace, used for aggregation. */
+  commuteEligibleCitizenIds: Set<string>;
+  /** Deterministic line assignment prevents overlapping lines double-counting. */
+  estimatedCommuteCitizenIds: Set<string>;
+  estimatedLeisureCitizenIds: Set<string>;
 }
 
 export interface AccessibilitySnapshot {
@@ -53,7 +71,9 @@ export interface AccessibilitySnapshot {
   totalCitizens: number;
   /** 0–100: share of citizens whose home has effective transit access. */
   accessibilityPercent: number;
-  /** Per-line ridership pool, for enabled non-disrupted lines only. */
+  /** Enabled, intact, road-connected lines that currently provide access. */
+  activeLineIds: Set<string>;
+  /** Per-line accessibility and commute/leisure demand pools for valid lines. */
   lineAccessibility: Record<string, LineAccessibility>;
 }
 
@@ -67,162 +87,239 @@ const EMPTY: AccessibilitySnapshot = {
   totalHouseholds: 0,
   totalCitizens: 0,
   accessibilityPercent: 0,
+  activeLineIds: new Set(),
   lineAccessibility: {},
 };
-
-let cache: AccessibilitySnapshot | null = null;
 
 export const invalidateAccessibility = () => {
   cache = null;
 };
 
-const effectiveStops = (stops: TransitStop[]): Set<string> => {
-  const { lines } = useTransitStore.getState();
-  const effective = new Set<string>();
-  for (const line of lines) {
-    if (!line.enabled || line.disrupted) continue;
-    for (const id of line.stopIds) {
-      if (stops.some((s) => s.id === id)) effective.add(id);
+const roadCellsWithinWalkingRadius = (
+  start: string,
+  graph: Map<string, string[]>
+): Set<string> => {
+  if (!graph.has(start)) return new Set();
+  const reachable = new Set([start]);
+  const distance = new Map([[start, 0]]);
+  const queue = [start];
+  for (let index = 0; index < queue.length; index++) {
+    const current = queue[index];
+    const currentDistance = distance.get(current) ?? STOP_RADIUS;
+    if (currentDistance >= STOP_RADIUS) continue;
+    for (const neighbor of graph.get(current) ?? []) {
+      if (distance.has(neighbor)) continue;
+      distance.set(neighbor, currentDistance + 1);
+      reachable.add(neighbor);
+      queue.push(neighbor);
     }
   }
-  return effective;
+  return reachable;
 };
 
 const computeSnapshot = (): AccessibilitySnapshot => {
   const { stops, lines } = useTransitStore.getState();
-  if (stops.length === 0 || lines.length === 0) return EMPTY;
-
-  const effectiveIds = effectiveStops(stops);
-  if (effectiveIds.size === 0) return EMPTY;
-
-  const effectiveStopsList = stops.filter((s) => effectiveIds.has(s.id));
   const buildings = useBuildingStore.getState().buildings;
-  const roadCells = new Set(
-    buildings
-      .filter((b) => b.type === "road")
-      .map((b) => `${Math.round(b.position[0])},${Math.round(b.position[2])}`)
-  );
-  const graph = getRoadGraph(buildings);
+  const { households, citizens } = usePopulationStore.getState();
+  const emptySnapshot = (): AccessibilitySnapshot => ({
+    ...EMPTY,
+    effectiveStopIds: new Set(),
+    accessibleBuildingIds: new Set(),
+    activeLineIds: new Set(),
+    lineAccessibility: {},
+    totalHouseholds: households.length,
+    totalCitizens: citizens.length,
+  });
 
-  // Which road cells are within walking distance of an effective stop?
-  const accessRoadCells = new Set<string>();
-  for (const stop of effectiveStopsList) {
-    if (roadCells.has(stop.roadKey)) accessRoadCells.add(stop.roadKey);
-    for (const cell of roadCells) {
-      const [x, z] = cell.split(",").map(Number);
-      const [sx, sz] = stop.roadKey.split(",").map(Number);
-      if (Math.hypot(x - sx, z - sz) <= STOP_RADIUS && findPath(stop.roadKey, cell, graph)) {
-        accessRoadCells.add(cell);
+  if (stops.length === 0 || lines.length === 0) {
+    return emptySnapshot();
+  }
+
+  const graph = getRoadGraph(buildings);
+  if (graph.size === 0) return emptySnapshot();
+
+  // One component pass verifies actual route connectivity without repeatedly
+  // searching the complete road graph for every stop pair.
+  const roadComponent = new Map<string, number>();
+  let nextComponent = 0;
+  for (const start of graph.keys()) {
+    if (roadComponent.has(start)) continue;
+    const queue = [start];
+    roadComponent.set(start, nextComponent);
+    for (let index = 0; index < queue.length; index++) {
+      for (const neighbor of graph.get(queue[index]) ?? []) {
+        if (roadComponent.has(neighbor)) continue;
+        roadComponent.set(neighbor, nextComponent);
+        queue.push(neighbor);
+      }
+    }
+    nextComponent++;
+  }
+
+  const stopsById = new Map(stops.map((stop) => [stop.id, stop]));
+  const effectiveStopIds = new Set<string>();
+  const activeLineIds = new Set<string>();
+  for (const line of lines) {
+    if (!line.enabled || line.disrupted || line.stopIds.length < 2) continue;
+    const lineStops = line.stopIds.map((id) => stopsById.get(id));
+    if (lineStops.some((stop) => !stop)) continue;
+    const component = roadComponent.get(lineStops[0]?.roadKey ?? "");
+    if (component === undefined) continue;
+    if (lineStops.some((stop) => roadComponent.get(stop?.roadKey ?? "") !== component)) continue;
+    if (new Set(lineStops.map((stop) => stop?.roadKey)).size < 2) continue;
+    activeLineIds.add(line.id);
+    for (const stop of lineStops) {
+      if (stop) effectiveStopIds.add(stop.id);
+    }
+  }
+  if (activeLineIds.size === 0) return emptySnapshot();
+
+  const roadCellAccessByLine = new Map<string, Set<string>>();
+  const walkingCellsByRoadKey = new Map<string, Set<string>>();
+  const walkingCellsForStop = (roadKey: string): Set<string> => {
+    const cached = walkingCellsByRoadKey.get(roadKey);
+    if (cached) return cached;
+    const reachable = roadCellsWithinWalkingRadius(roadKey, graph);
+    walkingCellsByRoadKey.set(roadKey, reachable);
+    return reachable;
+  };
+  for (const line of lines) {
+    if (!activeLineIds.has(line.id)) continue;
+    const lineCells = new Set<string>();
+    for (const stopId of line.stopIds) {
+      const stop = stopsById.get(stopId);
+      if (!stop) continue;
+      for (const cell of walkingCellsForStop(stop.roadKey)) lineCells.add(cell);
+    }
+    roadCellAccessByLine.set(line.id, lineCells);
+  }
+
+  const roadCellKeys = new Set(graph.keys());
+  const buildingRoadCell = new Map<number, string>();
+  const roadOffsets: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (const building of buildings) {
+    if (building.type === "road") continue;
+    const x = Math.round(building.position[0]);
+    const z = Math.round(building.position[2]);
+    for (const [dx, dz] of roadOffsets) {
+      const key = `${x + dx},${z + dz}`;
+      if (roadCellKeys.has(key)) {
+        buildingRoadCell.set(building.id, key);
+        break;
       }
     }
   }
-  if (accessRoadCells.size === 0) return EMPTY;
 
-  // A building is accessible when its nearest road cell is within walking
-  // distance of an effectively-served stop (same convention as citizens).
-  const buildingAccess = new Map<number, boolean>();
-  for (const b of buildings) {
-    if (b.type === "road") continue;
-    const road = findNearestRoadCell(b.position, buildings);
-    buildingAccess.set(b.id, road ? accessRoadCells.has(`${road[0]},${road[1]}`) : false);
-  }
-
-  const { households, citizens } = usePopulationStore.getState();
   const accessibleBuildingIds = new Set<number>();
-  for (const [id, ok] of buildingAccess) {
-    if (ok) accessibleBuildingIds.add(id);
+  const accessibleBuildingIdsByLine = new Map<string, Set<number>>();
+  for (const [lineId, lineCells] of roadCellAccessByLine) {
+    const accessibleIds = new Set<number>();
+    for (const [buildingId, roadCell] of buildingRoadCell) {
+      if (lineCells.has(roadCell)) accessibleIds.add(buildingId);
+    }
+    accessibleBuildingIdsByLine.set(lineId, accessibleIds);
+    for (const buildingId of accessibleIds) accessibleBuildingIds.add(buildingId);
   }
 
-  let accessibleHouseholds = 0;
+  const householdById = new Map(households.map((household) => [household.id, household]));
+  const accessibleHouseholdIds = new Set<string>();
+  for (const household of households) {
+    if (accessibleBuildingIds.has(household.buildingId)) {
+      accessibleHouseholdIds.add(household.id);
+    }
+  }
+
   let accessibleCitizens = 0;
-  let totalCitizens = 0;
   let employedWithAccess = 0;
   let commutingCitizensWithAccess = 0;
-
-  const jobBuildingOf = new Map<string, number>();
-  for (const c of citizens) {
-    if (c.employmentStatus === "employed" && c.jobId) {
-      jobBuildingOf.set(c.id, parseInt(c.jobId, 10));
+  for (const citizen of citizens) {
+    const household = householdById.get(citizen.householdId);
+    if (!household || !accessibleBuildingIds.has(household.buildingId)) continue;
+    accessibleCitizens++;
+    if (citizen.employmentStatus !== "employed" || !citizen.jobId) continue;
+    employedWithAccess++;
+    const jobBuildingId = Number.parseInt(citizen.jobId, 10);
+    if (Number.isInteger(jobBuildingId) && accessibleBuildingIds.has(jobBuildingId)) {
+      commutingCitizensWithAccess++;
     }
   }
 
-  for (const h of households) {
-    const homeOk = accessibleBuildingIds.has(h.buildingId);
-    if (homeOk) accessibleHouseholds++;
-    const householdCitizens = citizens.filter((c) => c.householdId === h.id);
-    totalCitizens += householdCitizens.length;
-    for (const c of householdCitizens) {
-      if (homeOk) {
-        accessibleCitizens++;
-        if (c.employmentStatus === "employed") {
-          employedWithAccess++;
-          const jobBuilding = jobBuildingOf.get(c.id);
-          if (jobBuilding !== undefined && accessibleBuildingIds.has(jobBuilding)) {
-            commutingCitizensWithAccess++;
-          }
-        }
-      }
-    }
-  }
-
-  // Per-line ridership pools: which citizens can reach this line's stops on foot
   const lineAccessibility: Record<string, LineAccessibility> = {};
+  const leisureEligibleIdsByLine = new Map<string, Set<string>>();
   for (const line of lines) {
-    if (!line.enabled || line.disrupted) continue;
-    const lineStops = effectiveStopsList.filter((s) => line.stopIds.includes(s.id));
-    if (lineStops.length === 0) continue;
-
-    const lineCells = new Set<string>();
-    for (const stop of lineStops) {
-      for (const cell of roadCells) {
-        if (lineCells.has(cell)) continue;
-        const [x, z] = cell.split(",").map(Number);
-        const [sx, sz] = stop.roadKey.split(",").map(Number);
-        if (
-          Math.hypot(x - sx, z - sz) <= STOP_RADIUS &&
-          findPath(stop.roadKey, cell, graph)
-        ) {
-          lineCells.add(cell);
-        }
+    const accessibleBuildings = accessibleBuildingIdsByLine.get(line.id);
+    if (!accessibleBuildings) continue;
+    const homeAccessibleCitizenIds = new Set<string>();
+    const commuteEligibleCitizenIds = new Set<string>();
+    for (const citizen of citizens) {
+      const household = householdById.get(citizen.householdId);
+      if (!household || !accessibleBuildings.has(household.buildingId)) continue;
+      homeAccessibleCitizenIds.add(citizen.id);
+      if (citizen.employmentStatus !== "employed" || !citizen.jobId) continue;
+      const jobBuildingId = Number.parseInt(citizen.jobId, 10);
+      if (Number.isInteger(jobBuildingId) && accessibleBuildings.has(jobBuildingId)) {
+        commuteEligibleCitizenIds.add(citizen.id);
       }
     }
+    const leisureEligibleCitizenIds = new Set(
+      citizens
+        .filter((citizen) =>
+          citizen.age >= 18 &&
+          citizen.employmentStatus !== "inactive" &&
+          !commuteEligibleCitizenIds.has(citizen.id) &&
+          [9, 18].some((hour) =>
+            getCitizenActivity(citizen.employmentStatus, citizen.age, hour) === "leisure"
+          )
+        )
+        .filter((citizen) => homeAccessibleCitizenIds.has(citizen.id))
+        .map((citizen) => citizen.id)
+    );
+    leisureEligibleIdsByLine.set(line.id, leisureEligibleCitizenIds);
+    lineAccessibility[line.id] = {
+      lineId: line.id,
+      homeAccessible: homeAccessibleCitizenIds.size,
+      commuteEligible: commuteEligibleCitizenIds.size,
+      leisureEligible: leisureEligibleCitizenIds.size,
+      homeAccessibleCitizenIds,
+      commuteEligibleCitizenIds,
+      estimatedCommuteCitizenIds: new Set<string>(),
+      estimatedLeisureCitizenIds: new Set<string>(),
+    };
+  }
 
-    const lineAccessibleBuildings = new Set<number>();
-    for (const b of buildings) {
-      if (b.type === "road") continue;
-      const road = findNearestRoadCell(b.position, buildings);
-      if (road && lineCells.has(`${road[0]},${road[1]}`)) {
-        lineAccessibleBuildings.add(b.id);
-      }
+  // Assign each eligible citizen to at most one line, in stable line order.
+  const assignedCitizenIds = new Set<string>();
+  for (const line of lines) {
+    const access = lineAccessibility[line.id];
+    if (!access) continue;
+    for (const citizenId of access.commuteEligibleCitizenIds) {
+      if (assignedCitizenIds.has(citizenId)) continue;
+      access.estimatedCommuteCitizenIds.add(citizenId);
+      assignedCitizenIds.add(citizenId);
     }
-
-    let homeAccessible = 0;
-    let commuteEligible = 0;
-    for (const c of citizens) {
-      const household = households.find((h) => h.id === c.householdId);
-      if (!household) continue;
-      if (!lineAccessibleBuildings.has(household.buildingId)) continue;
-      homeAccessible++;
-      if (c.employmentStatus === "employed" && c.jobId) {
-        const jobBuilding = parseInt(c.jobId, 10);
-        if (lineAccessibleBuildings.has(jobBuilding)) commuteEligible++;
-      }
+  }
+  for (const line of lines) {
+    const access = lineAccessibility[line.id];
+    if (!access) continue;
+    for (const citizenId of leisureEligibleIdsByLine.get(line.id) ?? []) {
+      if (assignedCitizenIds.has(citizenId)) continue;
+      access.estimatedLeisureCitizenIds.add(citizenId);
+      assignedCitizenIds.add(citizenId);
     }
-
-    lineAccessibility[line.id] = { lineId: line.id, homeAccessible, commuteEligible };
   }
 
   return {
-    effectiveStopIds: effectiveIds,
+    effectiveStopIds,
     accessibleBuildingIds,
-    accessibleHouseholds,
+    accessibleHouseholds: accessibleHouseholdIds.size,
     accessibleCitizens,
     commutingCitizensWithAccess,
     employedWithAccess,
     totalHouseholds: households.length,
-    totalCitizens,
+    totalCitizens: citizens.length,
     accessibilityPercent:
-      totalCitizens > 0 ? (accessibleCitizens / totalCitizens) * 100 : 0,
+      citizens.length > 0 ? (accessibleCitizens / citizens.length) * 100 : 0,
+    activeLineIds,
     lineAccessibility,
   };
 };

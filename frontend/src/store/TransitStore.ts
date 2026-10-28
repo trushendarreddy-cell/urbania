@@ -233,4 +233,10 @@ const useTransitStore = create<TransitStore>((set, get) => ({
   },
 }));
 
+useTransitStore.subscribe((state, previous) => {
+  if (state.stops !== previous.stops || state.lines !== previous.lines) {
+    invalidateAccessibility();
+  }
+});
+
 export default useTransitStore;

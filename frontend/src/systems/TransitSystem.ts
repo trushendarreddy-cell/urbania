@@ -7,11 +7,12 @@ import useBuildingStore, { type Building } from "../store/BuildingStore";
 import usePopulationStore from "../store/PopulationStore";
 import useDistrictStore from "../store/DistrictStore";
 import useAlertStore from "../store/AlertStore";
-import useRoadUsageStore from "../store/RoadUsageStore";
+import useRoadUsageStore, { ROAD_CAPACITY } from "../store/RoadUsageStore";
 import { getRoadGraph, findPath, findNearestRoadCell } from "./PathfindingSystem";
 import { useSimulationStore } from "../stores/useSimulationStore";
 import {
   getAccessibility,
+  STOP_RADIUS,
   type LineAccessibility,
 } from "./TransitAccessibilitySystem";
 
@@ -24,8 +25,33 @@ export interface LineRoute {
 }
 
 const routeCache = new Map<string, LineRoute>();
+let routesDirty = true;
+let observedBuildings: Building[] | null = null;
+let observedStops: TransitStop[] | null = null;
+let observedLines: TransitLine[] | null = null;
 
-export const clearTransitRouteCache = () => routeCache.clear();
+const markRoutesDirtyIfChanged = () => {
+  const buildings = useBuildingStore.getState().buildings;
+  const { stops, lines } = useTransitStore.getState();
+  if (
+    buildings !== observedBuildings ||
+    stops !== observedStops ||
+    lines !== observedLines
+  ) {
+    routesDirty = true;
+    observedBuildings = buildings;
+    observedStops = stops;
+    observedLines = lines;
+  }
+};
+
+export const clearTransitRouteCache = () => {
+  routeCache.clear();
+  routesDirty = true;
+  observedBuildings = null;
+  observedStops = null;
+  observedLines = null;
+};
 
 const roadKeyFor = (stop: TransitStop): string => stop.roadKey;
 
@@ -66,6 +92,16 @@ const computeLineRoute = (line: TransitLine): LineRoute => {
     fullPath.push(...segment);
   }
 
+  if (fullPath.length < 2) {
+    return {
+      lineId: line.id,
+      stopIds: line.stopIds,
+      roadPath: [],
+      disrupted: true,
+      reason: "Line needs at least two distinct road cells",
+    };
+  }
+
   return {
     lineId: line.id,
     stopIds: line.stopIds,
@@ -76,7 +112,12 @@ const computeLineRoute = (line: TransitLine): LineRoute => {
 };
 
 export const recomputeTransitRoutes = () => {
+  markRoutesDirtyIfChanged();
   const lines = useTransitStore.getState().lines;
+  const lineIds = new Set(lines.map((line) => line.id));
+  for (const lineId of routeCache.keys()) {
+    if (!lineIds.has(lineId)) routeCache.delete(lineId);
+  }
   const store = useTransitStore.getState();
   for (const line of lines) {
     const route = computeLineRoute(line);
@@ -95,6 +136,11 @@ export const recomputeTransitRoutes = () => {
       }
     }
   }
+  routesDirty = false;
+  observedBuildings = useBuildingStore.getState().buildings;
+  const currentTransit = useTransitStore.getState();
+  observedStops = currentTransit.stops;
+  observedLines = currentTransit.lines;
 };
 
 export const getLineRoute = (lineId: string): LineRoute | undefined =>
@@ -324,8 +370,6 @@ const populationNear = (
   return { population, jobs };
 };
 
-export const STOP_RADIUS = 6;
-
 export const canPlaceStop = (
   position: [number, number, number],
   buildings: Building[]
@@ -342,34 +386,16 @@ export const canPlaceStop = (
 };
 
 export const computeStopStats = (stop: TransitStop) => {
+  const accessibility = getAccessibility();
   const lines = useTransitStore
     .getState()
-    .lines.filter((l) => l.stopIds.includes(stop.id));
+    .lines.filter(
+      (line) =>
+        accessibility.activeLineIds.has(line.id) &&
+        line.stopIds.includes(stop.id)
+    );
   const { population, jobs } = populationNear(stop.position, STOP_RADIUS);
-  const riders = estimateRiders(population, jobs, lines.length);
-  const level = coverageLevel(riders, population + jobs);
-  return { lines: lines.length, population, jobs, riders, level };
-};
-
-const estimateRiders = (
-  population: number,
-  jobs: number,
-  lineCount: number
-): number => {
-  const commuteDemand = Math.min(population, jobs) * 2 + population * 0.5;
-  const lineFactor = Math.min(1, lineCount * 0.6);
-  return Math.round(commuteDemand * lineFactor);
-};
-
-const coverageLevel = (
-  riders: number,
-  nearby: number
-): "Good" | "Fair" | "Poor" | "None" => {
-  if (nearby === 0) return "None";
-  const ratio = riders / Math.max(nearby, 1);
-  if (ratio >= 0.8) return "Good";
-  if (ratio >= 0.4) return "Fair";
-  return "Poor";
+  return { lines: lines.length, population, jobs };
 };
 
 export const computeLineStats = (line: TransitLine) => {
@@ -377,19 +403,12 @@ export const computeLineStats = (line: TransitLine) => {
   const lineStops = line.stopIds
     .map((id) => stops.find((s) => s.id === id))
     .filter((s): s is TransitStop => !!s);
-  let riders = 0;
-  for (const s of lineStops) {
-    const { population, jobs } = populationNear(s.position, STOP_RADIUS);
-    riders += estimateRiders(population, jobs, 1);
-  }
-  const busCount = useTransitStore
-    .getState()
-    .buses.filter((b) => b.lineId === line.id).length;
+  const ridership = estimateLineRidership(line);
   const route = routeCache.get(line.id);
   return {
     stops: lineStops,
-    riders,
-    busCount,
+    riders: ridership.estimatedDailyRidership,
+    busCount: ridership.busCount,
     routeLength: route?.roadPath.length ?? 0,
   };
 };
@@ -406,7 +425,8 @@ export const computeLineStats = (line: TransitLine) => {
 export const estimateLineRidership = (line: TransitLine) => {
   const access: LineAccessibility | undefined =
     getAccessibility().lineAccessibility[line.id];
-  const commuters = access?.commuteEligible ?? 0;
+  const commuters = access?.estimatedCommuteCitizenIds.size ?? 0;
+  const leisureCitizens = access?.estimatedLeisureCitizenIds.size ?? 0;
   const homeAccessible = access?.homeAccessible ?? 0;
 
   const route = routeCache.get(line.id);
@@ -414,14 +434,16 @@ export const estimateLineRidership = (line: TransitLine) => {
     .getState()
     .buses.filter((b) => b.lineId === line.id).length;
 
-  // Service quality: an enabled line with buses actually running carries more
+  // Service quality is based on an actual reconstructed fleet and a valid
+  // road route; paused networks without buses do not claim active ridership.
+  const hasReachableRoute = Boolean(route && route.roadPath.length > 1);
   const serviceFactor =
-    !line.enabled || line.disrupted
+    !line.enabled || line.disrupted || !hasReachableRoute || busCount === 0
       ? 0
       : Math.min(1, 0.5 + busCount * 0.25);
 
   const commuteTrips = commuters * 2;
-  const leisureTrips = Math.max(0, homeAccessible - commuters) * 0.4;
+  const leisureTrips = leisureCitizens * 0.4;
   const dailyTrips =
     (commuteTrips + leisureTrips) * serviceFactor;
 
@@ -445,7 +467,7 @@ export const estimateLineRidership = (line: TransitLine) => {
     utilization,
     /** Coarse usage band for UI display. */
     usageLevel: utilizationLevel(utilization),
-    commuteEligible: commuters,
+    commuteEligible: access?.commuteEligible ?? 0,
     homeAccessible,
     busCount,
   };
@@ -464,41 +486,70 @@ export const computeTransitStats = () => {
   const accessibility = getAccessibility();
 
   let dailyRiders = 0;
+  const busesByLine = new Map<string, number>();
+  for (const bus of buses) {
+    busesByLine.set(bus.lineId, (busesByLine.get(bus.lineId) ?? 0) + 1);
+  }
   for (const line of lines) {
-    dailyRiders += estimateLineRidership(line).estimatedDailyRidership;
+    const access = accessibility.lineAccessibility[line.id];
+    if (!access) continue;
+    const busCount = busesByLine.get(line.id) ?? 0;
+    const serviceFactor = accessibility.activeLineIds.has(line.id) && busCount > 0
+      ? Math.min(1, 0.5 + busCount * 0.25)
+      : 0;
+    dailyRiders += Math.round(
+      (access.estimatedCommuteCitizenIds.size * 2 + access.estimatedLeisureCitizenIds.size * 0.4) *
+        serviceFactor
+    );
   }
 
+
   const districts = useDistrictStore.getState().districts;
-  const stats = useDistrictStore.getState().stats;
   const highDemand: string[] = [];
   const lowCoverage: string[] = [];
-  for (const d of districts) {
-    const stat = stats[d.id];
-    if (!stat) continue;
-    const districtStops = stops.filter((s) => {
-      const key = s.cellKey;
-      return d.cells.includes(key);
-    });
+  for (const district of districts) {
+    const districtBuildings = useBuildingStore
+      .getState()
+      .buildings.filter((building) =>
+        district.cells.includes(
+          `${Math.round(building.position[0])},${Math.round(building.position[2])}`
+        )
+      );
+    const districtBuildingIds = new Set(districtBuildings.map((building) => building.id));
+    const households = usePopulationStore.getState().households.filter((household) =>
+      districtBuildingIds.has(household.buildingId)
+    );
+    const population = households.reduce((total, household) => total + household.population, 0);
+    const accessibleHouseholds = households.filter((household) =>
+      accessibility.accessibleBuildingIds.has(household.buildingId)
+    ).length;
     const districtCoverage =
-      stat.households > 0
-        ? Math.min(1, districtStops.length / Math.max(1, stat.households / 4))
-        : 0;
-    const demandScore =
-      stat.population / 100 + stat.traffic * 2 - districtCoverage * 2;
-    if (demandScore >= 1.5) highDemand.push(d.name);
-    if (stat.households > 3 && districtCoverage < 0.3)
-      lowCoverage.push(d.name);
+      households.length > 0 ? accessibleHouseholds / households.length : 0;
+    const roadCount = districtBuildings.filter((building) => building.type === "road").length;
+    const traffic = roadCount > 0
+      ? districtBuildings
+          .filter((building) => building.type === "road")
+          .reduce((total, building) =>
+            total + Math.min(useRoadUsageStore.getState().getUsage(
+              `${Math.round(building.position[0])},${Math.round(building.position[2])}`
+            ) / ROAD_CAPACITY, 1), 0) / roadCount
+      : 0;
+    const demandScore = population / 100 + traffic * 2 - districtCoverage * 2;
+    if (demandScore >= 1.5) highDemand.push(district.name);
+    if (households.length > 3 && districtCoverage < 0.3) lowCoverage.push(district.name);
   }
 
   const coverage = accessibility.accessibilityPercent;
 
+  const activeLineCount = accessibility.activeLineIds.size;
   let network: "Good" | "Fair" | "Poor" = "Poor";
-  if (coverage >= 60 && lines.length >= 2) network = "Good";
-  else if (coverage >= 30 || lines.length >= 1) network = "Fair";
+  if (coverage >= 60 && activeLineCount >= 2) network = "Good";
+  else if (coverage >= 30 || activeLineCount >= 1) network = "Fair";
 
   return {
     stopCount: stops.length,
     lineCount: lines.length,
+    activeLineCount,
     busCount: buses.length,
     dailyRiders,
     coverage,
@@ -513,7 +564,8 @@ export const computeTransitStats = () => {
 };
 
 export const processTransit = (deltaHours: number) => {
-  recomputeTransitRoutes();
+  markRoutesDirtyIfChanged();
+  if (routesDirty) recomputeTransitRoutes();
   updateBuses(deltaHours);
   syncTransitRoadUsage();
 };
@@ -530,6 +582,7 @@ export const rebuildBuses = () => {
 
 export const invalidateTransitRoute = (lineId: string) => {
   routeCache.delete(lineId);
+  routesDirty = true;
 };
 
 export const resetTransit = () => {

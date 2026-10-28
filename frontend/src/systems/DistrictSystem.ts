@@ -16,7 +16,6 @@ import useServiceStore from "../store/ServiceStore";
 import useZoneStore from "../store/ZoneStore";
 import useAlertStore from "../store/AlertStore";
 import useTransitStore from "../store/TransitStore";
-import { computeStopStats } from "./TransitSystem";
 import { getAccessibility } from "./TransitAccessibilitySystem";
 import { hasRoadAccess } from "./RoadAccessSystem";
 
@@ -226,25 +225,54 @@ export const computeDistrictStats = (district: District): DistrictStats => {
   const districtStops = transitStopsAll.filter((s) =>
     cellSet.has(s.cellKey)
   );
-  let transitRiders = 0;
-  const transitLinesSet = new Set<string>();
-  for (const s of districtStops) {
-    transitRiders += computeStopStats(s).riders;
-    for (const l of useTransitStore.getState().lines) {
-      if (l.stopIds.includes(s.id)) transitLinesSet.add(l.id);
-    }
-  }
-  // Effective accessibility: households in buildings reachable on foot from
-  // a stop that is actually served (enabled line, intact route).
+  const { lines: transitLines, buses: transitBuses } = useTransitStore.getState();
   const transitAccess = getAccessibility();
-  let coveredHouseholds = 0;
-  for (const h of districtHouseholds) {
-    if (transitAccess.accessibleBuildingIds.has(h.buildingId)) coveredHouseholds++;
+  const districtHouseholdById = new Map(
+    districtHouseholds.map((household) => [household.id, household])
+  );
+  const districtCitizenIds = new Set(districtCitizens.map((citizen) => citizen.id));
+  const transitLineById = new Map(transitLines.map((line) => [line.id, line]));
+  const transitBusCounts = new Map<string, number>();
+  for (const bus of transitBuses) {
+    transitBusCounts.set(bus.lineId, (transitBusCounts.get(bus.lineId) ?? 0) + 1);
   }
+  const transitLinesSet = new Set<string>();
+  for (const line of transitLines) {
+    if (!transitAccess.activeLineIds.has(line.id)) continue;
+    const reachesDistrictResidents = [...(transitAccess.lineAccessibility[line.id]?.homeAccessibleCitizenIds ?? [])]
+      .some((citizenId) => districtCitizenIds.has(citizenId));
+    const hasDistrictStop = line.stopIds.some((stopId) =>
+      districtStops.some((stop) => stop.id === stopId)
+    );
+    if (reachesDistrictResidents || hasDistrictStop) transitLinesSet.add(line.id);
+  }
+  const accessibleDistrictCitizens = districtCitizens.filter((citizen) =>
+    transitAccess.accessibleBuildingIds.has(
+      districtHouseholdById.get(citizen.householdId)?.buildingId ?? -1
+    )
+  );
   const transitCoverage =
-    districtHouseholds.length > 0
-      ? (coveredHouseholds / districtHouseholds.length) * 100
+    districtCitizens.length > 0
+      ? (accessibleDistrictCitizens.length / districtCitizens.length) * 100
       : 0;
+  let transitRiders = 0;
+  for (const lineId of transitLinesSet) {
+    const lineAccess = transitAccess.lineAccessibility[lineId];
+    const line = transitLineById.get(lineId);
+    if (!lineAccess || !line) continue;
+    const busCount = transitBusCounts.get(lineId) ?? 0;
+    if (busCount === 0) continue;
+    const commutePool = [...lineAccess.estimatedCommuteCitizenIds].filter((citizenId) =>
+      districtCitizenIds.has(citizenId)
+    ).length;
+    const leisurePool = [...lineAccess.estimatedLeisureCitizenIds].filter((citizenId) =>
+      districtCitizenIds.has(citizenId)
+    ).length;
+    const serviceFactor = line.enabled && !line.disrupted
+      ? Math.min(1, 0.5 + busCount * 0.25)
+      : 0;
+    transitRiders += (commutePool * 2 + leisurePool * 0.4) * serviceFactor;
+  }
   let transitNeed: DistrictStats["transitNeed"] = "None";
   if (districtHouseholds.length === 0) transitNeed = "None";
   else {
@@ -374,8 +402,9 @@ export const computeDistrictStats = (district: District): DistrictStats => {
     developmentActivity,
     transitCoverage,
     transitStops: districtStops.length,
+    transitAccessiblePopulation: accessibleDistrictCitizens.length,
     transitLines: transitLinesSet.size,
-    transitRiders,
+    transitRiders: Math.round(transitRiders),
     transitNeed,
   };
 };

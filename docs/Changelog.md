@@ -287,13 +287,14 @@
 - Road-usage integration via existing RoadUsageStore sync
 
 ## 2.54 - Transit Accessibility & Ridership
-- TransitAccessibilitySystem: cached accessibility snapshot (effective stops, accessible buildings/citizens, commute pools) derived from real state; invalidated only on transit/building/population changes
-- Effective access requires a stop on an enabled, non-disrupted line; road-walkable distance from the building's nearest road cell
-- Derived per-line ridership estimates (commute + leisure trips, service-scaled, time-of-day weighted) with utilization bands; all estimates labeled in UI
-- Happiness transit bonus now requires effective access; district transit coverage uses effective accessibility
-- TransitPanel: Accessibility %, Est. Daily Riders, per-line Est. Riders/day + Utilization; DistrictPanel: Accessibility + Est. users
-- Transit Accessibility overlay (green = access, gray = none) via the existing overlay architecture
-- No passenger entities, boarding animations, or individual citizen transit trips
+- Cached access is derived from citizens' home buildings' nearest road-adjacent cells and a BFS walk distance of six connected road cells to a stop served by an enabled, non-disrupted, road-connected line. It recalculates on road/building, population, or transit changes and is not persisted.
+- City and district accessibility is the share of actual residents whose home is reachable; district statistics also expose accessible population, in-district stops, and active lines that reach residents or contain a local stop.
+- Per-line daily ridership estimates use citizens with accessible homes and (for commuters) workplaces, each citizen is allocated to at most one line, and activity eligibility comes from the existing citizen schedule. Estimated volume scales with active buses; utilization is shown as Low / Moderate / High against a simple fleet-capacity estimate.
+- TransitPanel shows stops, active lines/buses, city accessibility, estimated daily ridership, selected-line estimates and utilization. DistrictPanel extends its existing inspection with stops, accessibility, accessible residents, and estimated daily trips. The accessibility overlay marks residential, shop, and factory buildings green/gray.
+- Happiness gets the existing small mobility bonus only for effectively accessible homes. Bus road usage continues through the existing traffic system.
+- Derived accessibility and ridership are rebuilt from city and transit state after load; only underlying stops/lines are saved.
+- Limitations: connectivity is road-cell based, not door-to-door; rider demand and bus capacity are coarse estimates; districts count estimated trips for accessible residents served by lines with a local stop or resident access.
+- **Passenger entities, boarding animations, and individual citizen transit trips are not implemented.**
 
 ## Fixed alongside 2.50
 - LandValueOverlay / DevelopmentOverlay mounted outside the R3F Canvas crashed the app on startup (black screen); overlay state moved to App and overlays render inside the Canvas

@@ -67,6 +67,7 @@ export interface DistrictStats {
   transitStops: number;
   transitLines: number;
   transitRiders: number;
+  transitAccessiblePopulation: number;
   transitNeed: "Low" | "Moderate" | "High" | "None";
 }
 
